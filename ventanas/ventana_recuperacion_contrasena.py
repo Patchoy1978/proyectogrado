@@ -50,14 +50,6 @@ class RecuperacionContrasena():
         
         self.frame_1.grid(row= 1, column = 0, sticky = 'nsew')
         
-        self.frame_1_1 = ctk.CTkFrame(self.root, fg_color='transparent')
-        
-        self.frame_1_1.grid(row= 2, column = 0, sticky = 'nsew')
-        
-        self.frame_1_2 = ctk.CTkFrame(self.root, fg_color='transparent')
-        
-        self.frame_1_2.grid(row= 3, column = 0, sticky = 'nsew')
-        
         self.frame_2 = ctk.CTkFrame(self.root, fg_color='transparent')
         
         self.frame_2.grid(row= 4, column = 0, sticky = 'nsew')
@@ -66,8 +58,6 @@ class RecuperacionContrasena():
         self.frame.grid_rowconfigure(0, weight=1)
         
         self.frame_1.grid_columnconfigure(0, weight=1)
-        self.frame_1_1.grid_columnconfigure(0, weight=1)
-        self.frame_1_2.grid_columnconfigure(0, weight=1)
         
         self.frame_2.grid_columnconfigure(1, weight=1)
         self.frame_2.grid_columnconfigure(2, weight=1)
@@ -92,22 +82,24 @@ class RecuperacionContrasena():
         campos1 = [
             
             {'label': 'Email', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Introduce tú Email'},
-            
-        ]
-        
-        campos1_1 = [
-            
-            
             {'label': 'Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Introduce tú Nueva Contraseña'},
-            
-        ]
-        
-        campos1_2 = [
-            
-            
             {'label': 'Repite La Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Repite tú Nueva Contraseña'},
             
         ]
+        
+        # campos1_1 = [
+            
+            
+        #     {'label': 'Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Introduce tú Nueva Contraseña'},
+            
+        # ]
+        
+        # campos1_2 = [
+            
+            
+        #     {'label': 'Repite La Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Repite tú Nueva Contraseña'},
+            
+        # ]
         
         campos2 = [
             
@@ -122,25 +114,25 @@ class RecuperacionContrasena():
             
         for i, campo1 in enumerate(campos1):
             
-            self.crear_label(self.frame_1, campo1['label'], self.fonts['label_title'], fila= i, columna=0)
+            self.crear_label(self.frame_1, campo1['label'], self.fonts['label_title'], fila= i*2+1, columna=0)
 
-            self.crear_entry(self.frame_1, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1['ancho'], alto=campo1['alto'], placeholder=campo1['placeholder'])
+            self.crear_entry(self.frame_1, font=self.fonts['label'], fila = i*2+2, columna=0, ancho_widget=campo1['ancho'], alto_widget=campo1['alto'], placeholder=campo1['placeholder'])
             
-        for i, campo1_1 in enumerate(campos1_1):
+        # for i, campo1_1 in enumerate(campos1_1):
             
-            self.crear_label(self.frame_1_1, campo1_1['label'], self.fonts['label_title'], fila= i, columna=0)
+        #     self.crear_label(self.frame_1_1, campo1_1['label'], self.fonts['label_title'], fila= i, columna=0)
 
-            self.crear_entry(self.frame_1_1, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_1['ancho'], alto=campo1_1['alto'], placeholder=campo1_1['placeholder'])
+        #     self.crear_entry(self.frame_1_1, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_1['ancho'], alto=campo1_1['alto'], placeholder=campo1_1['placeholder'])
         
-        for i, campo1_2 in enumerate(campos1_2):
+        # for i, campo1_2 in enumerate(campos1_2):
             
-            self.crear_label(self.frame_1_2, campo1_2['label'], self.fonts['label_title'], fila= i, columna=0)
+        #     self.crear_label(self.frame_1_2, campo1_2['label'], self.fonts['label_title'], fila= i, columna=0)
 
-            self.crear_entry(self.frame_1_2, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_2['ancho'], alto=campo1_2['alto'], placeholder=campo1_2['placeholder'])
+        #     self.crear_entry(self.frame_1_2, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_2['ancho'], alto=campo1_2['alto'], placeholder=campo1_2['placeholder'])
         
         for i, campo2 in enumerate(campos2):
             
-            self.crear_boton(self.frame_2, self.fonts['label_title'], campo2['label'], campo2['color'], 0, i+1, campo2['alto'], campo2['ancho'], command=campo2['command'])
+            self.crear_boton(self.frame_2, self.fonts['label_title'], campo2['label'], campo2['color'], 0, i+1,  ancho_widget=campo2['ancho'], alto_widget=campo2['alto'], command=campo2['command'])
         
     def crear_label(self, parent, texto, fuente, fila, columna, ancho = 1, alto = 1):
         
@@ -152,7 +144,7 @@ class RecuperacionContrasena():
         
         return label
     
-    def crear_entry(self, parent, font, fila, columna, ancho = 1, alto = 1, ancho_widget = 300, alto_widget = 26, placeholder = ''):
+    def crear_entry(self, parent, font, fila, columna, ancho_widget = '', alto_widget = '', placeholder = ''):
         
         entry = ctk.CTkEntry(parent,
                             font= font,
@@ -165,11 +157,11 @@ class RecuperacionContrasena():
                             placeholder_text_color= 'gray'
                             )
         
-        entry.grid(row = fila, column = columna, sticky= 'ew', padx = 5, columnspan = ancho, rowspan = alto)
+        entry.grid(row = fila, column = columna, sticky= 'ew', padx = 5)
         
         return entry
     
-    def crear_boton(self, parent, font, texto, color_fondo, fila, columna, ancho=70, alto=70, command=None):
+    def crear_boton(self, parent, font, texto, color_fondo, fila, columna, ancho=1, alto=1, ancho_widget = '', alto_widget = '', command=None):
         
         boton = ctk.CTkButton(
                                 parent,
@@ -177,10 +169,10 @@ class RecuperacionContrasena():
                                 text=texto,
                                 fg_color=color_fondo,
                                 text_color='black',
-                                height=alto,
-                                width= ancho,
+                                height=alto_widget,
+                                width= ancho_widget,
                                 command=command,
                                 corner_radius=10
                             )
-        boton.grid(row=fila, column=columna, rowspan=alto, padx=15, pady= 15, sticky='ew')
+        boton.grid(row=fila, column=columna, rowspan=alto, columnspan = ancho, padx=15, pady= 15, sticky='nsew')
         return boton

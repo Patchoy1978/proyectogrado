@@ -110,6 +110,16 @@ def abrir_ventana_recuperacion_contrasena():
     abrir_recuperacion_contrasena = abrir_ventana_recuperacion.obtener_ventana()
     
     abrir_recuperacion_contrasena.deiconify()
+    
+def abrir_ventana_admon():
+    
+    from ventanas.ventana_admon import VentanaAdmon
+    
+    abrir_ventana_administrador = VentanaAdmon()
+    
+    mostrar_ventana_admon = abrir_ventana_administrador.obtener_ventana()
+    
+    mostrar_ventana_admon.deiconify()
 
 def abrir_ventana_inicio():
     

@@ -18,6 +18,8 @@ class VentanaRegistroUsuario():
         
         self.root = ctk.CTk()
         
+        self.root.protocol("WM_DELETE_WINDOW", lambda: None)
+        
         x = (self.root.winfo_screenwidth() // 2) - (ancho_ventana_nueva // 2)
 
         y = (self.root.winfo_screenheight() // 2) - (alto_ventana_nueva // 2)
