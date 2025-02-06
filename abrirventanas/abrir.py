@@ -138,3 +138,84 @@ def cerrar_ppal_entrada(venta_principal, ventana_ingreso):
     venta_principal.destroy()
     
     ventana_ingreso.destroy()
+    
+# ventanas del admon
+
+def abrir_ventana_alergias(parent_window=None):
+    
+    from ventanas_admon.ventana_alergias import IngresoAlergias
+    
+    abrir_ventana_alergia = IngresoAlergias(parent_window=parent_window)
+    
+    mostrar_ventana_alergia = abrir_ventana_alergia.obtener_ventana()
+    mostrar_ventana_alergia.grab_set()
+   
+    mostrar_ventana_alergia.deiconify()
+    mostrar_ventana_alergia.lift()
+
+def abrir_ventana_aislamiento(parent_window=None):
+    
+    from ventanas_admon.ventana_aislamientos import IngresoAislamientos
+    
+    abrir_ventana_aislamiento1 = IngresoAislamientos(parent_window=parent_window)
+    
+    mostrar_ventana_aislamiento = abrir_ventana_aislamiento1.obtener_ventana()
+    mostrar_ventana_aislamiento.grab_set()
+    
+    mostrar_ventana_aislamiento.deiconify()
+
+def abrir_ventana_rango_edad(parent_window=None):
+    
+    from ventanas_admon.ventana_rango_edades import IngresoRangoEdades
+    
+    abrir_ventana_rangoedad = IngresoRangoEdades(parent_window=parent_window)
+    
+    mostrar_ventana_rangoedad = abrir_ventana_rangoedad.obtener_ventana()
+    mostrar_ventana_rangoedad.grab_set()
+    
+    mostrar_ventana_rangoedad.deiconify()
+
+def abrir_ventana_estudio_ordenado(parent_window=None):
+    
+    from ventanas_admon.ventana_estudios_ordenados import IngresoEstudiosOrdenados
+    
+    abrir_ventana_estudiosordenados = IngresoEstudiosOrdenados(parent_window=parent_window)
+    
+    mostrar_ventana_estudiosordenados = abrir_ventana_estudiosordenados.obtener_ventana()
+    mostrar_ventana_estudiosordenados.grab_set()
+    
+    mostrar_ventana_estudiosordenados.deiconify()
+    
+def abrir_ventana_estados(parent_window=None):
+    
+    from ventanas_admon.ventana_estados import IngresoEstados
+    
+    abrir_ventana_estado = IngresoEstados(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()
+    
+def abrir_ventana_sedes(parent_window=None):
+    
+    from ventanas_admon.ventana_sedes import IngresoSedes
+    
+    abrir_ventana_estado = IngresoSedes(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()
+    
+def abrir_ventana_ratrasos(parent_window=None):
+    
+    from ventanas_admon.ventana_retrasos import IngresoRetrasos
+    
+    abrir_ventana_estado = IngresoRetrasos(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()
+    

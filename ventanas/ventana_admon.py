@@ -5,6 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import customtkinter as ctk
 
+from abrirventanas.abrir import abrir_ventana_alergias
+from abrirventanas.abrir import abrir_ventana_aislamiento
+from abrirventanas.abrir import abrir_ventana_rango_edad
+from abrirventanas.abrir import abrir_ventana_estudio_ordenado
+from abrirventanas.abrir import abrir_ventana_estados
+from abrirventanas.abrir import abrir_ventana_sedes
+from abrirventanas.abrir import abrir_ventana_ratrasos
+
 class VentanaAdmon():
     
     def __init__(self):
@@ -54,6 +62,7 @@ class VentanaAdmon():
             
             self.frame1.grid_rowconfigure(i, weight=1)
         
+        # self.root.mainloop()
         
         self.widgets_admon()
         
@@ -72,18 +81,18 @@ class VentanaAdmon():
             
             {'label': 'Pacientes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
             {'label': 'Usuarios', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Alergias', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Estudios Ordenados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
+            {'label': 'Alergias', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify())},
+            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify())},
+            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_rango_edad(self.root), self.root.iconify())},
+            {'label': 'Estudios Ordenados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_estudio_ordenado(self.root), self.root.iconify())},
         ]
         
         campos2 = [
             
             {'label': 'Modalidades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Estados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Sedes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
-            {'label': 'Retrasos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
+            {'label': 'Estados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify())},
+            {'label': 'Sedes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify())},
+            {'label': 'Retrasos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify())},
             {'label': 'Cargos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
             {'label': 'Salir', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': self.root.destroy},
         ]
@@ -94,11 +103,11 @@ class VentanaAdmon():
             
         for i, campo1 in enumerate(campos1):
             
-            self.crear_boton(self.frame1,text= campo1['label'], font= self.fonts['boton'], fila = i, columna = 0, command= None, widget_alto = campo1['alto'], widget_ancho = campo1['ancho'])
+            self.crear_boton(self.frame1,text= campo1['label'], font= self.fonts['boton'], fila = i, columna = 0, command= campo1['command'], widget_alto = campo1['alto'], widget_ancho = campo1['ancho'])
         
-        for i, campo1 in enumerate(campos2):
+        for i, campo2 in enumerate(campos2):
             
-            self.crear_boton(self.frame1,text= campo1['label'], font= self.fonts['boton'], fila = i, columna = 1, command= campo1['command'], widget_alto = campo1['alto'], widget_ancho = campo1['ancho'])
+            self.crear_boton(self.frame1,text= campo2['label'], font= self.fonts['boton'], fila = i, columna = 1, command= campo2['command'], widget_alto = campo2['alto'], widget_ancho = campo2['ancho'])
         
     def crear_label(self, parent, texto, fuente, fila, columna, ancho = 1, alto = 1):
         
@@ -124,3 +133,6 @@ class VentanaAdmon():
         boton.grid(row= fila, column = columna, sticky= 'ew', pady = 5, padx = 5)
         
         return boton
+    
+# a= VentanaAdmon()
+# f = a.obtener_ventana()

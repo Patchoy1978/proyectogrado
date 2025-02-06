@@ -80,7 +80,7 @@ class VentanaDB():
         
         campos2 = [
             
-            {'label': 'Crear DB', 'placeholder': 'Host','ancho': 100, 'alto': 50, 'color':'lightblue', 'command': lambda: (self.crear_db(), abrir_ventana_inicio())},
+            {'label': 'Crear DB', 'placeholder': 'Host','ancho': 100, 'alto': 50, 'color':'lightblue', 'command': lambda: (self.crear_db(), abrir_ventana_inicio(), self.root.destroy())},
             {'label': 'Salir', 'placeholder': 'User','ancho': 100, 'alto': 50, 'color':'red', 'command': self.root.destroy},
         ]
         
@@ -127,14 +127,22 @@ class VentanaDB():
             
     def crear_db(self):
         
-        from conectarDB.conectar_DB import ConexionDB
+        from CrearDB.crear_DB import ConexionDB
+        
+        from configuracion.guardar_datos import Guardar_datos_db  # Importamos la función creada
+        
         # Obtener los valores ingresados en los Entry
         host = self.entry_host.get()
         user = self.entry_user.get()
         password = self.entry_password.get()
         port = int(self.entry_port.get())  # Convertir el puerto a entero
+
+        # Guardar la configuración en el archivo JSON
+        Guardar_datos_db(host, user, password, port)
         
+        # Llamada a la conexión u otra lógica que tengas
         ConexionDB(host, user, password, port)
+        
         
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
