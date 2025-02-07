@@ -36,7 +36,7 @@ def abrir_ventana_ingreso():
     contenido_frame3 = ContenidoFrame3(frames_dict["frame3"])
     contenido_frame3.contenidosframe3()
     
-def abrir_ventana_modificar():  # NUEVO CÓDIGO
+def abrir_ventana_modificar():  
     
     from frames.frame_base import FrameBase
     from contenidoframesmodificar.contenido_modificar_frame1 import ContenidoModificarFrame1
@@ -219,3 +219,24 @@ def abrir_ventana_ratrasos(parent_window=None):
     
     mostrar_ventana_estado.deiconify()
     
+def abrir_ventana_cargos(parent_window=None):
+    
+    from ventanas_admon.ventana_cargos import IngresoCargos
+    
+    abrir_ventana_estado = IngresoCargos(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()
+    
+def abrir_ventana_modalidad(parent_window=None):
+    
+    from ventanas_admon.ventana_modalidades import IngresoModalidades
+    
+    abrir_ventana_estado = IngresoModalidades(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()  

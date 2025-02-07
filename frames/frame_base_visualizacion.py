@@ -15,7 +15,7 @@ class FrameBaseVisualizacion():
         
         # Configura el layout de la ventana principal usando grid
         self.ventana.grid_rowconfigure(0, weight=0)  # Frame superior (10% del alto total)
-        self.ventana.grid_columnconfigure(0, weight=1)  # Frame 1
+        self.ventana.grid_columnconfigure(0, weight=1)
         self.ventana.grid_columnconfigure(0, weight=1) 
         
         # Frame superior

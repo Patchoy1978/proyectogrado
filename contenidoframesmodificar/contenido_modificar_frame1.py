@@ -6,8 +6,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import tkinter as tk
 import customtkinter as ctk
-# from tkinter import ttk
-# from tkinter.ttk import Combobox
 
 class ContenidoModificarFrame1():
        
@@ -137,7 +135,7 @@ class ContenidoModificarFrame1():
         lab_alergias_paciente = tk.Label(self.frame, text='Alergias', font=self.fonts['label'], bg='white', width=20)
         lab_alergias_paciente.grid(row=13, column=0, pady= 10, sticky='nsew')
         
-        var_alergias = tk.IntVar(value=2)  # Valor predeterminado es 0
+        var_alergias = tk.IntVar(value=2)  # Valor predeterminado es No
 
         # Botón de opción 1
         radio_alergias1 = tk.Radiobutton(self.frame,
@@ -177,7 +175,7 @@ class ContenidoModificarFrame1():
         lab_aislamiento_paciente = tk.Label(self.frame, text='Aislamiento', font=self.fonts['label'], bg='white', width=20)
         lab_aislamiento_paciente.grid(row=15, column=0, pady= 10, sticky='nsew')
         
-        var_aislamiento = tk.IntVar(value=2)  # Valor predeterminado es 0
+        var_aislamiento = tk.IntVar(value=2)  # Valor predeterminado es No
 
         # Botón de opción 1
         radio_aislamiento1 = tk.Radiobutton(self.frame,

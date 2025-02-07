@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-class IngresoEstudiosOrdenados():
+class IngresoModalidades():
     
     def __init__(self, parent_window=None):
         
@@ -29,6 +29,8 @@ class IngresoEstudiosOrdenados():
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
         self.root.title('Ingreso Estudios')
+        
+        self.root.iconbitmap('img/documento.ico')
         
         self.root.resizable(False,False)
         
@@ -63,24 +65,11 @@ class IngresoEstudiosOrdenados():
         self.db = Conexion_DB()
         self.db.conectar()  
         
-        self.estudio_id_seleccionado = None
-        
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
         self.entries = {}
-        
-        # # Crear la variable de control para el Entry
-        # self.vars['estudio'] = ctk.StringVar()
-        # # Asociar el trace para que cada vez que cambie se actualice en formato title
-        # self.vars['estudio'].trace_add("write", self.actualizar_a_title)
-        
-        # # Crear la variable de control para el Entry
-        # self.vars['abreviacion'] = ctk.StringVar()
-        # # Asociar el trace para que cada vez que cambie se actualice en formato title
-        # self.vars['abreviacion'].trace_add("write", self.actualizar_a_title)
-        
-        
-        self.alergia_id_seleccionada = None
+       
+        self.modalidad_id_seleccionada = None
         
         self.ingreso_datos()
         
@@ -97,7 +86,7 @@ class IngresoEstudiosOrdenados():
         
         campos1 = [
             
-            {'clave': 'estudio', 'label': 'Estudio', 'placeholder': 'Ingrese el Estudio','ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'modalidad', 'label': 'Modalidad', 'placeholder': 'Ingrese la Modalidad','ancho': 100, 'alto': 26, 'tipo':'entry'},
             {'clave': 'abreviacion','label': 'Abreviación', 'placeholder': 'Ingrese la Abreviación','ancho': 100, 'alto': 26, 'tipo':'entry'},
             {'clave': 'busqueda','label': 'Resultado de la Busqueda', 'placeholder': 'Busqueda','ancho': 100, 'alto': 26, 'tipo':'textbox'}
 
@@ -105,9 +94,9 @@ class IngresoEstudiosOrdenados():
         
         campos2 = [
             
-            {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_estudio},
-            {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_estudio},
-            {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_estudio},
+            {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_modalidad},
+            {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_modalidad},
+            {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_modalidad},
             {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'red', 'command': self.salir},
         ]
         
@@ -124,14 +113,14 @@ class IngresoEstudiosOrdenados():
                 # Creamos la variable de control para el entry y lo guardamos en el diccionario
                 self.vars[campo1['clave']] = ctk.StringVar()
                 # Si deseas, puedes agregar trace para modificar el texto a Title (por ejemplo en el entry "estudio")
-                if campo1['clave'] == 'estudio':
+                if campo1['clave'] == 'modalidad':
                     self.vars[campo1['clave']].trace_add("write", self.actualizar_a_title)
-                    self.vars[campo1['clave']].trace_add("write", self.buscar_estudio)
+                    self.vars[campo1['clave']].trace_add("write", self.buscar_modalidad)
                     # Además puedes agregar otro trace para buscar mientras se escribe:
                 else:
                     
                     self.vars[campo1['clave']].trace_add("write", self.actualizar_a_title)
-                    self.vars[campo1['clave']].trace_add("write", self.buscar_estudio)
+                    self.vars[campo1['clave']].trace_add("write", self.buscar_modalidad)
                 
                 # Se crea el entry y se almacena en el diccionario
                 self.entries[campo1['clave']] = self.crear_entry(
@@ -170,19 +159,19 @@ class IngresoEstudiosOrdenados():
             
         # para insertar
             
-        self.sql_statement = """insert into estudiosordenados (nombre_estudio, abreviacion) values (%s, %s)"""
+        self.sql_statement = """insert into modalidades (nombre_modalidad, abreviacion) values (%s, %s)"""
     
     def actualizar_a_title(self, *args):
         """
         Callback que actualiza el contenido de la variable a formato Title.
         """
         
-        # Actualizar el entry de 'estudio'
-        texto_estudio = self.vars['estudio'].get()
-        texto_title_estudio = texto_estudio.title()
+        # Actualizar el entry de 'modalidad'
+        texto_modalidad = self.vars['modalidad'].get()
+        texto_title_modalidad = texto_modalidad.title()
         
-        if texto_estudio != texto_title_estudio:
-            self.vars['estudio'].set(texto_title_estudio)
+        if texto_modalidad != texto_title_modalidad:
+            self.vars['modalidad'].set(texto_title_modalidad)
             
         texto_abreviacion = self.vars['abreviacion'].get()
         texto_title_abreviacion = texto_abreviacion.upper()
@@ -190,119 +179,119 @@ class IngresoEstudiosOrdenados():
         if texto_abreviacion != texto_title_abreviacion:
             self.vars['abreviacion'].set(texto_title_abreviacion)
     
-    def insertar_estudio(self):
+    def insertar_modalidad(self):
         
         # Obtener los valores de los entries usando las claves del diccionario
         
-        estudio = self.entries['estudio'].get().strip()
+        modalidad = self.entries['modalidad'].get().strip()
         abreviacion = self.entries['abreviacion'].get().strip()
         
-        if not estudio or not abreviacion:
-            print("Debe ingresar tanto el Estudio como la Abreviación.")
+        if not modalidad or not abreviacion:
+            print("Debe ingresar tanto la Modalidad como la Abreviación.")
             return
         
-        # Consultar si el estudio ya existe en la base de datos (ajusta la consulta según corresponda)
-        consulta_existencia = "SELECT COUNT(*) FROM estudiosordenados WHERE nombre_estudio = %s AND abreviacion = %s"
-        self.db.cursor.execute(consulta_existencia, (estudio, abreviacion))
+        # Consultar si el modalidad ya existe en la base de datos (ajusta la consulta según corresponda)
+        consulta_existencia = "SELECT COUNT(*) FROM modalidades WHERE nombre_modalidad  = %s AND abreviacion = %s"
+        self.db.cursor.execute(consulta_existencia, (modalidad, abreviacion))
         resultado = self.db.cursor.fetchone()  # Usamos fetchone para un solo resultado
 
         if resultado[0] > 0:
-            print(f"El Estudio '{estudio}' ya existe en la base de datos.")
+            print(f"El Estudio '{modalidad}' ya existe en la base de datos.")
             return  # No inserta si ya existe
 
         # try:
-        sql_insert = "INSERT INTO estudiosordenados (nombre_estudio, abreviacion) VALUES (%s, %s)"
-        self.db.cursor.execute(sql_insert, (estudio, abreviacion))
+        sql_insert = "INSERT INTO modalidades (nombre_modalidad, abreviacion) VALUES (%s, %s)"
+        self.db.cursor.execute(sql_insert, (modalidad, abreviacion))
         self.db.conexion.commit()
         # Limpiar los entries luego de la inserción
-        self.vars['estudio'].set("")
+        self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:
         #     print("Error al insertar en la base de datos:", e)
         
-    def eliminar_estudio(self):
+    def eliminar_modalidad(self):
         
-        estudio = self.entries['estudio'].get().strip()
+        modalidad = self.entries['modalidad'].get().strip()
         abreviacion = self.entries['abreviacion'].get().strip()
         
-        if not estudio or not abreviacion:
-            print("Debe seleccionar un estudio y su abreviación para eliminar.")
+        if not modalidad or not abreviacion:
+            print("Debe seleccionar una Modalidad y su abreviación para eliminar.")
             return
         
-        sql_delete = "DELETE FROM estudiosordenados WHERE nombre_estudio = %s AND abreviacion = %s"
-        self.db.cursor.execute(sql_delete, (estudio, abreviacion))
+        sql_delete = "DELETE FROM modalidades WHERE nombre_modalidad = %s AND abreviacion = %s"
+        self.db.cursor.execute(sql_delete, (modalidad, abreviacion))
         self.db.conexion.commit()
-        self.vars['estudio'].set("")
+        self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")
     
-    def buscar_estudio(self, *args):
+    def buscar_modalidad(self, *args):
         
-        estudio = self.vars['estudio'].get().strip()
+        modalidad = self.vars['modalidad'].get().strip()
 
         # Limpiar el textbox de resultados
         self.textbox_resultados.configure(state="normal")
         self.textbox_resultados.delete("1.0", "end")
 
-        if not estudio:
+        if not modalidad:
             self.textbox_resultados.configure(state="disabled")
             return
 
-        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM estudiosordenados WHERE nombre_estudio LIKE %s"
-        self.db.cursor.execute(sql_buscar_estudio, (f"%{estudio}%",))
+        sql_buscar_modalidad = "SELECT id_modalidad, nombre_modalidad, abreviacion FROM modalidades WHERE nombre_modalidad LIKE %s"
+        self.db.cursor.execute(sql_buscar_modalidad, (f"%{modalidad}%",))
         resultados = self.db.cursor.fetchall()
 
         if resultados:
             for resultado in resultados:
-                id_estudio, nombre, abreviacion = resultado
-                self.textbox_resultados.insert("end", f"{id_estudio}: {nombre} - {abreviacion}\n")
+                id_modalidad, nombre, abreviacion = resultado
+                self.textbox_resultados.insert("end", f"{id_modalidad}: {nombre} - {abreviacion}\n")
         else:
             self.textbox_resultados.insert("end", "No hay coincidencias")
 
         self.textbox_resultados.configure(state="disabled")
-        self.textbox_resultados.bind("<ButtonRelease-1>", self.seleccionar_estudio)
+        self.textbox_resultados.bind("<ButtonRelease-1>", self.seleccionar_modalidad)
     
-    def modificar_estudio(self):
+    def modificar_modalidad(self):
         
-        estudio_nuevo = self.entries['estudio'].get().strip()
+        modalidad_nueva = self.entries['modalidad'].get().strip()
         abreviacion_nueva = self.entries['abreviacion'].get().strip()
 
-        if not estudio_nuevo or not abreviacion_nueva:
+        if not modalidad_nueva or not abreviacion_nueva:
             print("Debe ingresar los datos para modificar.")
             return
 
         # Verificar si se ha seleccionado una modalidad
-        if not self.estudio_id_seleccionado:
+        if not self.modalidad_id_seleccionada:
             print("No se ha seleccionado una modalidad para modificar.")
             return
 
-        sql_modificar_estudio = "UPDATE estudiosordenados SET nombre_estudio = %s, abreviacion = %s WHERE id_estudio = %s"
-        self.db.cursor.execute(sql_modificar_estudio, (estudio_nuevo, abreviacion_nueva, self.estudio_id_seleccionado))
+        sql_modificar_modalidad = "UPDATE modalidades SET nombre_modalidad = %s, abreviacion = %s WHERE id_modalidad = %s"
+        self.db.cursor.execute(sql_modificar_modalidad, (modalidad_nueva, abreviacion_nueva, self.modalidad_id_seleccionada))
         self.db.conexion.commit()
 
         # Limpiar los campos
         self.textbox_resultados.configure(state="normal")
         self.textbox_resultados.delete("1.0", "end")
-        self.vars['estudio'].set("")
+        self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")
-        self.estudio_id_seleccionado = None  # Resetear la selección
+        self.modalidad_id_seleccionada = None  # Resetear la selección
         self.textbox_resultados.configure(state="disabled")
     
-    def obtener_resultados_busqueda(self, estudio):
+    def obtener_resultados_busqueda(self, modalidad):
         
         # Realiza la búsqueda en la base de datos y devuelve los resultados
-        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM estudiosordenados WHERE nombre_estudio LIKE %s"
-        self.db.cursor.execute(sql_buscar_estudio, (f"%{estudio}%",))
+        sql_buscar_modalidad = "SELECT id_modalidad, nombre_modalidad, abreviacion FROM modalidades WHERE nombre_modalidad LIKE %s"
+        self.db.cursor.execute(sql_buscar_modalidad, (f"%{modalidad}%",))
         resultados = self.db.cursor.fetchall()
         
         # Crear un diccionario con los resultados, {id_alergia: nombre_alergia}
-        estudio_dict = {}
+        modalidad_dict = {}
         for resultado in resultados:
-            estudio_dict[resultado[0]] = resultado[1]  # {id_alergia: nombre_alergia}
+            modalidad_dict[resultado[0]] = resultado[1]  # {id_alergia: nombre_alergia}
         
-        return estudio_dict
+        return modalidad_dict
     
-    def seleccionar_estudio(self, event):
+    def seleccionar_modalidad(self, event):
         
         # Obtener la línea donde se hizo clic
         widget = event.widget
@@ -314,21 +303,21 @@ class IngresoEstudiosOrdenados():
             return
 
         # Extraer el ID (número antes de ":")
-        id_estudio, datos = seleccion.split(":", 1)
-        id_estudio = id_estudio.strip()
-        nombre_estudio, abreviacion = datos.split(" - ")
+        id_modalidad, datos = seleccion.split(":", 1)
+        id_modalidad = id_modalidad.strip()
+        nombre_modalidad, abreviacion = datos.split(" - ")
 
         # Guardar ID en la variable para modificar/eliminar
-        self.estudio_id_seleccionado = id_estudio
+        self.modalidad_id_seleccionada = id_modalidad
 
         # Colocar los datos en los Entry
-        self.vars['estudio'].set(nombre_estudio.strip())
+        self.vars['modalidad'].set(nombre_modalidad.strip())
         self.vars['abreviacion'].set(abreviacion.strip())
     
-    def obtener_id_estudio_seleccionado(self, estudio_nombre):
+    def obtener_id_modalidad_seleccionada(self, modalidad_nombre):
         
-        sql_buscar_id = "SELECT id_estudio FROM estudiosordenados WHERE nombre_estudio = %s"
-        self.db.cursor.execute(sql_buscar_id, (estudio_nombre,))
+        sql_buscar_id = "SELECT id_modalidad FROM modalidades WHERE nombre_modalidad = %s"
+        self.db.cursor.execute(sql_buscar_id, (modalidad_nombre,))
         resultado = self.db.cursor.fetchone()  # Obtener solo un resultado
         return resultado[0] if resultado else None
 
@@ -410,5 +399,6 @@ class IngresoEstudiosOrdenados():
                 self.parent_window.deiconify()
                 self.parent_window.lift()
 
-# a= IngresoAlergias()
+# a= IngresoModalidades()
 # g= a.obtener_ventana()
+# g.mainloop()

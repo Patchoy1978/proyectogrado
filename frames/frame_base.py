@@ -5,13 +5,6 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
                 
 import tkinter as tk
-# from ventanas.ventanasprograma import VentanaPrincipal
-# from contenidoframes.contenido_frame1 import ContenidoFrame1
-# from contenidoframes.contenido_frame2 import ContenidoFrame2
-# from contenidoframes.contenido_frame3 import ContenidoFrame3
-# from contenidoframesmodificar.contenido_frame1_modificar import ContenidoFrame1modificar
-# from contenidoframesmodificar.contenido_frame2_modificar import ContenidoFrame2modificar
-# from contenidoframesmodificar.contenido_frame3_modificar import ContenidoFrame3modificar
 
 class FrameBase():
     

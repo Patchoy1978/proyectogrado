@@ -15,6 +15,8 @@ class VentanaPrincipal():
         
         self.root.title('Entrega de Turno')
         
+        self.root.iconbitmap('img/documento.ico')
+        
         self.root.geometry(f'{self.ancho_ventana}x{self.alto_ventana}+0+0')
         
         self.root.state('zoomed')

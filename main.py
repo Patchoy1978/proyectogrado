@@ -6,12 +6,9 @@ import mysql.connector
 # Agrega el directorio raíz del proyecto al PATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# from ventanas.ventanasprograma import VentanaPrincipal
 from ventanas.ventana_inicio import VentanaInicioPrograma #esta es la linea que queda
 from ventanas.ventana_db_inicio import VentanaDB
-# from ventanas.ventana_registro_usuario import VentanaRegistroUsuario
 
-# from ventanas.ventana_recuperacion_contrasena import RecuperacionContrasena
 from ventanas.ventana_admon import VentanaAdmon
 
 # from ventanas.ventana_admon import VentanaAdmon
@@ -40,6 +37,7 @@ if __name__ == "__main__":
     
     # ventana_programa = VentanaPrincipal()
     # ventana = ventana_programa.obtener_ventana()
+    
 # este es el codigo 
 
     # if verificar_db():  # Si la base de datos ya está configurada
@@ -48,16 +46,6 @@ if __name__ == "__main__":
     # else:  # Si no está configurada, mostrar la ventana de configuración
     #     ventana_inicio_db = VentanaDB()
     #     ventana_mostrar = ventana_inicio_db.obtener_ventana()
-    
-    # ventana_mostrar.deiconify()  # Asegura que la ventana sea visible
-    # ventana_mostrar.lift()  # Trae la ventana al frente
-    
-    # ventana_registro_usuario = VentanaRegistroUsuario()
-    # ventana_mostrar = ventana_registro_usuario.obtener_ventana()
-    
-    # ventana_recuperacion = RecuperacionContrasena()
-    
-    # ventana_mostrar = ventana_recuperacion.obtener_ventana()
     
     ventana_admon_abrir = VentanaAdmon()
     

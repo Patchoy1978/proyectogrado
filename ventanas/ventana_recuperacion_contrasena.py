@@ -87,20 +87,6 @@ class RecuperacionContrasena():
             
         ]
         
-        # campos1_1 = [
-            
-            
-        #     {'label': 'Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Introduce tú Nueva Contraseña'},
-            
-        # ]
-        
-        # campos1_2 = [
-            
-            
-        #     {'label': 'Repite La Nueva Contraseña', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Repite tú Nueva Contraseña'},
-            
-        # ]
-        
         campos2 = [
             
             {"label": "Registrar\nContraseña", "color": "blue", "tipo": "boton", "ancho": 50, "alto":10, "command": None},
@@ -117,18 +103,6 @@ class RecuperacionContrasena():
             self.crear_label(self.frame_1, campo1['label'], self.fonts['label_title'], fila= i*2+1, columna=0)
 
             self.crear_entry(self.frame_1, font=self.fonts['label'], fila = i*2+2, columna=0, ancho_widget=campo1['ancho'], alto_widget=campo1['alto'], placeholder=campo1['placeholder'])
-            
-        # for i, campo1_1 in enumerate(campos1_1):
-            
-        #     self.crear_label(self.frame_1_1, campo1_1['label'], self.fonts['label_title'], fila= i, columna=0)
-
-        #     self.crear_entry(self.frame_1_1, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_1['ancho'], alto=campo1_1['alto'], placeholder=campo1_1['placeholder'])
-        
-        # for i, campo1_2 in enumerate(campos1_2):
-            
-        #     self.crear_label(self.frame_1_2, campo1_2['label'], self.fonts['label_title'], fila= i, columna=0)
-
-        #     self.crear_entry(self.frame_1_2, font=self.fonts['label'], fila = i+1, columna=0, ancho=campo1_2['ancho'], alto=campo1_2['alto'], placeholder=campo1_2['placeholder'])
         
         for i, campo2 in enumerate(campos2):
             

@@ -5,11 +5,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 import customtkinter as ctk
 import tkinter as tk
-# from tkinter import font
-
-# from tkinter import ttk
-# from tkinter.ttk import Combobox
-
 
 class ContenidoFrame3 ():
     
@@ -147,7 +142,6 @@ class ContenidoFrame3 ():
         # Configura las columnas dentro de frame_buttons para que se expandan
         frame_buttons.grid_columnconfigure(list(range(3)), weight=1)
 
-        # Si quieres que los botones se distribuyan de manera uniforme, configura las filas también
         frame_buttons.grid_rowconfigure(0, weight=1)
         
         btn_nuevo = ctk.CTkButton(frame_buttons,
@@ -190,17 +184,3 @@ class ContenidoFrame3 ():
                                   )
         
         btn_atras.grid(row= 0, column= 2, padx= 8, pady= 70, sticky='nsew')
-        
-        # scroll_entry_coment_radiologo = tk.Scrollbar(frame_coment_radiologo, command=entry_texto_coment_radiologo.yview)
-        # entry_texto_coment_radiologo.configure(yscrollcommand=scroll_entry_coment_radiologo.set)
-        # scroll_entry_coment_radiologo.grid(row=1, column=1, sticky='ns', pady=3)
-        
-        # self.titulo = titulo
-        # self.lab_hora_citacion = lab_hora_citacion
-        # self.entry_combobox_hora_citacion = entry_combobox_hora_citacion
-        # self.lab_hora_realizacion = lab_hora_realizacion
-        # self.entry_combobox_hora_realizacion = entry_combobox_hora_realizacion
-        # self.entry_list_caus_retraso = entry_list_caus_retraso
-        # self.btn_atras = btn_atras
-        
- 

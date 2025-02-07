@@ -6,8 +6,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import tkinter as tk
 import customtkinter as ctk
-# from tkinter import ttk
-# from tkinter.ttk import Combobox
 
 class ContenidoFrame1():
        

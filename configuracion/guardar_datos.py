@@ -21,4 +21,5 @@ class Guardar_datos_db():
         self.file_path = os.path.join(os.path.dirname(__file__), "config_db.json")
         
         with open(self.file_path, "w") as f:
+            
             json.dump(self.data, f, indent=4)

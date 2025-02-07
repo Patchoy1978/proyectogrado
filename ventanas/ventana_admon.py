@@ -9,9 +9,11 @@ from abrirventanas.abrir import abrir_ventana_alergias
 from abrirventanas.abrir import abrir_ventana_aislamiento
 from abrirventanas.abrir import abrir_ventana_rango_edad
 from abrirventanas.abrir import abrir_ventana_estudio_ordenado
+from abrirventanas.abrir import abrir_ventana_modalidad
 from abrirventanas.abrir import abrir_ventana_estados
 from abrirventanas.abrir import abrir_ventana_sedes
 from abrirventanas.abrir import abrir_ventana_ratrasos
+from abrirventanas.abrir import abrir_ventana_cargos
 
 class VentanaAdmon():
     
@@ -89,11 +91,11 @@ class VentanaAdmon():
         
         campos2 = [
             
-            {'label': 'Modalidades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
+            {'label': 'Modalidades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_modalidad(self.root), self.root.iconify())},
             {'label': 'Estados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify())},
             {'label': 'Sedes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify())},
             {'label': 'Retrasos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify())},
-            {'label': 'Cargos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None},
+            {'label': 'Cargos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_cargos(self.root), self.root.iconify())},
             {'label': 'Salir', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': self.root.destroy},
         ]
         

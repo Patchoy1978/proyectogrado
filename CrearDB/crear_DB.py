@@ -40,14 +40,14 @@ class ConexionDB():
         """
         CREATE TABLE if NOT EXISTS estudiosOrdenados (
             id_estudio INTEGER auto_increment not null primary key,
-            nombre_estudio varchar(30) not null,
+            nombre_estudio varchar(255) not null,
             abreviacion varchar(3) not null
         )
         """,
         """
         CREATE TABLE if NOT EXISTS modalidades (
             id_modalidad INTEGER auto_increment not null primary key,
-            nombre_modalidad varchar(30) not null,
+            nombre_modalidad varchar(255) not null,
             abreviacion varchar(3) not null
         )
         """,

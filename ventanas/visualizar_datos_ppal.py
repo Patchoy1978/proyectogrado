@@ -194,11 +194,17 @@ class PanelPrincipalVisualizacion():
         )
         # Establecer el valor predeterminado si está en las opciones
         if valor_predeterminado in opciones:
+            
             combobox.set(valor_predeterminado)
+            
         elif opciones:  # Si no está, selecciona la primera opción como predeterminada
+            
             combobox.set(opciones[0])
+            
         combobox.configure(state='readonly')
+        
         combobox.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto_widget, padx=5, sticky='ew')
+        
         return combobox
 
     def crear_boton(self, parent, font, texto, color_fondo, fila, columna, ancho=70, alto=50, command=None):
