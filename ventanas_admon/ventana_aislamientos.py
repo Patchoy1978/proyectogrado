@@ -5,6 +5,8 @@ import customtkinter as ctk
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from abrirventanasemergentes.abrir_ventanas import ingresar_aislamiento, aislamiento_existe, datos_ingresados
+
 from conexion_DB.conexionDB import Conexion_DB
 
 class IngresoAislamientos():
@@ -28,7 +30,7 @@ class IngresoAislamientos():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Aislamientos')
+        self.root.title('Aislamientos')
         
         self.root.resizable(False,False)
         
@@ -66,12 +68,14 @@ class IngresoAislamientos():
         # Crear la variable de control para el Entry
         self.aislamiento_var = ctk.StringVar()
         # Asociar el trace para que cada vez que cambie se actualice en formato title
-        self.aislamiento_var.trace("w", self.actualizar_a_title)
-        self.aislamiento_var.trace("w", self.buscar_aislamiento)
+        self.aislamiento_var.trace_add("write", self.actualizar_a_title)
+        self.aislamiento_var.trace_add("write", self.buscar_aislamiento)
         
         self.alergia_id_seleccionada = None
         
         self.ingreso_datos()
+        
+        self.root.bind_all("<Return>", self.insertar_aislamiento)
         
     def obtener_ventana(self):
         
@@ -109,37 +113,37 @@ class IngresoAislamientos():
             self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label'], fila=i*2+1, columna=0)
         
             self.entry_aislamiento = self.crear_entry(self.frame1, 
-                             font=self.fonts['label'], 
-                             fila=i*2+2, 
-                             columna= 0, 
-                             ancho_widget=campo1['ancho'], 
-                             alto_widget= campo1['alto'], 
-                             placeholder =campo1['placeholder'],
-                             textvariable = self.aislamiento_var
-                             )
+                            font=self.fonts['label'], 
+                            fila=i*2+2, 
+                            columna= 0, 
+                            ancho_widget=campo1['ancho'], 
+                            alto_widget= campo1['alto'], 
+                            placeholder =campo1['placeholder'],
+                            textvariable = self.aislamiento_var
+                            )
             
             if campo1['tipo'] == 'textbox':
             
                 self.textbox_resultados = self.crear_textbox(self.frame1,
-                                                             font=self.fonts['label'],
-                                                             fila=i*2+2,
-                                                             columna=0,
-                                                             alto= campo1['alto'],
-                                                             ancho=campo1['ancho'],
-                                                             )
+                                                            font=self.fonts['label'],
+                                                            fila=i*2+2,
+                                                            columna=0,
+                                                            alto= campo1['alto'],
+                                                            ancho=campo1['ancho'],
+                                                            )
 
         for i, campo2 in enumerate(campos2):
         
             self.crear_boton(self.frame2, 
-                             font=self.fonts['boton'], 
-                             texto= campo2['label'], 
-                             color_fondo= campo2['color'], 
-                             fila=0, 
-                             columna= i+1, 
-                             ancho=campo1['ancho'], 
-                             alto= campo1['alto'], 
-                             command = campo2['command']
-                             )
+                            font=self.fonts['boton'], 
+                            texto= campo2['label'], 
+                            color_fondo= campo2['color'], 
+                            fila=0, 
+                            columna= i+1, 
+                            ancho=campo1['ancho'], 
+                            alto= campo1['alto'], 
+                            command = campo2['command']
+                            )
             
         # para insertar
             
@@ -159,13 +163,13 @@ class IngresoAislamientos():
             # Actualizamos la variable, lo que actualizará el Entry
             self.aislamiento_var.set(texto_title)
     
-    def insertar_aislamiento(self):
+    def insertar_aislamiento(self, event = None):
         
         # Obtener el valor del entry
         aislamiento = self.entry_aislamiento.get().strip()
         
         if not aislamiento:
-            print("Debe ingresar un aislamiento.")
+            ingresar_aislamiento()
             return
         
         # 🔹 Consultar si la alergia ya existe en la base de datos
@@ -176,13 +180,16 @@ class IngresoAislamientos():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            print(f"El aislamiento '{aislamiento}' ya existe en la base de datos.")
+            aislamiento_existe()
             return  # No inserta si ya existe
 
         # try:
         sql_insert = "INSERT INTO aislamientos (nombre_aislamiento) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (aislamiento,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        
+        datos_ingresados()
+        
         self.aislamiento_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:
@@ -242,11 +249,11 @@ class IngresoAislamientos():
             # Si está vacío, muestra un mensaje o realiza alguna acción
             return
         
-        # Usar el ID de la alergia seleccionada previamente
+        # Usar el ID del aislamiento seleccionado previamente
         aislamiento_id = self.aislamiento_id_seleccionado if hasattr(self, 'aislamiento_id_seleccionado') else None
 
         if not aislamiento_id:
-            print("No se ha seleccionado una alergia para modificar.")
+            print("No se ha seleccionado un aislamiento para modificar.")
             return
         
         # Realizar la actualización en la base de datos
@@ -272,7 +279,7 @@ class IngresoAislamientos():
         self.db.cursor.execute(sql_buscar_aislamiento, (f"{aislamiento}%",))
         resultados = self.db.cursor.fetchall()
         
-        # Crear un diccionario con los resultados, {id_aislamiento: nombre_alergia}
+        # Crear un diccionario con los resultados, {id_aislamiento: nombre_aislamiento}
         aislamiento_dict = {}
         for resultado in resultados:
             aislamiento_dict[resultado[0]] = resultado[1]  # {id_aislamiento: nombre_aislamiento}
@@ -285,7 +292,7 @@ class IngresoAislamientos():
         if seleccion and seleccion != "No hay coincidencias":
             self.aislamiento_var.set(seleccion)
             
-            # almacenar el ID de la alergia seleccionada
+            # almacenar el ID del aislamiento seleccionad0
             aislamiento_id = self.obtener_id_aislamiento_seleccionado(seleccion)
             if aislamiento_id:
                 self.aislamiento_id_seleccionado = aislamiento_id  # Almacenar el ID para futuras modificaciones
@@ -304,9 +311,9 @@ class IngresoAislamientos():
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
         label = ctk.CTkLabel(parent,
-                             text=text,
-                             font=font,
-                             text_color= 'black'
+                            text=text,
+                            font=font,
+                            text_color= 'black'
                             )
         label.grid(row= fila, column= columna, sticky='nsew', columnspan= ancho, rowspan= alto)
         
@@ -315,15 +322,15 @@ class IngresoAislamientos():
     def crear_entry(self,parent, font, fila, columna, placeholder, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
         
         entry = ctk.CTkEntry(parent,
-                             font = font,
-                             text_color='black',
-                             corner_radius=10,
-                             width=ancho_widget,
-                             height=alto_widget,
-                             fg_color='lightblue',
-                             placeholder_text=placeholder,
-                             placeholder_text_color= 'gray',
-                             textvariable=textvariable
+                            font = font,
+                            text_color='black',
+                            corner_radius=10,
+                            width=ancho_widget,
+                            height=alto_widget,
+                            fg_color='lightblue',
+                            placeholder_text=placeholder,
+                            placeholder_text_color= 'gray',
+                            textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
                 
@@ -364,19 +371,19 @@ class IngresoAislamientos():
         return entry_textbox
 
     def salir(self):
-            """Método personalizado para el botón Salir.
-            Cierra la ventana de alergias y restablece la ventana de administración."""
+        """Método personalizado para el botón Salir.
+        Cierra la ventana de aislamientos y restablece la ventana de administración."""
+        
+        if self.db:
             
-            if self.db:
-                
-                self.db.cerrar_conexion()  # Llamamos al método de cerrar conexión
-            
-            self.root.destroy()  # Cierra la ventana de alergias
-            
-            if self.parent_window:
-                print("Restaurando ventana de Admon")
-                self.parent_window.deiconify()
-                self.parent_window.lift()
+            self.db.cerrar_conexion()  # Llamamos al método de cerrar conexión
+        
+        self.root.destroy()  # Cierra la ventana de aislamientos
+        
+        if self.parent_window:
+            #print("Restaurando ventana de Admon")
+            self.parent_window.deiconify()
+            self.parent_window.lift()
                 
 # a=IngresoAislamientos()
 # f=a.obtener_ventana()

@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoCargos():
     
     def __init__(self, parent_window=None):
@@ -28,7 +30,7 @@ class IngresoCargos():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Cargos')
+        self.root.title('Cargos')
         
         self.root.iconbitmap('img/documento.ico')
         
@@ -72,6 +74,8 @@ class IngresoCargos():
         self.cargo_var.trace_add("write", self.buscar_cargo)
         
         self.cargo_id_seleccionado = None
+        
+        self.root.bind_all("<Return>", self.insertar_cargo)
         
         self.ingreso_datos()
         
@@ -161,7 +165,7 @@ class IngresoCargos():
             # Actualizamos la variable, lo que actualizará el Entry
             self.cargo_var.set(texto_title)
     
-    def insertar_cargo(self):
+    def insertar_cargo(self, event = None):
         
         # Obtener el valor del entry
         cargo = self.entry_cargo.get().strip()
@@ -185,6 +189,7 @@ class IngresoCargos():
         sql_insert = "INSERT INTO cargos (nombre_cargo) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (cargo,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        datos_ingresados()
         self.cargo_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:

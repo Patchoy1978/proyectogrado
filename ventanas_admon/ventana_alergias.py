@@ -5,7 +5,13 @@ import customtkinter as ctk
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Obtener la ruta absoluta del directorio "img"
+ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+
 from conexion_DB.conexionDB import Conexion_DB
+from abrirventanasemergentes.abrir_ventanas import abrir_ventana_conn_exito, abrir_ventana_conn_fallida, datos_ingresados
+
+# from PIL import Image, ImageTk
 
 class IngresoAlergias():
     
@@ -28,9 +34,14 @@ class IngresoAlergias():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Alergias')
-        
         self.root.resizable(False,False)
+        
+        self.root.title('Alergias')
+        
+        # # Cargar la imagen para el icono
+        # imagen_icono = Image.open(os.path.join(ruta_base, "documento.ico"))
+        # imagen_icono = imagen_icono.resize((32, 32))  # Redimensionar a un tamaño adecuado para el icono
+        # self.icono = ImageTk.PhotoImage(imagen_icono)  # Convertirla a PhotoImage
         
         self.fonts = {
             
@@ -59,10 +70,16 @@ class IngresoAlergias():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
-        
-        self.db = Conexion_DB()
-        self.db.conectar()  
-        
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar()
+            abrir_ventana_conn_exito()
+                        
+        except:
+
+            abrir_ventana_conn_fallida()
+
         # Crear la variable de control para el Entry
         self.alergia_var = ctk.StringVar()
         # Asociar el trace para que cada vez que cambie se actualice en formato title
@@ -72,6 +89,8 @@ class IngresoAlergias():
         self.alergia_id_seleccionada = None
         
         self.ingreso_datos()
+        
+        self.root.bind_all("<Return>", self.insertar_alergia)
         
     def obtener_ventana(self):
         
@@ -118,8 +137,6 @@ class IngresoAlergias():
                              textvariable = self.alergia_var
                              )
             self.entry_alergia.focus_force()
-            # self.entry_alergia.focus_release()  # O forzar a otro widget
-
             
             if campo1['tipo'] == 'textbox':
             
@@ -162,7 +179,7 @@ class IngresoAlergias():
             # Actualizamos la variable, lo que actualizará el Entry
             self.alergia_var.set(texto_title)
     
-    def insertar_alergia(self):
+    def insertar_alergia(self, event = None):
         
         # Obtener el valor del entry
         alergia = self.entry_alergia.get().strip()
@@ -186,6 +203,7 @@ class IngresoAlergias():
         sql_insert = "INSERT INTO alergias (nombre_alergia) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (alergia,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        datos_ingresados()
         self.alergia_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:
@@ -382,3 +400,4 @@ class IngresoAlergias():
 
 # a= IngresoAlergias()
 # g= a.obtener_ventana()
+# g.mainloop()

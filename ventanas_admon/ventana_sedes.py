@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoSedes():
     
     def __init__(self, parent_window=None):
@@ -28,7 +30,7 @@ class IngresoSedes():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Alergias')
+        self.root.title('Sedes')
         
         self.root.resizable(False,False)
         
@@ -70,6 +72,8 @@ class IngresoSedes():
         self.sede_var.trace_add("write", self.buscar_sede)
         
         self.sede_id_seleccionada = None
+        
+        self.root.bind_all("<Return>", self.insertar_sede)
         
         self.ingreso_datos()
         
@@ -159,7 +163,7 @@ class IngresoSedes():
             # Actualizamos la variable, lo que actualizará el Entry
             self.sede_var.set(texto_title)
     
-    def insertar_sede(self):
+    def insertar_sede(self, event = None):
         
         # Obtener el valor del entry
         sede = self.entry_sede.get().strip()
@@ -183,6 +187,7 @@ class IngresoSedes():
         sql_insert = "INSERT INTO sedes (nombre_sede) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (sede,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        datos_ingresados()
         self.sede_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:

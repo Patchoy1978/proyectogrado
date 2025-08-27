@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoModalidades():
     
     def __init__(self, parent_window=None):
@@ -28,9 +30,7 @@ class IngresoModalidades():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Estudios')
-        
-        self.root.iconbitmap('img/documento.ico')
+        self.root.title('Modalidades')
         
         self.root.resizable(False,False)
         
@@ -68,10 +68,12 @@ class IngresoModalidades():
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
         self.entries = {}
-       
+
         self.modalidad_id_seleccionada = None
         
         self.ingreso_datos()
+        
+        self.root.bind_all("<Return>", self.insertar_modalidad)
         
     def obtener_ventana(self):
         
@@ -147,15 +149,15 @@ class IngresoModalidades():
         for i, campo2 in enumerate(campos2):
         
             self.crear_boton(self.frame2, 
-                             font=self.fonts['boton'], 
-                             texto= campo2['label'], 
-                             color_fondo= campo2['color'], 
-                             fila=0, 
-                             columna= i+1, 
-                             ancho=campo1['ancho'], 
-                             alto= campo1['alto'], 
-                             command = campo2['command']
-                             )
+                            font=self.fonts['boton'], 
+                            texto= campo2['label'], 
+                            color_fondo= campo2['color'], 
+                            fila=0, 
+                            columna= i+1, 
+                            ancho=campo2['ancho'], 
+                            alto= campo2['alto'], 
+                            command = campo2['command']
+                            )
             
         # para insertar
             
@@ -179,7 +181,7 @@ class IngresoModalidades():
         if texto_abreviacion != texto_title_abreviacion:
             self.vars['abreviacion'].set(texto_title_abreviacion)
     
-    def insertar_modalidad(self):
+    def insertar_modalidad(self, event=None):
         
         # Obtener los valores de los entries usando las claves del diccionario
         
@@ -203,6 +205,7 @@ class IngresoModalidades():
         sql_insert = "INSERT INTO modalidades (nombre_modalidad, abreviacion) VALUES (%s, %s)"
         self.db.cursor.execute(sql_insert, (modalidad, abreviacion))
         self.db.conexion.commit()
+        datos_ingresados()
         # Limpiar los entries luego de la inserción
         self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")

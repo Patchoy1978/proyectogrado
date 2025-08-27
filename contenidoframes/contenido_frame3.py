@@ -158,29 +158,30 @@ class ContenidoFrame3 ():
         btn_nuevo.grid(row= 0, column= 0, padx= 8, pady= 70, sticky='nsew')
         
         btn_limpiar = ctk.CTkButton(frame_buttons,
-                                  text='Limpiar Pantalla',
-                                  text_color='black',
-                                  font=self.fonts['label'],
-                                  width=20,
-                                  height=50,
-                                  corner_radius=20,
-                                  fg_color='lightblue',
-                                  hover_color = 'lightgreen',
-                                  anchor='center')
+                                text='Limpiar Pantalla',
+                                text_color='black',
+                                font=self.fonts['label'],
+                                width=20,
+                                height=50,
+                                corner_radius=20,
+                                fg_color='lightblue',
+                                hover_color = 'lightgreen',
+                                anchor='center'
+                                )
         
         btn_limpiar.grid(row= 0, column= 1, padx= 8, pady= 70, sticky='nsew')
         
         btn_atras = ctk.CTkButton(frame_buttons,
-                                  text='Regresar',
-                                  text_color='black',
-                                  font=self.fonts['label'],
-                                  width=20,
-                                  height=50,
-                                  corner_radius=20,
-                                  fg_color='lightblue',
-                                  hover_color = 'lightgreen',
-                                  anchor='center',
-                                  command= lambda:(abrir_ventana_visualizar_datos_ppal(), cerrar_ppal(self.frame.winfo_toplevel()))
-                                  )
+                                text='Regresar',
+                                text_color='black',
+                                font=self.fonts['label'],
+                                width=20,
+                                height=50,
+                                corner_radius=20,
+                                fg_color='lightblue',
+                                hover_color = 'lightgreen',
+                                anchor='center',
+                                command= lambda: cerrar_ppal(self.frame.winfo_toplevel())
+                                )
         
         btn_atras.grid(row= 0, column= 2, padx= 8, pady= 70, sticky='nsew')

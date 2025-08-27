@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoRetrasos():
     
     def __init__(self, parent_window=None):
@@ -28,7 +30,7 @@ class IngresoRetrasos():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Causales de Retraso')
+        self.root.title('Causales de Retraso')
         
         self.root.resizable(False,False)
         
@@ -70,6 +72,8 @@ class IngresoRetrasos():
         self.retrasos_var.trace_add("write", self.buscar_retraso)
         
         self.retraso_id_seleccionada = None
+        
+        self.root.bind_all("<Return>", self.insertar_retraso)
         
         self.ingreso_datos()
         
@@ -159,7 +163,7 @@ class IngresoRetrasos():
             # Actualizamos la variable, lo que actualizará el Entry
             self.retrasos_var.set(texto_title)
     
-    def insertar_retraso(self):
+    def insertar_retraso(self, event = None):
         
         # Obtener el valor del entry
         retraso = self.entry_retraso.get().strip()
@@ -183,6 +187,7 @@ class IngresoRetrasos():
         sql_insert = "INSERT INTO retrasos (causal_retraso) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (retraso,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        datos_ingresados()
         self.retrasos_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:

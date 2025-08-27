@@ -12,7 +12,7 @@ def abrir_ventana_ingreso():
     from contenidoframes.contenido_frame1 import ContenidoFrame1
     from contenidoframes.contenido_frame2 import ContenidoFrame2
     from contenidoframes.contenido_frame3 import ContenidoFrame3
-    
+
     ventana_programa = VentanaPrincipal()
     ventana = ventana_programa.obtener_ventana()
     
@@ -21,6 +21,8 @@ def abrir_ventana_ingreso():
     
     ventana.deiconify()  # Asegura que la ventana sea visible
     ventana.lift()  # Trae la ventana al frente
+    
+    #ventana.mainloop()
     
     alto_pantalla_sup = 1
     
@@ -36,7 +38,10 @@ def abrir_ventana_ingreso():
     contenido_frame3 = ContenidoFrame3(frames_dict["frame3"])
     contenido_frame3.contenidosframe3()
     
-def abrir_ventana_modificar():  
+    #ventana.after(100, lambda: cerrar_ppal(ventana_programa))
+    #cerrar_ppal(ventana_programa)
+    
+def abrir_ventana_modificar(paciente):  
     
     from frames.frame_base import FrameBase
     from contenidoframesmodificar.contenido_modificar_frame1 import ContenidoModificarFrame1
@@ -53,6 +58,8 @@ def abrir_ventana_modificar():
     ventana_modificar.deiconify()  # Asegura que la ventana sea visible
     ventana_modificar.lift()  # Trae la ventana al frente
     
+    #ventana_modificar.mainloop()
+    
     alto_pantalla_sup = 1
     
     frames_dict_modificar = FrameBase(ventana_modificar, alto_pantalla_sup)
@@ -64,11 +71,26 @@ def abrir_ventana_modificar():
     contenido_frame1_modificar.contenidosframe1modificar()
     contenido_frame2_modificar = ContenidoModificarFrame2(frames_dict_modificar["frame2"])
     contenido_frame2_modificar.contenidosframe2modificar()
-    contenido_frame = ContenidoModificarFrame3(frames_dict_modificar["frame3"])
-    contenido_frame.contenidosframe3modificar()
+    contenido_frame3_modificar = ContenidoModificarFrame3(frames_dict_modificar["frame3"])
+    contenido_frame3_modificar.contenidosframe3modificar()
+    
+    from ventanas.ventana_pacientes_modificar import PacientesModificar
+    
+    ventana = PacientesModificar(paciente)
+    mostrar_ventana = ventana.obtener_ventana()
+    mostrar_ventana.mainloop()
+    
+    from ventanas.ventana_pacientes_modificar import PacientesModificar
+    
+    ventana = PacientesModificar(paciente)
+    mostrar_ventana = ventana.obtener_ventana()
+    mostrar_ventana.mainloop()
+    
+    # Devuelve el paciente modificado después de cerrar la ventana
+    #return ventana.paciente_modificar
     
 def abrir_ventana_visualizar_datos_ppal():
-    
+
     from frames.frame_base_visualizacion import FrameBaseVisualizacion
     from ventanas.visualizar_datos_ppal import PanelPrincipalVisualizacion
     
@@ -84,31 +106,96 @@ def abrir_ventana_visualizar_datos_ppal():
     
     frames_dict = FrameBaseVisualizacion(ventana_visualizar, alto_pantalla_sup).obtener_frames()
     # frames_dict = frames_dict.obtener_frames()
-    
-    visualizar_datos_ppal = PanelPrincipalVisualizacion(frames_dict['framesup'])
-    visualizar_datos_ppal.visual_principal_titulo()
-    visualizar_datos = PanelPrincipalVisualizacion(frames_dict['frame1'])
-    visualizar_datos.visual_principal_datos()
 
-def abrir_ventana_registro_usuario():
+    # Crea una sola instancia pasando ambos frames al constructor
+    panel = PanelPrincipalVisualizacion(frames_dict['framesup'], frames_dict['frame1'])
+    
+    # Llama métodos para llenar cada frame
+    panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
+    panel.visual_principal_datos()   # Se asume que maneja 'frame1'
+
+def abrir_ventana_visualizar_datos_ppal_diferidos():
+
+    from frames.frame_base_visualizacion import FrameBaseVisualizacion
+    from ventanas.visualizar_datos_diferidos import PanelPrincipalVisualizacionDiferidos
+    
+    ventana_visualizar_datos = VentanaPrincipal()
+    ventana_visualizar = ventana_visualizar_datos.obtener_ventana()
+    
+    # Aplica los ajustes de maximización y redimensionado
+    ventana_visualizar_datos.aplicar_ajustes_a_ventana(ventana_visualizar)
+    
+    ventana_visualizar.deiconify()  # Asegura que la ventana sea visible
+    ventana_visualizar.lift()  # Trae la ventana al frente
+    alto_pantalla_sup = 1
+    
+    frames_dict = FrameBaseVisualizacion(ventana_visualizar, alto_pantalla_sup).obtener_frames()
+    # frames_dict = frames_dict.obtener_frames()
+
+    # Crea una sola instancia pasando ambos frames al constructor
+    panel = PanelPrincipalVisualizacionDiferidos(frames_dict['framesup'], frames_dict['frame1'])
+    
+    # Llama métodos para llenar cada frame
+    panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
+    panel.visual_principal_datos()   # Se asume que maneja 'frame1'
+
+def abrir_ventana_visualizar_datos_ppal_realizados():
+
+    from frames.frame_base_visualizacion import FrameBaseVisualizacion
+    from ventanas.visualizar_datos_realizados import PanelPrincipalVisualizacionRealizados
+    
+    ventana_visualizar_datos = VentanaPrincipal()
+    ventana_visualizar = ventana_visualizar_datos.obtener_ventana()
+    
+    # Aplica los ajustes de maximización y redimensionado
+    ventana_visualizar_datos.aplicar_ajustes_a_ventana(ventana_visualizar)
+    
+    ventana_visualizar.deiconify()  # Asegura que la ventana sea visible
+    ventana_visualizar.lift()  # Trae la ventana al frente
+    alto_pantalla_sup = 1
+    
+    frames_dict = FrameBaseVisualizacion(ventana_visualizar, alto_pantalla_sup).obtener_frames()
+    # frames_dict = frames_dict.obtener_frames()
+
+    # Crea una sola instancia pasando ambos frames al constructor
+    panel = PanelPrincipalVisualizacionRealizados(frames_dict['framesup'], frames_dict['frame1'])
+    
+    # Llama métodos para llenar cada frame
+    panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
+    panel.visual_principal_datos()   # Se asume que maneja 'frame1'
+
+def abrir_ventana_registro_usuario(parent_window=None):
     
     from ventanas.ventana_registro_usuario import VentanaRegistroUsuario
     
-    ventana_registro_usuario = VentanaRegistroUsuario()
+    ventana_registro_usuario = VentanaRegistroUsuario(parent_window=parent_window)
     ventana_registro_usuario =ventana_registro_usuario.obtener_ventana()
     
     # ventana_mostrar = ventana_registro_usuario.obtener_ventana()
     
+    ventana_registro_usuario.grab_set()
     ventana_registro_usuario.deiconify()
     
-def abrir_ventana_recuperacion_contrasena():
+def abrir_ventana_recuperacion_contrasena(parent_window=None):
     
     from ventanas.ventana_recuperacion_contrasena import RecuperacionContrasena
     
-    abrir_ventana_recuperacion = RecuperacionContrasena()
+    abrir_ventana_recuperacion = RecuperacionContrasena(parent_window=parent_window)
     
     abrir_recuperacion_contrasena = abrir_ventana_recuperacion.obtener_ventana()
     
+    abrir_recuperacion_contrasena.grab_set()
+    abrir_recuperacion_contrasena.deiconify()
+
+def abrir_ventana_envio_codigo(parent_window=None):
+    
+    from ventanas.ventana_generacion_codigo import EnvioRecuperacionContrasena
+    
+    abrir_ventana_recuperacion = EnvioRecuperacionContrasena(parent_window=parent_window)
+    
+    abrir_recuperacion_contrasena = abrir_ventana_recuperacion.obtener_ventana()
+    
+    abrir_recuperacion_contrasena.grab_set()
     abrir_recuperacion_contrasena.deiconify()
     
 def abrir_ventana_admon():
@@ -117,9 +204,14 @@ def abrir_ventana_admon():
     
     abrir_ventana_administrador = VentanaAdmon()
     
+    # Habilitar todos los botones en esa misma instancia
+    abrir_ventana_administrador.set_botones_estado('normal')
+    
     mostrar_ventana_admon = abrir_ventana_administrador.obtener_ventana()
     
     mostrar_ventana_admon.deiconify()
+    
+    return abrir_ventana_administrador
 
 def abrir_ventana_inicio():
     
@@ -131,7 +223,7 @@ def abrir_ventana_inicio():
 
 def cerrar_ppal(venta_principal):
     
-    venta_principal.destroy()
+    venta_principal.withdraw()
 
 def cerrar_ppal_entrada(venta_principal, ventana_ingreso):
     
@@ -149,9 +241,9 @@ def abrir_ventana_alergias(parent_window=None):
     
     mostrar_ventana_alergia = abrir_ventana_alergia.obtener_ventana()
     mostrar_ventana_alergia.grab_set()
-   
-    mostrar_ventana_alergia.deiconify()
+    
     mostrar_ventana_alergia.lift()
+    mostrar_ventana_alergia.deiconify()
 
 def abrir_ventana_aislamiento(parent_window=None):
     
@@ -235,6 +327,17 @@ def abrir_ventana_modalidad(parent_window=None):
     from ventanas_admon.ventana_modalidades import IngresoModalidades
     
     abrir_ventana_estado = IngresoModalidades(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()  
+    
+def abrir_ventana_usuarios_admon(parent_window=None):
+    
+    from ventanas_admon.ventana_usuarios import IngresoUsuariosAdmon
+    
+    abrir_ventana_estado = IngresoUsuariosAdmon(parent_window=parent_window)
     
     mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
     mostrar_ventana_estado.grab_set()

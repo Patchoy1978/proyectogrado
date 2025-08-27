@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoEstudiosOrdenados():
     
     def __init__(self, parent_window=None):
@@ -28,7 +30,7 @@ class IngresoEstudiosOrdenados():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Estudios')
+        self.root.title('Estudios')
         
         self.root.resizable(False,False)
         
@@ -83,6 +85,8 @@ class IngresoEstudiosOrdenados():
         self.alergia_id_seleccionada = None
         
         self.ingreso_datos()
+        
+        self.root.bind_all("<Return>", self.insertar_estudio)
         
     def obtener_ventana(self):
         
@@ -190,7 +194,7 @@ class IngresoEstudiosOrdenados():
         if texto_abreviacion != texto_title_abreviacion:
             self.vars['abreviacion'].set(texto_title_abreviacion)
     
-    def insertar_estudio(self):
+    def insertar_estudio(self, event = None):
         
         # Obtener los valores de los entries usando las claves del diccionario
         
@@ -202,7 +206,7 @@ class IngresoEstudiosOrdenados():
             return
         
         # Consultar si el estudio ya existe en la base de datos (ajusta la consulta según corresponda)
-        consulta_existencia = "SELECT COUNT(*) FROM estudiosordenados WHERE nombre_estudio = %s AND abreviacion = %s"
+        consulta_existencia = "SELECT COUNT(*) FROM listaestudios WHERE nombre_estudio = %s AND abreviacion = %s"
         self.db.cursor.execute(consulta_existencia, (estudio, abreviacion))
         resultado = self.db.cursor.fetchone()  # Usamos fetchone para un solo resultado
 
@@ -211,9 +215,10 @@ class IngresoEstudiosOrdenados():
             return  # No inserta si ya existe
 
         # try:
-        sql_insert = "INSERT INTO estudiosordenados (nombre_estudio, abreviacion) VALUES (%s, %s)"
+        sql_insert = "INSERT INTO listaestudios (nombre_estudio, abreviacion) VALUES (%s, %s)"
         self.db.cursor.execute(sql_insert, (estudio, abreviacion))
         self.db.conexion.commit()
+        datos_ingresados()
         # Limpiar los entries luego de la inserción
         self.vars['estudio'].set("")
         self.vars['abreviacion'].set("")
@@ -230,7 +235,7 @@ class IngresoEstudiosOrdenados():
             print("Debe seleccionar un estudio y su abreviación para eliminar.")
             return
         
-        sql_delete = "DELETE FROM estudiosordenados WHERE nombre_estudio = %s AND abreviacion = %s"
+        sql_delete = "DELETE FROM listaestudios WHERE nombre_estudio = %s AND abreviacion = %s"
         self.db.cursor.execute(sql_delete, (estudio, abreviacion))
         self.db.conexion.commit()
         self.vars['estudio'].set("")
@@ -248,7 +253,7 @@ class IngresoEstudiosOrdenados():
             self.textbox_resultados.configure(state="disabled")
             return
 
-        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM estudiosordenados WHERE nombre_estudio LIKE %s"
+        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM listaestudios WHERE nombre_estudio LIKE %s"
         self.db.cursor.execute(sql_buscar_estudio, (f"%{estudio}%",))
         resultados = self.db.cursor.fetchall()
 
@@ -276,7 +281,7 @@ class IngresoEstudiosOrdenados():
             print("No se ha seleccionado una modalidad para modificar.")
             return
 
-        sql_modificar_estudio = "UPDATE estudiosordenados SET nombre_estudio = %s, abreviacion = %s WHERE id_estudio = %s"
+        sql_modificar_estudio = "UPDATE listaestudios SET nombre_estudio = %s, abreviacion = %s WHERE id_estudio = %s"
         self.db.cursor.execute(sql_modificar_estudio, (estudio_nuevo, abreviacion_nueva, self.estudio_id_seleccionado))
         self.db.conexion.commit()
 
@@ -291,7 +296,7 @@ class IngresoEstudiosOrdenados():
     def obtener_resultados_busqueda(self, estudio):
         
         # Realiza la búsqueda en la base de datos y devuelve los resultados
-        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM estudiosordenados WHERE nombre_estudio LIKE %s"
+        sql_buscar_estudio = "SELECT id_estudio, nombre_estudio, abreviacion FROM listaestudios WHERE nombre_estudio LIKE %s"
         self.db.cursor.execute(sql_buscar_estudio, (f"%{estudio}%",))
         resultados = self.db.cursor.fetchall()
         
@@ -327,7 +332,7 @@ class IngresoEstudiosOrdenados():
     
     def obtener_id_estudio_seleccionado(self, estudio_nombre):
         
-        sql_buscar_id = "SELECT id_estudio FROM estudiosordenados WHERE nombre_estudio = %s"
+        sql_buscar_id = "SELECT id_estudio FROM listaestudios WHERE nombre_estudio = %s"
         self.db.cursor.execute(sql_buscar_id, (estudio_nombre,))
         resultado = self.db.cursor.fetchone()  # Obtener solo un resultado
         return resultado[0] if resultado else None
@@ -335,9 +340,9 @@ class IngresoEstudiosOrdenados():
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
         label = ctk.CTkLabel(parent,
-                             text=text,
-                             font=font,
-                             text_color= 'black'
+                            text=text,
+                            font=font,
+                            text_color= 'black'
                             )
         label.grid(row= fila, column= columna, sticky='nsew', columnspan= ancho, rowspan= alto)
         
@@ -346,15 +351,15 @@ class IngresoEstudiosOrdenados():
     def crear_entry(self,parent, font, fila, columna, placeholder, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
         
         entry = ctk.CTkEntry(parent,
-                             font = font,
-                             text_color='black',
-                             corner_radius=10,
-                             width=ancho_widget,
-                             height=alto_widget,
-                             fg_color='lightblue',
-                             placeholder_text=placeholder,
-                             placeholder_text_color= 'gray',
-                             textvariable=textvariable
+                            font = font,
+                            text_color='black',
+                            corner_radius=10,
+                            width=ancho_widget,
+                            height=alto_widget,
+                            fg_color='lightblue',
+                            placeholder_text=placeholder,
+                            placeholder_text_color= 'gray',
+                            textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
                 

@@ -5,7 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 import tkinter as tk
 import customtkinter as ctk
-
+# from tkinter import ttk
+# from tkinter.ttk import Combobox
 from tkcalendar import DateEntry
 
 class ContenidoModificarFrame2 ():
@@ -29,7 +30,7 @@ class ContenidoModificarFrame2 ():
 
         }
         
-    def contenidosframe2modificar (self):
+    def contenidosframe2 (self):
         
         titulo = tk.Label(self.frame, text='Datos Del Estudio', font= self.fonts['title_frame'], bg='white')
         titulo.grid(row=0, column=0, columnspan=2, sticky='nsew')

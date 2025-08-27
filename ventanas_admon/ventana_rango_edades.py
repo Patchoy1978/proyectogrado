@@ -7,6 +7,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+
 class IngresoRangoEdades():
     
     def __init__(self, parent_window=None):
@@ -28,7 +30,7 @@ class IngresoRangoEdades():
         
         self.root.geometry(f'{ancho_ventana_nueva}x{alto_ventana_nueva}+{x}+{y}')
         
-        self.root.title('Ingreso Rango Edades')
+        self.root.title('Rango Edades')
         
         self.root.resizable(False,False)
         
@@ -74,6 +76,8 @@ class IngresoRangoEdades():
         self.alergia_id_seleccionada = None
         
         self.ingreso_datos()
+        
+        self.root.bind_all("<Return>", self.insertar_rango_edad)
         
     def obtener_ventana(self):
         
@@ -161,7 +165,7 @@ class IngresoRangoEdades():
             # Actualizamos la variable, lo que actualizará el Entry
             self.rango_edades_var.set(texto_title)
     
-    def insertar_rango_edad(self):
+    def insertar_rango_edad(self, event = None):
         
         # Obtener el valor del entry
         rango_edad = self.entry_rangoedad.get().strip()
@@ -185,6 +189,7 @@ class IngresoRangoEdades():
         sql_insert = "INSERT INTO rangosedades (rango) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (rango_edad,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        datos_ingresados()
         self.rango_edades_var.set("")
         #     print(f"Alergia '{alergia}' insertada correctamente.")
         # except Exception as e:

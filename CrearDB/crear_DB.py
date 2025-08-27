@@ -38,7 +38,7 @@ class ConexionDB():
         )
         """,
         """
-        CREATE TABLE if NOT EXISTS estudiosOrdenados (
+        CREATE TABLE if NOT EXISTS listaEstudios (
             id_estudio INTEGER auto_increment not null primary key,
             nombre_estudio varchar(255) not null,
             abreviacion varchar(3) not null
@@ -79,7 +79,7 @@ class ConexionDB():
         CREATE TABLE if NOT EXISTS usuarios (
             id_usuario INTEGER not NULL AUTO_INCREMENT PRIMARY KEY,
             nombre_usuario VARCHAR(60) NOT NULL,
-            identificacion INTEGER NOT NULL UNIQUE,
+            identificacion BIGINT NOT NULL UNIQUE,
             contrasena varchar(100) not null,
             email varchar(60) not null unique,
             telefono VARCHAR(15) not null,
@@ -92,21 +92,23 @@ class ConexionDB():
         """,
         """
         create TABLE if not EXISTS registrosPacientes (
-            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY,
+            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
             nombre_paciente VARCHAR(60) not null,
-            identificacion_paciente INTEGER not NULL UNIQUE,
-            edad TINYINT NOT NULL,
+            identificacion_paciente INTEGER not NULL,
+            edad TINYINT not NULL,
             rango_edad INTEGER not NULL,
-            fecha_orden DATE NOT NULL,
-            fecha_citacion DATE NOT NULL,
-            hc INTEGER not NULL UNIQUE,
-            ubicacion VARCHAR(12),
-            modalidad INTEGER NOT NULL,
-            estudios_ordenados INTEGER NOT NULL,
+            fecha_orden DATE not NULL,
+            fecha_citacion DATE not NULL,
+            hc VARCHAR(12) not NULL,
+            ubicacion VARCHAR(12) not NULL,
+            modalidad INTEGER not NULL,
+            estudios_ordenados_paciente TEXT NOT NULL,
             diagnostico TEXT not NULL,
-            ayuno VARCHAR(2) NOT NULL,
-            diferido VARCHAR(2) NOT NULL,
-            aislamiento VARCHAR(2) NOT NULL,
+            ayuno VARCHAR(2) not NULL,
+            diferido VARCHAR(2) not NULL,
+            alergia VARCHAR(2) not NULL,
+            tipo_alergia INTEGER not NULL,
+            aislamiento VARCHAR(2) not NULL,
             tipo_aislamiento INTEGER not null,
             autorizacion VARCHAR(2) not null,
             anestesia VARCHAR(2) not null,
@@ -117,10 +119,9 @@ class ConexionDB():
             causal_retraso INTEGER not null,
             comentarios_tecnologo TEXT not null,
             comentar_radiologo VARCHAR(2) not null,
-            comentarios_radiologo TEXT not NULL,
-            usuario INTEGER not null,
-            CONSTRAINT registrosPacientes_rangoedad FOREIGN KEY  (rango_edad) REFERENCES rangosEdades (id_rangoedad) on delete cascade on update cascade,
-            CONSTRAINT registrosPacientes_usuario FOREIGN KEY  (usuario) REFERENCES usuarios (id_usuario) on delete cascade on update cascade
+            comentarios_radiologo TEXT NULL,
+            usuario INTEGER not null
+            
         )
         """, 
         """
@@ -160,15 +161,6 @@ class ConexionDB():
         )
         """,
         """
-        CREATE TABLE IF NOT EXISTS registrosPacientes_estudios (
-            id_registro INTEGER NOT NULL,
-            id_estudio INTEGER NOT NULL,
-            PRIMARY KEY (id_registro, id_estudio),
-            CONSTRAINT fk_regPac_estudio FOREIGN KEY (id_registro) REFERENCES registrosPacientes (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
-            CONSTRAINT fk_estudio FOREIGN KEY (id_estudio) REFERENCES estudiosOrdenados (id_estudio) ON DELETE CASCADE ON UPDATE CASCADE
-        )
-        """,
-        """
         CREATE TABLE IF NOT EXISTS registrosPacientes_modalidades (
             id_registro INTEGER NOT NULL,
             id_modalidad INTEGER NOT NULL,
@@ -185,7 +177,333 @@ class ConexionDB():
             CONSTRAINT fk_regPac_estado FOREIGN KEY (id_registro) REFERENCES registrosPacientes (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
             CONSTRAINT fk_estado FOREIGN KEY (id_estado) REFERENCES estados (id_estado) ON DELETE CASCADE ON UPDATE CASCADE
         )
+        """,
         """
+        CREATE TABLE IF NOT EXISTS registrosPacientes_usuarios (
+            id_registro INTEGER NOT NULL,
+            id_usuario INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_usuario),
+            CONSTRAINT fk_regPac_usuario FOREIGN KEY (id_registro) REFERENCES registrosPacientes (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        create TABLE if not EXISTS registrosPacientesDiferidos (
+            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
+            nombre_paciente VARCHAR(60) not null,
+            identificacion_paciente INTEGER not NULL,
+            edad TINYINT not NULL,
+            rango_edad INTEGER not NULL,
+            fecha_orden DATE not NULL,
+            fecha_citacion DATE not NULL,
+            hc VARCHAR(12) not NULL,
+            ubicacion VARCHAR(12) not NULL,
+            modalidad INTEGER not NULL,
+            estudios_ordenados_paciente TEXT NOT NULL,
+            diagnostico TEXT not NULL,
+            ayuno VARCHAR(2) not NULL,
+            diferido VARCHAR(2) not NULL,
+            alergia VARCHAR(2) not NULL,
+            tipo_alergia TEXT not NULL,
+            aislamiento VARCHAR(2) not NULL,
+            tipo_aislamiento TEXT not null,
+            autorizacion VARCHAR(2) not null,
+            anestesia VARCHAR(2) not null,
+            estado INTEGER not null,
+            sede INTEGER not NULL,
+            hora_citacion TIME not null,
+            hora_realizacion TIME not null,
+            causal_retraso INTEGER not null,
+            comentarios_tecnologo TEXT not null,
+            comentar_radiologo VARCHAR(2) not null,
+            comentarios_radiologo TEXT NULL,
+            usuario INTEGER not null
+            
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesDiferidos_retrasos (
+            id_registro INTEGER NOT NULL,
+            id_retraso INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_retraso),
+            CONSTRAINT fk_regPac_ret FOREIGN KEY (id_registro) REFERENCES registrosPacientesDiferidos (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_ret FOREIGN KEY (id_retraso) REFERENCES retrasos (id_retraso) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesDiferidos_sedes (
+            id_registro INTEGER NOT NULL,
+            id_sede INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_sede),
+            CONSTRAINT fk_regPac_s FOREIGN KEY (id_registro) REFERENCES registrosPacientesDiferidos (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_s FOREIGN KEY (id_sede) REFERENCES sedes (id_sede) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesDiferidos_modalidades (
+            id_registro INTEGER NOT NULL,
+            id_modalidad INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_modalidad),
+            CONSTRAINT fk_regPac_mod FOREIGN KEY (id_registro) REFERENCES registrosPacientesDiferidos (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_mod FOREIGN KEY (id_modalidad) REFERENCES modalidades (id_modalidad) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesDiferidos_estados (
+            id_registro INTEGER NOT NULL,
+            id_estado INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_estado),
+            CONSTRAINT fk_regPac_es FOREIGN KEY (id_registro) REFERENCES registrosPacientesDiferidos (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_es FOREIGN KEY (id_estado) REFERENCES estados (id_estado) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesDiferidos_usuarios (
+            id_registro INTEGER NOT NULL,
+            id_usuario INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_usuario),
+            CONSTRAINT fk_regPac_us FOREIGN KEY (id_registro) REFERENCES registrosPacientesDiferidos (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_us FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        create TABLE if not EXISTS registrosPacientesRealizados (
+            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
+            nombre_paciente VARCHAR(60) not null,
+            identificacion_paciente INTEGER not NULL,
+            edad TINYINT not NULL,
+            rango_edad INTEGER not NULL,
+            fecha_orden DATE not NULL,
+            fecha_citacion DATE not NULL,
+            hc VARCHAR(12) not NULL,
+            ubicacion VARCHAR(12) not NULL,
+            modalidad INTEGER not NULL,
+            estudios_ordenados_paciente TEXT NOT NULL,
+            diagnostico TEXT not NULL,
+            ayuno VARCHAR(2) not NULL,
+            diferido VARCHAR(2) not NULL,
+            alergia VARCHAR(2) not NULL,
+            tipo_alergia TEXT not NULL,
+            aislamiento VARCHAR(2) not NULL,
+            tipo_aislamiento TEXT not null,
+            autorizacion VARCHAR(2) not null,
+            anestesia VARCHAR(2) not null,
+            estado INTEGER not null,
+            sede INTEGER not NULL,
+            hora_citacion TIME not null,
+            hora_realizacion TIME not null,
+            causal_retraso INTEGER not null,
+            comentarios_tecnologo TEXT not null,
+            comentar_radiologo VARCHAR(2) not null,
+            comentarios_radiologo TEXT NULL,
+            usuario INTEGER not null
+            
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesRealizados_retrasos (
+            id_registro INTEGER NOT NULL,
+            id_retraso INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_retraso),
+            CONSTRAINT fk_regPac_retr FOREIGN KEY (id_registro) REFERENCES registrosPacientesRealizados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_retr FOREIGN KEY (id_retraso) REFERENCES retrasos (id_retraso) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesRealizados_sedes (
+            id_registro INTEGER NOT NULL,
+            id_sede INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_sede),
+            CONSTRAINT fk_regPac_se FOREIGN KEY (id_registro) REFERENCES registrosPacientesRealizados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_se FOREIGN KEY (id_sede) REFERENCES sedes (id_sede) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesRealizados_modalidades (
+            id_registro INTEGER NOT NULL,
+            id_modalidad INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_modalidad),
+            CONSTRAINT fk_regPac_moda FOREIGN KEY (id_registro) REFERENCES registrosPacientesRealizados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_moda FOREIGN KEY (id_modalidad) REFERENCES modalidades (id_modalidad) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesRealizados_estados (
+            id_registro INTEGER NOT NULL,
+            id_estado INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_estado),
+            CONSTRAINT fk_regPac_esta FOREIGN KEY (id_registro) REFERENCES registrosPacientesRealizados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_esta FOREIGN KEY (id_estado) REFERENCES estados (id_estado) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesRealizados_usuarios (
+            id_registro INTEGER NOT NULL,
+            id_usuario INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_usuario),
+            CONSTRAINT fk_regPac_usu FOREIGN KEY (id_registro) REFERENCES registrosPacientesRealizados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_usu FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        create TABLE if not EXISTS registrosPacientesCancelados (
+            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
+            nombre_paciente VARCHAR(60) not null,
+            identificacion_paciente INTEGER not NULL,
+            edad TINYINT not NULL,
+            rango_edad INTEGER not NULL,
+            fecha_orden DATE not NULL,
+            fecha_citacion DATE not NULL,
+            hc VARCHAR(12) not NULL,
+            ubicacion VARCHAR(12) not NULL,
+            modalidad INTEGER not NULL,
+            estudios_ordenados_paciente TEXT NOT NULL,
+            diagnostico TEXT not NULL,
+            ayuno VARCHAR(2) not NULL,
+            diferido VARCHAR(2) not NULL,
+            alergia VARCHAR(2) not NULL,
+            tipo_alergia TEXT not NULL,
+            aislamiento VARCHAR(2) not NULL,
+            tipo_aislamiento TEXT not null,
+            autorizacion VARCHAR(2) not null,
+            anestesia VARCHAR(2) not null,
+            estado INTEGER not null,
+            sede INTEGER not NULL,
+            hora_citacion TIME not null,
+            hora_realizacion TIME not null,
+            causal_retraso INTEGER not null,
+            comentarios_tecnologo TEXT not null,
+            comentar_radiologo VARCHAR(2) not null,
+            comentarios_radiologo TEXT NULL,
+            usuario INTEGER not null
+            
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesCancelados_retrasos (
+            id_registro INTEGER NOT NULL,
+            id_retraso INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_retraso),
+            CONSTRAINT fk_regPac_retra FOREIGN KEY (id_registro) REFERENCES registrosPacientesCancelados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_retra FOREIGN KEY (id_retraso) REFERENCES retrasos (id_retraso) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesCancelados_sedes (
+            id_registro INTEGER NOT NULL,
+            id_sede INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_sede),
+            CONSTRAINT fk_regPac_sed FOREIGN KEY (id_registro) REFERENCES registrosPacientesCancelados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_sed FOREIGN KEY (id_sede) REFERENCES sedes (id_sede) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesCancelados_modalidades (
+            id_registro INTEGER NOT NULL,
+            id_modalidad INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_modalidad),
+            CONSTRAINT fk_regPac_modal FOREIGN KEY (id_registro) REFERENCES registrosPacientesCancelados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_modal FOREIGN KEY (id_modalidad) REFERENCES modalidades (id_modalidad) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesCancelados_estados (
+            id_registro INTEGER NOT NULL,
+            id_estado INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_estado),
+            CONSTRAINT fk_regPac_estad FOREIGN KEY (id_registro) REFERENCES registrosPacientesCancelados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_estad FOREIGN KEY (id_estado) REFERENCES estados (id_estado) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesCancelados_usuarios (
+            id_registro INTEGER NOT NULL,
+            id_usuario INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_usuario),
+            CONSTRAINT fk_regPac_usua FOREIGN KEY (id_registro) REFERENCES registrosPacientesCancelados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_usua FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        create TABLE if not EXISTS registrosPacientesModificados (
+            id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
+            nombre_paciente VARCHAR(60) not null,
+            identificacion_paciente INTEGER not NULL,
+            edad TINYINT not NULL,
+            rango_edad INTEGER not NULL,
+            fecha_orden DATE not NULL,
+            fecha_citacion DATE not NULL,
+            hc VARCHAR(12) not NULL,
+            ubicacion VARCHAR(12) not NULL,
+            modalidad INTEGER not NULL,
+            estudios_ordenados_paciente TEXT NOT NULL,
+            diagnostico TEXT not NULL,
+            ayuno VARCHAR(2) not NULL,
+            diferido VARCHAR(2) not NULL,
+            alergia VARCHAR(2) not NULL,
+            tipo_alergia TEXT not NULL,
+            aislamiento VARCHAR(2) not NULL,
+            tipo_aislamiento TEXT not null,
+            autorizacion VARCHAR(2) not null,
+            anestesia VARCHAR(2) not null,
+            estado INTEGER not null,
+            sede INTEGER not NULL,
+            hora_citacion TIME not null,
+            hora_realizacion TIME not null,
+            causal_retraso INTEGER not null,
+            comentarios_tecnologo TEXT not null,
+            comentar_radiologo VARCHAR(2) not null,
+            comentarios_radiologo TEXT NULL,
+            usuario INTEGER not null
+            
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesModificados_retrasos (
+            id_registro INTEGER NOT NULL,
+            id_retraso INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_retraso),
+            CONSTRAINT fk_regPac_retras FOREIGN KEY (id_registro) REFERENCES registrosPacientesModificados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_retras FOREIGN KEY (id_retraso) REFERENCES retrasos (id_retraso) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesModificados_sedes (
+            id_registro INTEGER NOT NULL,
+            id_sede INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_sede),
+            CONSTRAINT fk_regPac_sedes FOREIGN KEY (id_registro) REFERENCES registrosPacientesModificados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_sedes FOREIGN KEY (id_sede) REFERENCES sedes (id_sede) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesModificados_modalidades (
+            id_registro INTEGER NOT NULL,
+            id_modalidad INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_modalidad),
+            CONSTRAINT fk_regPac_modali FOREIGN KEY (id_registro) REFERENCES registrosPacientesModificados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_modali FOREIGN KEY (id_modalidad) REFERENCES modalidades (id_modalidad) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesModificados_estados (
+            id_registro INTEGER NOT NULL,
+            id_estado INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_estado),
+            CONSTRAINT fk_regPac_estados FOREIGN KEY (id_registro) REFERENCES registrosPacientesModificados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_estados FOREIGN KEY (id_estado) REFERENCES estados (id_estado) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS registrosPacientesModificados_usuarios (
+            id_registro INTEGER NOT NULL,
+            id_usuario INTEGER NOT NULL,
+            PRIMARY KEY (id_registro, id_usuario),
+            CONSTRAINT fk_regPac_usuarios FOREIGN KEY (id_registro) REFERENCES registrosPacientesModificados (id_registro) ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT fk_usuarios FOREIGN KEY (id_usuario) REFERENCES usuarios (id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+        )
+        """
+        
         ]
         
         self.cursor.execute('create DATABASE if not EXISTS EntregaTurno')
@@ -194,6 +512,8 @@ class ConexionDB():
         for sql in sql_statements:
             
             self.cursor.execute(sql)
+        #CONSTRAINT registrosPacientes_rangoedad FOREIGN KEY  (rango_edad) REFERENCES rangosEdades (id_rangoedad) on delete cascade on update cascade,
+        #CONSTRAINT registrosPacientes_usuario FOREIGN KEY  (usuario) REFERENCES usuarios (id_usuario) on delete cascade on update cascade
             
         # para insertar
             
