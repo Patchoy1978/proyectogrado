@@ -142,11 +142,15 @@ def paciente_diferido():
 def paciente_realizado():
     
     messagebox.askyesno("Realizado el Paciente", "¿Este paciente ya esta Realizado?")
+
+def paciente_comentado():
     
+    messagebox.askyesno("Comentado el Paciente", "¿Deseas Comentar Este Paciente?")
+
 def datos_ingresados():
     
     messagebox.showinfo("Datos Ingresados", "Los Datos Se Han Ingresado Exitosamente")
-    
+
 def edad_incorrecta(parent=None):
     
     messagebox.showwarning("Datos Ingresados", "La edad debe ser un número", parent=parent)

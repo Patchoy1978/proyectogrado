@@ -22,7 +22,7 @@ from tkcalendar import DateEntry # Widget calendario para seleccionar fechas
 
 from usuarioactual.usuario_actual import UsuarioActual
 
-#from ventanas.ventanasprograma import VentanaPrincipal
+from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal_realizados
 
 from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     abrir_ventana_conn_fallida,
@@ -161,9 +161,9 @@ class PanelPrincipalVisualizacionDiferidos():
             
             {"label": "Sede", "valor": None, "ancho": 130, "tipo": "combobox", "opciones": self.sedes},
             {"label": "Fecha", "valor": None, "ancho": 100, "tipo": "fecha"},
-            {"label": "Todos", "color": "greenyellow", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
+            {"label": "Todos", "color": "lightblue", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
-            {"label": "Ver\nRealizados", "color": "yellow", "tipo": "boton", "ancho": 26, "alto":30, "command": None, 'image' : None},
+            {"label": "Ver\nRealizados", "color": "lightblue", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_realizados, 'image' : None},
 
         ]
         
@@ -347,8 +347,12 @@ class PanelPrincipalVisualizacionDiferidos():
 
         # Normalizamos el valor (separando por comas y quitando espacios)
         valor_normalizado = [v.strip().title() for v in valor_real.split(",")]
+        
+        if campo_col == "comentarios del radiologo"  and valor_real.strip() != "":
+            
+            color_fondo = "lightgreen"
 
-        if campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
+        elif campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
             
             color_fondo = "#d2455b" # rojo
         
@@ -417,7 +421,9 @@ class PanelPrincipalVisualizacionDiferidos():
             height=alto_widget,
             fg_color='lightgray',
             values=opciones,
-            command=comando  # Función al cambiar selección
+            command=comando,  # Función al cambiar selección
+            button_color= "lightgray",
+            button_hover_color= "lightgreen"
         )
 
         # Establecer valor predeterminado
@@ -868,6 +874,36 @@ class PanelPrincipalVisualizacionDiferidos():
         cerrar_conexion()
         
         self.boton_modificar_presionado(paciente) 
+    
+    def ver_pacientes_realizados(self):
+        
+        if self.db:
+            self.db.cerrar_conexion()
+            PanelPrincipalVisualizacionDiferidos.conexion_realizada = None
+        cerrar_conexion()
+
+        # Cancelar cualquier after pendiente de este frame
+        try:
+            for after_id in self.frame.tk.eval('after info').split():
+                try:
+                    self.frame.after_cancel(after_id)
+                except:
+                    pass
+        except:
+            pass
+
+        # Destruir todos los widgets hijos del frame principal, incluyendo scrollable frames
+        def destruir_completo(widget):
+            for child in widget.winfo_children():
+                destruir_completo(child)
+            try:
+                widget.destroy()
+            except:
+                pass
+
+        destruir_completo(self.frame.winfo_toplevel())
+        
+        abrir_ventana_visualizar_datos_ppal_realizados()
     
     # limpiar la fecha
     

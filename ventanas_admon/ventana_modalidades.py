@@ -99,7 +99,7 @@ class IngresoModalidades():
             {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_modalidad},
             {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_modalidad},
             {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_modalidad},
-            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'red', 'command': self.salir},
+            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'lightblue', 'command': self.salir},
         ]
         
         
@@ -327,9 +327,9 @@ class IngresoModalidades():
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
         label = ctk.CTkLabel(parent,
-                             text=text,
-                             font=font,
-                             text_color= 'black'
+                            text=text,
+                            font=font,
+                            text_color= 'black'
                             )
         label.grid(row= fila, column= columna, sticky='nsew', columnspan= ancho, rowspan= alto)
         
@@ -338,15 +338,15 @@ class IngresoModalidades():
     def crear_entry(self,parent, font, fila, columna, placeholder, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
         
         entry = ctk.CTkEntry(parent,
-                             font = font,
-                             text_color='black',
-                             corner_radius=10,
-                             width=ancho_widget,
-                             height=alto_widget,
-                             fg_color='lightblue',
-                             placeholder_text=placeholder,
-                             placeholder_text_color= 'gray',
-                             textvariable=textvariable
+                            font = font,
+                            text_color='black',
+                            corner_radius=10,
+                            width=ancho_widget,
+                            height=alto_widget,
+                            fg_color='lightgray',
+                            placeholder_text=placeholder,
+                            placeholder_text_color= 'black',
+                            textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
                 
@@ -363,7 +363,8 @@ class IngresoModalidades():
                                 height=alto,
                                 width= ancho,
                                 command=command,
-                                corner_radius=10
+                                corner_radius=10,
+                                hover_color= "lightgreen"
                             )
         boton.grid(row=fila, column=columna, rowspan=alto, padx=15, pady= 15, sticky='nsew')
         return boton
@@ -374,7 +375,7 @@ class IngresoModalidades():
                                     wrap=ctk.WORD,
                                     height=100,
                                     width=560,
-                                    fg_color="lightblue",
+                                    fg_color="lightgray",
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',

@@ -112,7 +112,7 @@ class IngresoEstudiosOrdenados():
             {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_estudio},
             {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_estudio},
             {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_estudio},
-            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'red', 'command': self.salir},
+            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'lightblue', 'command': self.salir},
         ]
         
         
@@ -162,15 +162,15 @@ class IngresoEstudiosOrdenados():
         for i, campo2 in enumerate(campos2):
         
             self.crear_boton(self.frame2, 
-                             font=self.fonts['boton'], 
-                             texto= campo2['label'], 
-                             color_fondo= campo2['color'], 
-                             fila=0, 
-                             columna= i+1, 
-                             ancho=campo1['ancho'], 
-                             alto= campo1['alto'], 
-                             command = campo2['command']
-                             )
+                            font=self.fonts['boton'], 
+                            texto= campo2['label'], 
+                            color_fondo= campo2['color'], 
+                            fila=0, 
+                            columna= i+1, 
+                            ancho=campo1['ancho'], 
+                            alto= campo1['alto'], 
+                            command = campo2['command']
+                            )
             
         # para insertar
             
@@ -356,9 +356,9 @@ class IngresoEstudiosOrdenados():
                             corner_radius=10,
                             width=ancho_widget,
                             height=alto_widget,
-                            fg_color='lightblue',
+                            fg_color='lightgray',
                             placeholder_text=placeholder,
-                            placeholder_text_color= 'gray',
+                            placeholder_text_color= 'black',
                             textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
@@ -376,7 +376,8 @@ class IngresoEstudiosOrdenados():
                                 height=alto,
                                 width= ancho,
                                 command=command,
-                                corner_radius=10
+                                corner_radius=10,
+                                hover_color= "lightgreen"
                             )
         boton.grid(row=fila, column=columna, rowspan=alto, padx=15, pady= 15, sticky='nsew')
         return boton
@@ -387,7 +388,7 @@ class IngresoEstudiosOrdenados():
                                     wrap=ctk.WORD,
                                     height=100,
                                     width=560,
-                                    fg_color="lightblue",
+                                    fg_color="lightgray",
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',

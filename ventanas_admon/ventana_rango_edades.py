@@ -102,7 +102,7 @@ class IngresoRangoEdades():
             {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_rango_edad},
             {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_rango_edad},
             {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_rango_edad},
-            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'red', 'command': self.salir},
+            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'lightblue', 'command': self.salir},
         ]
         
         
@@ -115,37 +115,37 @@ class IngresoRangoEdades():
             self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label'], fila=i*2+1, columna=0)
         
             self.entry_rangoedad = self.crear_entry(self.frame1, 
-                             font=self.fonts['label'], 
-                             fila=i*2+2, 
-                             columna= 0, 
-                             ancho_widget=campo1['ancho'], 
-                             alto_widget= campo1['alto'], 
-                             placeholder =campo1['placeholder'],
-                             textvariable = self.rango_edades_var
-                             )
+                            font=self.fonts['label'], 
+                            fila=i*2+2, 
+                            columna= 0, 
+                            ancho_widget=campo1['ancho'], 
+                            alto_widget= campo1['alto'], 
+                            placeholder =campo1['placeholder'],
+                            textvariable = self.rango_edades_var
+                            )
             
             if campo1['tipo'] == 'textbox':
             
                 self.textbox_resultados = self.crear_textbox(self.frame1,
-                                                             font=self.fonts['label'],
-                                                             fila=i*2+2,
-                                                             columna=0,
-                                                             alto= campo1['alto'],
-                                                             ancho=campo1['ancho'],
-                                                             )
+                                                            font=self.fonts['label'],
+                                                            fila=i*2+2,
+                                                            columna=0,
+                                                            alto= campo1['alto'],
+                                                            ancho=campo1['ancho'],
+                                                            )
 
         for i, campo2 in enumerate(campos2):
         
             self.crear_boton(self.frame2, 
-                             font=self.fonts['boton'], 
-                             texto= campo2['label'], 
-                             color_fondo= campo2['color'], 
-                             fila=0, 
-                             columna= i+1, 
-                             ancho=campo1['ancho'], 
-                             alto= campo1['alto'], 
-                             command = campo2['command']
-                             )
+                            font=self.fonts['boton'], 
+                            texto= campo2['label'], 
+                            color_fondo= campo2['color'], 
+                            fila=0, 
+                            columna= i+1, 
+                            ancho=campo1['ancho'], 
+                            alto= campo1['alto'], 
+                            command = campo2['command']
+                            )
             
         # para insertar
             
@@ -322,15 +322,15 @@ class IngresoRangoEdades():
     def crear_entry(self,parent, font, fila, columna, placeholder, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
         
         entry = ctk.CTkEntry(parent,
-                             font = font,
-                             text_color='black',
-                             corner_radius=10,
-                             width=ancho_widget,
-                             height=alto_widget,
-                             fg_color='lightblue',
-                             placeholder_text=placeholder,
-                             placeholder_text_color= 'gray',
-                             textvariable=textvariable
+                            font = font,
+                            text_color='black',
+                            corner_radius=10,
+                            width=ancho_widget,
+                            height=alto_widget,
+                            fg_color='lightgray',
+                            placeholder_text=placeholder,
+                            placeholder_text_color= 'black',
+                            textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
                 
@@ -347,7 +347,8 @@ class IngresoRangoEdades():
                                 height=alto,
                                 width= ancho,
                                 command=command,
-                                corner_radius=10
+                                corner_radius=10,
+                                hover_color= "lightgreen"
                             )
         boton.grid(row=fila, column=columna, rowspan=alto, padx=15, pady= 15, sticky='ew')
         return boton
@@ -358,7 +359,7 @@ class IngresoRangoEdades():
                                     wrap=ctk.WORD,
                                     height=100,
                                     width=560,
-                                    fg_color="lightblue",
+                                    fg_color="lightgray",
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',

@@ -16,6 +16,8 @@ from usuarioactual.usuario_actual import UsuarioActual
 
 from datetime import datetime, date
 
+from tkinter import messagebox
+
 from tkcalendar import DateEntry # Widget calendario para seleccionar fechas
 
 from conexion_DB.conexionDB import Conexion_DB # Importa la clase Conexion_DB desde el módulo conexion_DB.conexionDB para la conexión con la base de datos
@@ -119,11 +121,15 @@ class IngresarPacientes():
         # Diccionario con estilos de fuente para los textos
         self.fonts = {
 
-            "title": ("Verdana", 30, 'bold'),
+            "title": ("Verdana", 26, 'bold'),
 
-            "title_frame": ("Verdana", 24, 'bold'),
+            "title_frame": ("Verdana", 22, 'bold'),
 
             "label": ("Verdana", 12, 'bold'),
+            
+            "label_etiqueta": ("Verdana", 14, 'bold'),
+            
+            "label_boton": ("Verdana", 14, 'bold'),
             
             "date": ("Verdana", 12, 'bold')
 
@@ -167,252 +173,50 @@ class IngresarPacientes():
         
         return self.ventana
     
-    # comparamos y extraemos información para mostrar
-    
-    def comparar_extraer_rango_edad(self): 
-        
-        # Buscar el rango_edad en paciente_modificar (que es un diccionario)
-        for i, v in self.paciente_modificar.items():
-            if i == "rango_edad":
-                valor = v
-                break  # ya encontramos lo que buscamos
-
-        if valor is None:
-            return None  # si no existe, no seguimos
-
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.rangos_extraidos:   
-            if fila["id_rangoedad"] == valor:
-                return fila["rango"]   # devolvemos solo el valor asociado
-
-        return None
-    
-    def comparar_extraer_modalidad(self):
-        # Buscar la modalidad en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'modalidad':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.modalidades_extraidas:
-            if fila ["id_modalidad"] == valor:
-                return fila["nombre_modalidad"]  # devolvemos solo el valor asociado
-        return None
-    
-    def comparar_extraer_sede(self):
-        # Buscar la sede en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'sede':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.sedes_extraidas:
-            if fila ["id_sede"] == valor:
-                return fila["nombre_sede"]  # devolvemos solo el valor asociado
-        return None
-    
-    def comparar_extraer_estado(self):
-        
-        valor = None
-        
-        # Buscar el estado en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'estado':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.estado_extraido:
-            if fila ["id_estado"] == valor:
-                return fila["nombre_estado"]  # devolvemos solo el valor asociado
-        return None
-    
-    def comparar_extraer_alergia(self):
-        
-        valor = None
-        
-        # Buscar la alergia en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'tipo_alergia':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.alergias_extraidas:
-            if fila ["id_alergia"] == valor:
-                return fila["nombre_alergia"]  # devolvemos solo el valor asociado
-        return fila
-    
-    def comparar_extraer_aislamiento(self):
-        
-        valor = None
-        
-        # Buscar el aislamiento en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'tipo_aislamiento':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.aislamiento_extraido:
-            if fila ["id_aislamiento"] == valor:
-                return fila["nombre_aislamiento"]  # devolvemos solo el valor asociado
-        return None
-    
-    def comparar_extraer_estudios_ordenados(self):
-        
-        valor = None  # <-- inicializamos
-        
-        # Buscar los estudios ordenados en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'estudios_ordenados':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.estudio_extraido:
-            if fila ["id_estudio"] == valor:
-                return fila["nombre_estudio"]  # devolvemos solo el valor asociado
-        return None
-    
-    def comparar_extraer_causales_retrasos(self):
-        
-        valor = None  # <-- inicializamos
-        
-        # Buscar los estudios ordenados en paciente_modificar (que es un diccionario)
-        
-        for i, v in self.paciente_modificar.items():
-            
-            if i == 'causal_retraso':
-                
-                valor = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if valor is None:
-            
-            return None # si no existe, no seguimos
-            
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.causales_retrasos_extraidos:
-            
-            if fila["id_retraso"] == valor:
-                
-                return fila["causal_retraso"]  # devolvemos solo el valor asociado
-            
-        return None
-    
-    def comparar_extraer_horas(self):
-        
-        identificacion_patient = None
-        
-        # Buscar las horas en paciente_modificar (que es un diccionario)
-        
-        for i,v in self.paciente_modificar.items():
-            if i == 'identificacion_paciente':
-                
-                identificacion_patient = v
-                
-                break # ya encontramos lo que buscamos
-            
-        if identificacion_patient is None:
-            return None # si no existe, no seguimos
-        
-        # Buscar coincidencia en rangos_extraidos (lista de diccionarios)
-        for fila in self.horas_extraidas:
-            if fila ["identificacion_paciente"] == identificacion_patient:
-                
-                return [{
-                    "citacion" : fila["hora_citacion"],  # devolvemos solo el valor asociado
-                    "realizacion" : fila["hora_realizacion"]  # devolvemos solo el valor asociado
-                }]
-                
-        return None
-    
     # parte de la visualizacion de la información
     
     def contenidotituloppalmodificar(self):
         
-        self.titulo = ctk.CTkLabel(self.frame_sup, text='Ingresar Datos Del Paciente', font=self.fonts['title'], fg_color='white', bg_color= 'white')
-        self.titulo.grid(row=0, column=0, columnspan=3, sticky="nsew") 
+        self.titulo = ctk.CTkLabel(self.frame_sup, text='Ingresar Datos Del Paciente', font=self.fonts['title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.titulo.grid(row=0, column=0, columnspan=3, pady = 5, sticky="nsew") 
     
     def contenidosframe1modificar(self):
 
-        self.titulo_frame = ctk.CTkLabel(self.frame_sup1, text='Datos Del Paciente', font=self.fonts['title_frame'], fg_color='white', bg_color= 'white')
-        self.titulo_frame.grid(row=0, column=0, sticky='nsew')
+        self.titulo_frame = ctk.CTkLabel(self.frame_sup1, text='Datos Del Paciente', font=self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.titulo_frame.grid(row=0, column=0, pady = 5, padx = 10, sticky='nsew')
         
-        self.lab_identificacion = ctk.CTkLabel(self.frame1, text='Identificación Del Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_identificacion.grid(row=0, column=0, pady= 8, columnspan=2, sticky='ew')
+        self.lab_identificacion = ctk.CTkLabel(self.frame1, text='Identificación Del Paciente', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_identificacion.grid(row=0, column=0, columnspan=2, sticky='ew')
         
         self.entry_identificacion_paciente = ctk.CTkEntry(self.frame1, 
                                                     font=self.fonts['label'],
-                                                    width= 293,
+                                                    width= 250,
                                                     height= 26,
                                                     fg_color='lightgray',
                                                     bg_color='white',
                                                     corner_radius=10,
-                                                    text_color='black',
-                                                    border_color='black'
+                                                    text_color='black'
                                                     )
-        self.entry_identificacion_paciente.grid(row=1, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_identificacion_paciente.grid(row=1, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_nombre = ctk.CTkLabel(self.frame1, text='Nombre Del Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_nombre.grid(row=2, column=0, pady= 10, columnspan=2, sticky='nsew')
+        self.lab_nombre = ctk.CTkLabel(self.frame1, text='Nombre Del Paciente', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_nombre.grid(row=2, column=0, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_nombre_paciente = ctk.CTkEntry(self.frame1, 
                                             font=self.fonts['label'],
-                                            width= 600,
+                                            width= 550,
                                             height= 26,
                                             fg_color='lightgray',
                                             bg_color='white',
                                             corner_radius=10,
-                                            text_color='black',
-                                            border_color='black'
+                                            text_color='black'
                                             )
-        self.entry_nombre_paciente.grid(row=3, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_nombre_paciente.grid(row=3, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_nombre_paciente.bind("<KeyRelease>", self.poner_title_nombre)
         
-        self.lab_edad = ctk.CTkLabel(self.frame1, text='Edad', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_edad.grid(row=4, column=0, pady= 10, sticky='nsew')
+        self.lab_edad = ctk.CTkLabel(self.frame1, text='Edad', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_edad.grid(row=4, column=0, pady= 4, sticky='nsew')
         
         self.entry_edad_paciente = ctk.CTkEntry(self.frame1, 
                                         font=self.fonts['label'],
@@ -421,13 +225,12 @@ class IngresarPacientes():
                                         fg_color='lightgray',
                                         bg_color='white',
                                         corner_radius=10,
-                                        text_color='black',
-                                        border_color='black'
+                                        text_color='black'
                                         )
-        self.entry_edad_paciente.grid(row=5, column=0, padx= 15, pady= 10, sticky='nsew')
+        self.entry_edad_paciente.grid(row=5, column=0, padx= 15, pady= 4, sticky='nsew')
         
-        self.lab_rango_edad = ctk.CTkLabel(self.frame1, text='Rango Edad', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_rango_edad.grid(row=4, column=1, pady= 10, sticky='nsew')
+        self.lab_rango_edad = ctk.CTkLabel(self.frame1, text='Rango Edad', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_rango_edad.grid(row=4, column=1, pady= 4, sticky='nsew')
         
         self.entry_rango_edad_paciente = ctk.CTkComboBox(self.frame1,
                                                     font=self.fonts['label'],
@@ -440,15 +243,14 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     values=[] ,
                                                     button_color="lightgray",
-                                                    button_hover_color='lightgreen',
-                                                    border_color='black'
+                                                    button_hover_color='lightgreen'
                                                     )
-        self.entry_rango_edad_paciente.grid(row=5, column=1, sticky='nsew', padx= 15, pady= 10)
+        self.entry_rango_edad_paciente.grid(row=5, column=1, sticky='nsew', padx= 15, pady= 4)
         
         self.llenar_combobox_rango_edad()
         
-        self.lab_historia_clin = ctk.CTkLabel(self.frame1, text='Historia Clinica', font=self.fonts['label'], fg_color='white',bg_color='white')
-        self.lab_historia_clin.grid(row=6, column=0, pady= 10, columnspan=2, sticky='nsew')
+        self.lab_historia_clin = ctk.CTkLabel(self.frame1, text='Historia Clinica', font=self.fonts['label_etiqueta'], fg_color='white',bg_color='white', text_color= "#484a4b")
+        self.lab_historia_clin.grid(row=6, column=0, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_historia_clin_paciente = ctk.CTkEntry(self.frame1, 
                                                     font=self.fonts['label'],
@@ -457,12 +259,11 @@ class IngresarPacientes():
                                                     fg_color='lightgray',
                                                     bg_color='white',
                                                     corner_radius=10,
-                                                    text_color='black',
-                                                    border_color='black'
+                                                    text_color='black'
                                                     )
-        self.entry_historia_clin_paciente.grid(row=7, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_historia_clin_paciente.grid(row=7, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_ubicacion = ctk.CTkLabel(self.frame1, text='Ubicación Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
+        self.lab_ubicacion = ctk.CTkLabel(self.frame1, text='Ubicación Paciente', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_ubicacion.grid(row=8, column=0, pady= 5, columnspan=2, sticky='nsew')
         
         self.entry_ubicacion_paciente = ctk.CTkEntry(self.frame1, 
@@ -472,12 +273,11 @@ class IngresarPacientes():
                                                 fg_color='lightgray',
                                                 bg_color='white',
                                                 corner_radius=10,
-                                                text_color='black',
-                                                border_color='black'
+                                                text_color='black'
                                                 )
-        self.entry_ubicacion_paciente.grid(row=9, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_ubicacion_paciente.grid(row=9, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_sede = ctk.CTkLabel(self.frame1, text='Sede', font=self.fonts['label'], fg_color='white', bg_color='white')
+        self.lab_sede = ctk.CTkLabel(self.frame1, text='Sede', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_sede.grid(row=10, column=0, pady= 8, columnspan=2, sticky='nsew')
         
         self.entry_sede_paciente = ctk.CTkComboBox(self.frame1,
@@ -491,9 +291,9 @@ class IngresarPacientes():
                                             text_color='black',
                                             values=[],
                                             button_color="lightgray",
-                                            button_hover_color='lightgreen',
-                                            border_color='black')
-        self.entry_sede_paciente.grid(row=11, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+                                            button_hover_color='lightgreen'
+                                            )
+        self.entry_sede_paciente.grid(row=11, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
         self.llenar_combobox_sedes()
         
@@ -507,8 +307,8 @@ class IngresarPacientes():
         self.frame_radios.grid_columnconfigure(0, weight=1)
         self.frame_radios.grid_columnconfigure(1, weight=1)
         
-        self.lab_alergias_paciente = ctk.CTkLabel(self.frame_radios, text='Alergias', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_alergias_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
+        self.lab_alergias_paciente = ctk.CTkLabel(self.frame_radios, text='Alergias', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_alergias_paciente.grid(row=0, column=0, columnspan=2, pady= 4, sticky='nsew')
         
         self.var_alergias = tk.IntVar(value=0)  # Valor predeterminado es 0
 
@@ -517,29 +317,29 @@ class IngresarPacientes():
                                         text="Sí",
                                         variable = self.var_alergias,
                                         value=1,
-                                        font=self.fonts['label'],
+                                        font=self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen',
+                                        border_color= 'lightgray',
                                         command=self.llenar_combobox_alergia,
                                         )
-        self.radio_alergias1.grid(row=1, column=0, padx=55, pady= 25, sticky='ew')
+        self.radio_alergias1.grid(row=1, column=0, padx=55, sticky='ew')
 
         # Botón de opción 2
         self.radio_alergias2 = ctk.CTkRadioButton(self.frame_radios,
                                         text="No",
                                         variable = self.var_alergias,
                                         value=2,
-                                        font=self.fonts['label'],
+                                        font=self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen',
+                                        border_color= 'lightgray',
                                         command=self.llenar_combobox_alergia,
                                         )
         self.radio_alergias2.grid(row=1, column=1, sticky='nsew')
         
-        self.lab_tipo_alergia = ctk.CTkLabel(self.frame_radios, text='Selección de Alergias', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_tipo_alergia.grid(row=0, column= 2, sticky='nsew')
+        self.lab_tipo_alergia = ctk.CTkLabel(self.frame_radios, text='Selección de Alergias', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_tipo_alergia.grid(row=0, column= 2, pady= 4, sticky='nsew')
         
         self.entry_tipo_alergia_paciente = ctk.CTkComboBox(self.frame_radios,
                                                     font=self.fonts['label'],
@@ -553,15 +353,14 @@ class IngresarPacientes():
                                                     values=[],
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    border_color='black',
                                                     command=self.llenar_textbox_alergia
                                                     )
-        self.entry_tipo_alergia_paciente.grid(row=1, column= 2, padx= 20, pady= 10, sticky='ew')
+        self.entry_tipo_alergia_paciente.grid(row=1, column= 2, padx= 20, pady= 4, sticky='ew')
         
         self.llenar_combobox_alergia()
         
-        self.lab_alergias_paciente = ctk.CTkLabel(self.frame1, text='Alergias del Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_alergias_paciente.grid(row=13, column=0, pady = 8, columnspan = 2,  sticky='nsew')
+        self.lab_alergias_paciente = ctk.CTkLabel(self.frame1, text='Alergias del Paciente', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_alergias_paciente.grid(row=13, column=0, pady = 4, columnspan = 2,  sticky='nsew')
         
         self.entry_texto_alergias_paciente = ctk.CTkTextbox(self.frame1,
                                     wrap=tk.WORD,
@@ -573,13 +372,14 @@ class IngresarPacientes():
                                     font= self.fonts['label'],
                                     text_color='black',
                                     border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_alergias_paciente.configure(state="disable")
-        self.entry_texto_alergias_paciente.grid(row=14, column=0, columnspan= 2, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_alergias_paciente.grid(row=14, column=0, columnspan= 2, pady=4, padx= 15, sticky='nsew')
         
         # Frame contenedor solo para los radios
         self.frame_radios1 = ctk.CTkFrame(self.frame1, fg_color="white",bg_color='white')
-        self.frame_radios1.grid(row=15, column=0, columnspan=3, pady=10, sticky="nsew")
+        self.frame_radios1.grid(row=15, column=0, columnspan=3, pady=4, sticky="nsew")
 
         # Configura 2 columnas en el sub-frame
         self.frame_radios1.grid_rowconfigure(0, weight=1)
@@ -587,8 +387,8 @@ class IngresarPacientes():
         self.frame_radios1.grid_columnconfigure(0, weight=1)
         self.frame_radios1.grid_columnconfigure(1, weight=1)
         
-        self.lab_aislamiento_paciente = ctk.CTkLabel(self.frame_radios1, text='Aislamiento', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_aislamiento_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
+        self.lab_aislamiento_paciente = ctk.CTkLabel(self.frame_radios1, text='Aislamiento', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_aislamiento_paciente.grid(row=0, column=0, columnspan=2, pady= 4, sticky='nsew')
         
         self.var_aislamiento = tk.IntVar(value=0)  # Valor predeterminado es No
 
@@ -597,10 +397,10 @@ class IngresarPacientes():
                                             text="Sí",
                                             variable = self.var_aislamiento,
                                             value=1,
-                                            font=self.fonts['label'],
+                                            font=self.fonts['label_etiqueta'],
                                             fg_color= 'black',
                                             bg_color='white',
-                                            border_color= 'lightgreen',
+                                            border_color= 'lightgray',
                                             command= self.llenar_combobox_aislamiento
                                             )
         self.radio_aislamiento1.grid(row=1, column=0, padx=55, sticky='ew')
@@ -610,16 +410,16 @@ class IngresarPacientes():
                                             text="No",
                                             variable = self.var_aislamiento,
                                             value=2,
-                                            font=self.fonts['label'],
+                                            font=self.fonts['label_etiqueta'],
                                             fg_color= 'black',
                                             bg_color='white',
-                                            border_color= 'lightgreen',
+                                            border_color= 'lightgray',
                                             command= self.llenar_combobox_aislamiento
                                             )
         self.radio_aislamiento2.grid(row=1, column=1, sticky='ew')
         
-        self.lab_tipo_aislamiento = ctk.CTkLabel(self.frame_radios1, text='Selección De Aislamientos', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_tipo_aislamiento.grid(row=0, column= 2, pady= 10, sticky='nsew')
+        self.lab_tipo_aislamiento = ctk.CTkLabel(self.frame_radios1, text='Selección De Aislamientos', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_tipo_aislamiento.grid(row=0, column= 2, pady= 4, sticky='nsew')
         
         self.entry_tipo_aislamiento_paciente = ctk.CTkComboBox(self.frame_radios1,
                                                         font=self.fonts['label'],
@@ -633,15 +433,14 @@ class IngresarPacientes():
                                                         values=[],
                                                         button_color="lightgray",
                                                         button_hover_color='lightgreen',
-                                                        border_color='black',
                                                         command=self.llenar_textbox_aislamiento
                                                         )
-        self.entry_tipo_aislamiento_paciente.grid(row=1, column= 2, padx= 20, pady= 10, sticky='nsew')
+        self.entry_tipo_aislamiento_paciente.grid(row=1, column= 2, padx= 20, pady= 4, sticky='nsew')
         
         self.llenar_combobox_aislamiento()
         
-        self.lab_aislam_paciente = ctk.CTkLabel(self.frame1, text='Aislamientos del Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_aislam_paciente.grid(row=16, column=0, pady = 8, columnspan = 2,  sticky='nsew')
+        self.lab_aislam_paciente = ctk.CTkLabel(self.frame1, text='Aislamientos del Paciente', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_aislam_paciente.grid(row=16, column=0, pady = 4, columnspan = 2, sticky='nsew')
         
         self.entry_texto_aislamientos_paciente = ctk.CTkTextbox(self.frame1,
                                     wrap=tk.WORD,
@@ -653,12 +452,13 @@ class IngresarPacientes():
                                     font= self.fonts['label'],
                                     text_color='black',
                                     border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_aislamientos_paciente.configure(state="disable")
-        self.entry_texto_aislamientos_paciente.grid(row=17, column=0, columnspan= 2, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_aislamientos_paciente.grid(row=17, column=0, columnspan= 2, pady= 4, padx= 15, sticky='nsew')
         
-        self.lab_estado = ctk.CTkLabel(self.frame1, text='Estado', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_estado.grid(row=18, column= 0, pady=8, columnspan=2, sticky='nsew')
+        self.lab_estado = ctk.CTkLabel(self.frame1, text='Estado', font=self.fonts['label_etiqueta'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_estado.grid(row=18, column= 0, pady=4, columnspan=2, sticky='nsew')
         
         self.entry_estado_paciente = ctk.CTkComboBox(self.frame1,
                                                 font=self.fonts['label'],
@@ -671,52 +471,50 @@ class IngresarPacientes():
                                                 text_color='black',
                                                 values=[],
                                                 button_color="lightgray",
-                                                button_hover_color='lightgreen',
-                                                border_color='black')
-        self.entry_estado_paciente.grid(row=19, column= 0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+                                                button_hover_color='lightgreen'
+                                                )
+        self.entry_estado_paciente.grid(row=19, column= 0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
         self.llenar_combobox_estados()
     
     def contenidosframe2modificar (self):
         
-        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Datos Del Estudio', font= self.fonts['title_frame'], fg_color='white', bg_color= 'white')
+        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Datos Del Estudio', font= self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=1, sticky='nsew')
         
-        self.lab_fecha_orden = ctk.CTkLabel(self.frame2, font= self.fonts['label'], fg_color= 'white', text='Fecha De La Orden', bg_color= 'white')
-        self.lab_fecha_orden.grid(row= 0, column= 0, sticky= 'nsew', pady= 8)
+        self.lab_fecha_orden = ctk.CTkLabel(self.frame2, font= self.fonts['label_etiqueta'], fg_color= 'white', text='Fecha De La Orden', bg_color= 'white', text_color= "#484a4b")
+        self.lab_fecha_orden.grid(row= 0, column= 0, sticky= 'nsew', pady= 4)
         
         self.entry_fecha_orden = DateEntry(self.frame2,
                                     width=20,
-                                    background='lightgray',
+                                    background="lightgray",
                                     foreground='white',
-                                    borderwidth=2,
                                     date_pattern= 'dd/MM/yyyy',
                                     font=self.fonts['date'],
                                     locale = 'es')
-        self.entry_fecha_orden.grid(row=1, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_fecha_orden.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
         hoy = date.today()
         
         self.entry_fecha_orden.set_date(hoy)
         
-        self.lab_fecha_citacion = ctk.CTkLabel(self.frame2, font= self.fonts['label'], fg_color= 'white', text='Fecha De La Cita', bg_color= 'white')
+        self.lab_fecha_citacion = ctk.CTkLabel(self.frame2, font= self.fonts['label_etiqueta'], fg_color= 'white', text='Fecha De La Cita', bg_color= 'white', text_color= "#484a4b")
         self.lab_fecha_citacion.grid(row= 2, column= 0, sticky= 'nsew', pady= 8)
         
         self.entry_fecha_cita = DateEntry(self.frame2,
                                 width=20,
-                                background='lightgray',
+                                background= "laightgray",
                                 foreground='white',
-                                borderwidth=2,
                                 date_pattern= 'dd/MM/yyyy',
                                 font= self.fonts['date'],
                                 locale = 'es'
                                 )
-        self.entry_fecha_cita.grid(row=3, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
         self.entry_fecha_cita.set_date(hoy)
         
-        self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_modalidad.grid(row=4, column=0, pady = 8, sticky='nsew')
+        self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
         
         self.entry_modalidad = ctk.CTkComboBox(self.frame2,
                                         font= self.fonts['label'],
@@ -730,51 +528,50 @@ class IngresarPacientes():
                                         values=[],
                                         button_color="lightgray",
                                         button_hover_color='lightgreen',
-                                        border_color='black',
                                         command=self.actualizar_estudios
                                         )
-        self.entry_modalidad.grid(row=5, column=0, sticky='nsew', padx= 15, pady= 8)
+        self.entry_modalidad.grid(row=5, column=0, sticky='nsew', padx= 15, pady= 4)
         
         self.llenar_combobox_modalidad()
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Lista de Estudios', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=6, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Lista de Estudios', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=6, column=0, pady = 4, sticky='nsew')
         
         self.entry_texto_est_ord = ctk.CTkTextbox(self.frame2,
                                     wrap=tk.WORD,
-                                    height=100,
+                                    height=150,
                                     width=560,
                                     fg_color="lightgray",
                                     bg_color= 'white',
                                     corner_radius= 10,
                                     font= self.fonts['label'],
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_est_ord.configure(state="disable")
-        self.entry_texto_est_ord.grid(row=7, column=0, columnspan= 4, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_est_ord.grid(row=7, column=0, columnspan= 4, pady=4, padx= 15, sticky='nsew')
         
         self.llenar_textbox_estudios()
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Estudios Ordenados Al Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=8, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Estudios Ordenados Al Paciente', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=8, column=0, pady = 4, sticky='nsew')
         
         self.entry_list_estud_ordenados = ctk.CTkTextbox(self.frame2,
                                                     wrap=tk.WORD,
-                                                    height=150,
+                                                    height=100,
                                                     width=560,
                                                     fg_color="lightgray",
                                                     bg_color= 'white',
                                                     corner_radius= 10,
                                                     font= self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2)
+                                                    scrollbar_button_color= "lightgreen"
+                                                    )
         self.entry_list_estud_ordenados.configure(state= 'disable')
-        self.entry_list_estud_ordenados.grid(row=9, column=0, columnspan= 4, pady=8, padx= 15, sticky='nsew')
+        self.entry_list_estud_ordenados.grid(row=9, column=0, columnspan= 4, pady=4, padx= 15, sticky='nsew')
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Buscador de Estudios', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=10, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Buscador de Estudios', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=10, column=0, pady = 4, sticky='nsew')
         
         self.entry_busqueda = ctk.CTkEntry(self.frame2,
                                     font= self.fonts['label'],
@@ -783,10 +580,9 @@ class IngresarPacientes():
                                     fg_color='lightgray',
                                     bg_color= 'white',
                                     corner_radius=10,
-                                    text_color='black',
-                                    border_color='black'
+                                    text_color='black'
                                     )
-        self.entry_busqueda.grid (row=11, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_busqueda.grid (row=11, column=0, pady=4, padx= 15, sticky='nsew')
         
         self.entry_busqueda.bind("<KeyRelease>", self.buscar_estudios_en_textbox)
         
@@ -800,8 +596,8 @@ class IngresarPacientes():
         self.frame_radios2.grid_columnconfigure(0, weight=1)
         self.frame_radios2.grid_columnconfigure(1, weight=1)
         
-        self.lab_ayuno_paciente = ctk.CTkLabel(self.frame_radios2, text='Ayuno', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_ayuno_paciente.grid(row=0, column=0, columnspan = 2, sticky='nsew')
+        self.lab_ayuno_paciente = ctk.CTkLabel(self.frame_radios2, text='Ayuno', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_ayuno_paciente.grid(row=0, column=0, columnspan = 2, pady = 2, sticky='nsew')
         
         self.var_ayuno = tk.IntVar(value=0)  # Valor predeterminado es 0
 
@@ -810,10 +606,10 @@ class IngresarPacientes():
                                     text="Sí",
                                     variable = self.var_ayuno,
                                     value=1,
-                                    font= self.fonts['label'],
+                                    font= self.fonts['label_etiqueta'],
                                     bg_color= 'white',
                                     fg_color= 'black',
-                                    border_color= 'lightgreen'
+                                    border_color= 'lightgray'
                                     )
         self.radio_ayuno1.grid(row=1, column=0, padx=55, sticky='nsew')
 
@@ -822,27 +618,27 @@ class IngresarPacientes():
                                     text="No",
                                     variable = self.var_ayuno,
                                     value=2,
-                                    font= self.fonts['label'],
+                                    font= self.fonts['label_etiqueta'],
                                     bg_color= 'white',
                                     fg_color= 'black',
-                                    border_color= 'lightgreen'
+                                    border_color= 'lightgray'
                                     )
         self.radio_ayuno2.grid(row=1, column=1, sticky='nsew')
         
-        self.lab_diferido_paciente = ctk.CTkLabel(self.frame_radios2, text='Diferido', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_diferido_paciente.grid(row=0, column=2, columnspan = 2, sticky='nsew')
+        self.lab_diferido_paciente = ctk.CTkLabel(self.frame_radios2, text='Diferido', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_diferido_paciente.grid(row=0, column=2, columnspan = 2, pady = 2, sticky='nsew')
         
-        self.var_diferido = tk.IntVar(value=0)  # Valor predeterminado es 0
+        self.var_diferido = tk.IntVar(value=2)  # Valor predeterminado es No
 
         # Botón de opción 1
         self.radio_diferido1 = ctk.CTkRadioButton(self.frame_radios2,
                                         text="Sí",
                                         variable = self.var_diferido,
                                         value=1,
-                                        font= self.fonts['label'],
+                                        font= self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_diferido1.grid(row=1, column=2, padx=12, sticky='nsew')
 
@@ -851,15 +647,15 @@ class IngresarPacientes():
                                         text="No",
                                         variable = self.var_diferido,
                                         value=2,
-                                        font= self.fonts['label'],
+                                        font= self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_diferido2.grid(row=1, column=3, sticky='nsew')
         
-        self.lab_autorizacion_paciente = ctk.CTkLabel(self.frame_radios2, text='Autorización', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_autorizacion_paciente.grid(row=2, column=0, columnspan =2, sticky='nsew')
+        self.lab_autorizacion_paciente = ctk.CTkLabel(self.frame_radios2, text='Autorización', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_autorizacion_paciente.grid(row=2, column=0, columnspan =2, pady = 2, sticky='nsew')
         
         self.var_autorizacion = tk.IntVar(value=0)  # Valor predeterminado es 0
 
@@ -868,10 +664,10 @@ class IngresarPacientes():
                                             text="Sí",
                                             variable = self.var_autorizacion,
                                             value=1,
-                                            font= self.fonts['label'],
+                                            font= self.fonts['label_etiqueta'],
                                             bg_color= 'white',
                                             fg_color= 'black',
-                                            border_color= 'lightgreen'
+                                            border_color= 'lightgray'
                                             )
         self.radio_autorizacion1.grid(row=3, column=0, padx=55, sticky='nsew')
 
@@ -880,15 +676,15 @@ class IngresarPacientes():
                                             text="No",
                                             variable = self.var_autorizacion,
                                             value=2,
-                                            font= self.fonts['label'],
+                                            font= self.fonts['label_etiqueta'],
                                             bg_color= 'white',
                                             fg_color= "#d2455b",
-                                            border_color= 'lightgreen'
+                                            border_color= 'lightgray'
                                             )
         self.radio_autorizacion2.grid(row=3, column=1, sticky='nsew')
         
-        self.lab_anestesia_paciente = ctk.CTkLabel(self.frame_radios2, text='Anestesia', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_anestesia_paciente.grid(row=2, column= 2, columnspan = 2, sticky='nsew')
+        self.lab_anestesia_paciente = ctk.CTkLabel(self.frame_radios2, text='Anestesia', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_anestesia_paciente.grid(row=2, column= 2, columnspan = 2, pady = 2, sticky='nsew')
         
         self.var_anestesia = tk.IntVar(value=0)  # Valor predeterminado es 0
 
@@ -897,10 +693,10 @@ class IngresarPacientes():
                                         text="Sí",
                                         variable = self.var_anestesia,
                                         value=1,
-                                        font= self.fonts['label'],
+                                        font= self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_anestesia1.grid(row=3, column=2, padx=12, sticky='nsew')
 
@@ -909,36 +705,37 @@ class IngresarPacientes():
                                         text="No",
                                         variable = self.var_anestesia,
                                         value=2,
-                                        font= self.fonts['label'],
+                                        font= self.fonts['label_etiqueta'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_anestesia2.grid(row=3, column=3, sticky='nsew')
         
-        self.lab_diagnostico = ctk.CTkLabel(self.frame2, text='Diagnóstico', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_diagnostico.grid(row=13, column=0, pady = 8, sticky='nsew')
+        self.lab_diagnostico = ctk.CTkLabel(self.frame2, text='Diagnóstico', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_diagnostico.grid(row=13, column=0, pady = 4, sticky='nsew')
         
         self.entry_texto_diagnostico = ctk.CTkTextbox(self.frame2,
                                         wrap=tk.WORD,
                                         height=100,
                                         width=560,
                                         fg_color="lightgray",
+                                        bg_color= "white",
                                         corner_radius= 10,
                                         font= self.fonts['label'],
                                         text_color='black',
-                                        border_color='black',
-                                        border_width=2)
+                                        scrollbar_button_color= "lightgreen"
+                                        )
         self.entry_texto_diagnostico.grid(row=14, column=0, columnspan= 4, pady=10, padx= 15, sticky='nsew')
     
     def contenidosframe3modificar (self):
         
         from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal, cerrar_ppal
         
-        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Realización Del Estudio', fg_color='white', font=self.fonts['title_frame'], bg_color= 'white')
+        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Realización Del Estudio', fg_color='white', font=self.fonts['title_frame'], bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=2, sticky='nsew')
         
-        self.lab_hora_citacion = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Hora De La Cita', bg_color= 'white')
+        self.lab_hora_citacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Hora De La Cita', bg_color= 'white', text_color= "#484a4b")
         self.lab_hora_citacion.grid(row = 0, column = 0, sticky='nsew')
         
         self.horas = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 5)]  # Intervalos de 5 minutos
@@ -953,13 +750,12 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    border_color='black',
                                                     values=['Seleccione Una Hora'] + self.horas
                                                     )
-        self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white')
-        self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=8)
+        self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white', text_color= "#484a4b")
+        self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
         
         self.entry_combobox_hora_realizacion = ctk.CTkComboBox(self.frame3,
                                                     font=self.fonts['label'],
@@ -972,12 +768,11 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    border_color='black',
                                                     values=['Seleccione Una Hora'] + self.horas
                                                     )
-        self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white')
+        self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white', text_color= "#484a4b")
         self.lab_causal_retraso.grid(row = 4, column = 0, sticky = 'nsew', pady=8)
         
         self.entry_list_caus_retraso = ctk.CTkComboBox(self.frame3,
@@ -991,15 +786,14 @@ class IngresarPacientes():
                                                 text_color='black',
                                                 values=[],
                                                 button_color="lightgray",
-                                                button_hover_color='lightgreen',
-                                                border_color='black'
+                                                button_hover_color='lightgreen'
                                                 )
-        self.entry_list_caus_retraso.grid(row=5, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_list_caus_retraso.grid(row=5, column=0, pady=4, padx=15, sticky='nsew')
         
         self.llenar_combobox_causal_retraso()
         
-        self.lab_coment_tecnologo = ctk.CTkLabel(self.frame3, text='Comentarios Tecnólogo', font=self.fonts['label'], fg_color='white')
-        self.lab_coment_tecnologo.grid(row=6, column=0, pady = 8, sticky='nsew')
+        self.lab_coment_tecnologo = ctk.CTkLabel(self.frame3, text='Comentarios Tecnólogo', font=self.fonts['label_etiqueta'], fg_color='white', text_color= "#484a4b")
+        self.lab_coment_tecnologo.grid(row=6, column=0, pady = 4, sticky='nsew')
         
         self.entry_texto_coment_tecnologo = ctk.CTkTextbox(self.frame3,
                                                     wrap=tk.WORD,
@@ -1010,14 +804,13 @@ class IngresarPacientes():
                                                     corner_radius= 10,
                                                     font=self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2
+                                                    scrollbar_button_color= "lightgreen"
                                                     )
-        self.entry_texto_coment_tecnologo.grid(row=7, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_texto_coment_tecnologo.grid(row=7, column=0, pady=4, padx= 15, sticky='nsew')
         
         # Frame contenedor solo para los radios
         self.frame_radios = ctk.CTkFrame(self.frame3, fg_color="white",bg_color='white')
-        self.frame_radios.grid(row=8, column=0, columnspan =2, pady = 20, sticky="nsew")
+        self.frame_radios.grid(row=8, column=0, columnspan =2, pady = 4, sticky="nsew")
 
         # Configura 2 columnas en el sub-frame
         self.frame_radios.grid_rowconfigure(0, weight=1)
@@ -1025,7 +818,7 @@ class IngresarPacientes():
         self.frame_radios.grid_columnconfigure(0, weight=1)
         self.frame_radios.grid_columnconfigure(1, weight=1)
         
-        self.lab_coment_al_radiologo = ctk.CTkLabel(self.frame_radios, font=self.fonts['label'], fg_color= 'white', text='Comentar Estudio Con Radiólogo', bg_color= 'white')
+        self.lab_coment_al_radiologo = ctk.CTkLabel(self.frame_radios, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Comentar Estudio Con Radiólogo', bg_color= 'white', text_color= "#484a4b")
         self.lab_coment_al_radiologo.grid(row = 0, column = 0, columnspan = 2, sticky = 'nsew')
         
         self.var_coment_al_rad = tk.IntVar(value=0)  # Valor predeterminado es 0
@@ -1034,10 +827,10 @@ class IngresarPacientes():
         self.radio_coment_radiologo1 = ctk.CTkRadioButton(self.frame_radios,
                                                     text="Sí", 
                                                     variable = self.var_coment_al_rad, 
-                                                    value=1, font=self.fonts['label'], 
+                                                    value=1, font=self.fonts['label_etiqueta'], 
                                                     bg_color= 'white',
                                                     fg_color= 'black',
-                                                    border_color= 'lightgreen'
+                                                    border_color= 'lightgray'
                                                     )
         self.radio_coment_radiologo1.grid(row=1, column=0, padx=150, pady= 10, sticky='nsew')
 
@@ -1045,13 +838,13 @@ class IngresarPacientes():
         self.radio_coment_radiologo2 = ctk.CTkRadioButton(self.frame_radios, 
                                                     text="No",
                                                     variable = self.var_coment_al_rad,
-                                                    value=2, font=self.fonts['label'],
+                                                    value=2, font=self.fonts['label_etiqueta'],
                                                     bg_color= 'white',
                                                     fg_color= 'black',
-                                                    border_color= 'lightgreen')
+                                                    border_color= 'lightgray')
         self.radio_coment_radiologo2.grid(row=1, column=1, pady= 10, sticky='nsew')
         
-        self.lab_coment_radiologo = ctk.CTkLabel(self.frame3, text='Comentarios Radiólogo', font=self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_coment_radiologo = ctk.CTkLabel(self.frame3, text='Comentarios Radiólogo', font=self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_coment_radiologo.grid(row=9, column=0, pady = 8, sticky='nsew')
         
         self.entry_texto_coment_radiologo = ctk.CTkTextbox(self.frame3,
@@ -1063,11 +856,10 @@ class IngresarPacientes():
                                                     corner_radius= 10,
                                                     font=self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2
+                                                    scrollbar_button_color= "lightgreen"
                                                     )
         self.entry_texto_coment_radiologo.configure(state = 'disable')
-        self.entry_texto_coment_radiologo.grid(row=10, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_texto_coment_radiologo.grid(row=10, column=0, pady=4, padx= 15, sticky='nsew')
         
         self.frame_buttons = ctk.CTkFrame(self.frame3,
                                     width=610,
@@ -1084,28 +876,28 @@ class IngresarPacientes():
         
         self.btn_nuevo = ctk.CTkButton(self.frame_buttons,
                                 text='Agregar Paciente',
-                                text_color='black',
-                                font=self.fonts['label'],
+                                text_color='white',
+                                font=self.fonts['label_boton'],
                                 width=20,
                                 height=50,
                                 corner_radius=20,
-                                fg_color='lightblue',
+                                fg_color='#00155C',
                                 bg_color= 'white',
                                 hover_color = 'lightgreen',
                                 anchor='center',
-                                command= self.mostrar
+                                command= self.agregar_datos
                                 )
         
         self.btn_nuevo.grid(row= 0, column= 0, padx= 8, pady= 70, sticky='nsew')
         
         self.btn_limpiar = ctk.CTkButton(self.frame_buttons,
                                 text='Limpiar Pantalla',
-                                text_color='black',
-                                font=self.fonts['label'],
+                                text_color='white',
+                                font=self.fonts['label_boton'],
                                 width=20,
                                 height=50,
                                 corner_radius=20,
-                                fg_color='lightblue',
+                                fg_color='#00155C',
                                 bg_color= 'white',
                                 hover_color = 'lightgreen',
                                 anchor='center',
@@ -1116,12 +908,12 @@ class IngresarPacientes():
         
         self.btn_atras = ctk.CTkButton(self.frame_buttons,
                                 text='Atrás',
-                                text_color='black',
-                                font=self.fonts['label'],
+                                text_color='white',
+                                font=self.fonts['label_boton'],
                                 width=20,
                                 height=50,
                                 corner_radius=20,
-                                fg_color='lightblue',
+                                fg_color='#00155C',
                                 bg_color= 'white',
                                 hover_color = 'lightgreen',
                                 anchor='center',
@@ -1129,184 +921,6 @@ class IngresarPacientes():
                                 )
         
         self.btn_atras.grid(row= 0, column= 2, padx= 8, pady= 70, sticky='nsew')
-    
-    """def llenado_pacientes(self):
-        
-        mapping = {
-            'identificacion_paciente': self.entry_identificacion_paciente,
-            'nombre_paciente': self.entry_nombre_paciente,
-            'edad': self.entry_edad_paciente,
-            'rango_edad': self.entry_rango_edad_paciente,
-            'hc': self.entry_historia_clin_paciente,
-            'ubicacion': self.entry_ubicacion_paciente,
-            'sede': self.entry_sede_paciente,
-            'alergia': self.var_alergias,
-            'alergia_texto' : self.entry_tipo_alergia_paciente,
-            'tipo_alergia': self.entry_texto_alergias_paciente,
-            'aislamiento': self.var_aislamiento,
-            'aislamiento_texto': self.entry_tipo_aislamiento_paciente,
-            'tipo_aislamiento': self.entry_texto_aislamientos_paciente,
-            'estado': self.entry_estado_paciente,
-            'fecha_orden': self.entry_fecha_orden,
-            'fecha_citacion': self.entry_fecha_cita,
-            'modalidad': self.entry_modalidad,
-            'estudios_ordenados_texto': self.entry_texto_est_ord,
-            'estudios_ordenados_paciente': self.entry_list_estud_ordenados,
-            'ayuno': self.var_ayuno,
-            'diferido' : self.var_diferido,
-            'autorizacion' : self.var_autorizacion,
-            'anestesia' : self.var_anestesia,
-            'diagnostico' : self.entry_texto_diagnostico,
-            'hora_citacion' : self.entry_combobox_hora_citacion,
-            'hora_realizacion' : self.entry_combobox_hora_realizacion,
-            'causal_retraso' : self.entry_list_caus_retraso,
-            'comentarios_tecnologo' : self.entry_texto_coment_tecnologo,
-            'comentar_radiologo' : self.var_coment_al_rad,
-            'comentarios_radiologo' : self.entry_texto_coment_radiologo
-        }
-        
-        # Mapeo de ComboBox a funciones que convierten ID a nombre
-                
-        for clave, widget in mapping.items():
-            valor = self.paciente_modificar.get(clave)
-            
-            # para los entrys
-            if isinstance(widget, ctk.CTkEntry):
-
-                widget.delete(0, "end")
-                if valor is not None:
-                    widget.insert(0, str(valor))
-                    
-                # Solo habilitamos 
-                if clave in ("ubicacion", "edad", "nombre_paciente"):
-                    widget.configure(state="normal")
-                else:
-                    widget.configure(state="disable")
-            
-            # Para los Textbox
-            elif isinstance(widget, ctk.CTkTextbox):
-
-                # Si es diagnóstico o comentarios del tecnólogo, permitimos edición
-                if clave in ["diagnostico", "comentarios_tecnologo", "estudios_ordenados_paciente"]:
-                    widget.configure(state="normal")
-                    widget.delete("0.0", "end")
-                    if valor is not None:
-                        widget.insert("0.0", str(valor)) 
-                
-                # Si es estudios disponibles (solo lectura)
-                elif clave == "estudios_ordenados_texto":
-                    widget.configure(state="normal")
-                    widget.delete("0.0", "end")
-                    if valor is not None:
-                        widget.insert("0.0", str(valor))
-                    self.llenar_textbox_estudios()  # esto llena entry_texto_est_ord
-                    widget.configure(state="disable")  # Solo lectura
-                
-                elif clave == "tipo_alergia":
-                    widget.configure(state="normal")
-                    widget.delete("0.0", "end")
-                    if valor is not None:
-                        widget.insert("0.0", str(valor))
-                    valor = self.comparar_extraer_alergia()  # esto llena entry_texto_alergia
-                
-                elif clave == "tipo_aislamiento":
-                    widget.configure(state="normal")
-                    widget.delete("0.0", "end")
-                    if valor is not None:
-                        widget.insert("0.0", str(valor))
-                    valor = self.comparar_extraer_aislamiento()  # esto llena entry_texto_alergia
-                
-                # Otros Textbox que se bloquean
-                else:
-                    widget.configure(state="normal")
-                    widget.delete("0.0", "end")
-                    if valor is not None:
-                        widget.insert("0.0", str(valor))
-                    widget.configure(state="disable")
-
-            # para los combobox
-            elif isinstance(widget, ctk.CTkComboBox):
-
-                opciones = []
-                
-                # Hacer que el ComboBox sea solo de selección
-                widget.configure(state="normal")
-                
-                # Bloquear escritura manual (solo permite seleccionar)
-                def bloquear_escritura(event):
-                    return "break"
-                widget.bind("<Key>", bloquear_escritura)
-            
-                # Determinar las opciones según el ComboBox
-                if clave == "rango_edad":
-                    self.llenar_combobox_rango_edad()
-                    valor = self.comparar_extraer_rango_edad()
-                    
-                if clave == "modalidad":
-                    
-                    self.llenar_combobox_modalidad()
-                    valor = self.comparar_extraer_modalidad() # aquí usamos el valor traducido con comparar_extraer
-
-                if clave == "sede":
-                    
-                    self.llenar_combobox_sedes()
-                    valor = self.comparar_extraer_sede() # aquí usamos el valor traducido con comparar_extraer
-
-                if clave == "estado":
-                    
-                    self.llenar_combobox_estados()
-                    valor = self.comparar_extraer_estado()# aquí usamos el valor traducido con comparar_extraer
-
-                if clave == "alergia_texto":
-                    
-                    self.llenar_combobox_alergia()
-                    
-                if clave == "aislamiento_texto":
-                    
-                    self.llenar_combobox_aislamiento()
-                    
-                if clave == "causal_retraso":
-                    
-                    self.llenar_combobox_causal_retraso()
-                    valor = self.comparar_extraer_causales_retrasos() # aquí usamos el valor traducido con comparar_extraer
-
-                resultado = self.comparar_extraer_horas() 
-
-                if resultado:  # Si no es None
-                    citacion_timedelta = resultado[0]["citacion"]
-                    realizacion_timedelta = resultado[0]["realizacion"]
-
-                    # Convertimos a string HH:MM:SS
-                    citacion_str = str(citacion_timedelta)
-                    realizacion_str = str(realizacion_timedelta)
-
-                    # Actualizamos los widgets usando tu mapping
-                    mapping['hora_citacion'].set(citacion_str)
-                    mapping['hora_realizacion'].set(realizacion_str)
-                    
-                # Finalmente, asignar el valor del paciente o la opción por defecto
-                if valor is not None and valor in widget.cget("values"):
-                    widget.set(str(valor))
-                else:
-                    if opciones:
-                        widget.set(opciones[0])  # primera opción como default
-                        
-
-            # para los radiobutton
-            elif isinstance(widget, tk.Variable):  # Para IntVar de radio buttons
-                if valor is not None:
-                    # Convertir de 'si'/'no' a 1/2 según el caso
-                    if valor.lower() == "si":
-                        widget.set(1)
-                    else:
-                        widget.set(2)
-            
-            # Para DateEntry
-            elif isinstance(widget, DateEntry):
-                if valor is not None:
-                    widget.set_date(valor)
-    
-    # traemos la informacion de la base de datos de las diferentes tablas"""
 
     def obtener_modalidades(self):
         """Obtiene las modalidades de la db y lo guardamos en una lista."""
@@ -1700,18 +1314,6 @@ class IngresarPacientes():
     
     def llenar_textbox_estudios(self):
         
-        """informacion = self.obtener_estudios_ordenados()
-        opciones = [fila["nombre_estudio"] for fila in informacion]
-
-        self.entry_texto_est_ord.configure(state="normal")
-        self.entry_texto_est_ord.delete("0.0", "end")
-
-        for nombre in opciones:
-            self.entry_texto_est_ord.insert("end", nombre + "\n")
-
-        self.entry_texto_est_ord.configure(state="disable")"""
-        #self.entry_texto_est_ord.set(opciones[0])
-        
         informacion = getattr(self, 'estudio_extraido', [])
         opciones = [fila["nombre_estudio"] for fila in informacion]
 
@@ -1845,7 +1447,7 @@ class IngresarPacientes():
         #self.entry_texto_coment_radiologo.get("1.0", "end")
 
     def agregar_datos(self):
-
+        
         # Diccionario con todas las variables tipo IntVar
         vars_si_no = {
             "aislamiento": self.var_aislamiento,
@@ -1884,6 +1486,7 @@ class IngresarPacientes():
             estado = self.entry_estado_paciente.get()
             
         id_estado = next((r["id_estado"] for r in self.estado if r["nombre_estado"] == estado), None)
+        id_estado_diferido = next((r["id_estado"] for r in self.estado if r["nombre_estado"] == "Diferido"), None)
         fecha1 = self.entry_fecha_orden.get()
         fecha_orden = datetime.strptime(fecha1, "%d/%m/%Y").date().isoformat()
         fecha2 = self.entry_fecha_cita.get()
@@ -1898,6 +1501,77 @@ class IngresarPacientes():
         id_retraso = next((r["id_retraso"] for r in self.retrasos if r["causal_retraso"] == causal_retraso), None)
         coment_tecnologo = self.entry_texto_coment_tecnologo.get("1.0", "end-1c")
         coment_radiologo = self.entry_texto_coment_radiologo.get("1.0", "end-1c")
+        
+        # ----------------------------
+        # Validación de campos obligatorios
+        # ----------------------------
+
+        # Campos de widgets (Entry, Combobox, Text), excluyendo comentarios_radiologo
+        campos_widgets = {
+            "Identificación": identificacion,
+            "Nombre": nombre,
+            "Edad": edad,
+            "Rango de edad": id_rango,
+            "Historia clínica": hc,
+            "Ubicación": ubicacion,
+            "Sede": id_sede,
+            "Fecha orden": fecha1,
+            "Fecha cita": fecha2,
+            "Modalidad": id_modalidad,
+            "Estudios ordenados": estud_ord,
+            "Diagnóstico": diagnostico,
+            "Hora citación": hora_cita,
+            "Hora realización": hora_realizacion,
+            "Estado": id_estado,
+            "comentarios tecnologo": coment_tecnologo
+        }
+
+        # Los IntVar se validan
+        campos_intvar = {key: valor.get() for key, valor in vars_si_no.items()}
+
+        # Combinar ambos diccionarios
+        todos_los_campos = {**campos_widgets, **campos_intvar}
+
+        # Revisar cuáles están vacíos o sin seleccionar
+        faltantes = [campo for campo, valor in todos_los_campos.items() if not valor]
+
+        if faltantes:
+            messagebox.showerror(
+                "Campos incompletos",
+                f"Debe llenar o seleccionar todos los campos:\n\n{', '.join(faltantes)}"
+            )
+            return  # Cancelar la inserción
+        
+        # ----------------------------
+        # Validación duplicados
+        # ----------------------------
+        query_check = """
+            SELECT 'registrospacientes' AS tabla, nombre_paciente, hc
+            FROM registrospacientes
+            WHERE identificacion_paciente = %s AND fecha_orden = %s AND estado = %s
+            UNION
+            SELECT 'registrospacientesdiferidos' AS tabla, nombre_paciente, hc
+            FROM registrospacientesdiferidos
+            WHERE identificacion_paciente = %s AND fecha_orden = %s
+        """
+        self.db.cursor.execute(query_check, (identificacion, fecha_orden, id_estado_diferido,
+                                            identificacion, fecha_orden))
+        resultados = self.db.cursor.fetchall()
+
+        if resultados:
+            mensaje = f"El paciente con identificación {identificacion}, fecha de orden {fecha_orden} ya existe:\n\n"
+            for tabla, nombre, _ in resultados:  # ignoramos HC
+                mensaje += f"• {nombre} en la ventana {tabla}\n"
+            mensaje += "\n¿Desea registrar un duplicado?"
+            
+            respuesta = messagebox.askyesno("Paciente existente", mensaje)
+            if not respuesta:
+                self.limpiar_campos()
+                return  # Cancelar inserción
+
+        # ----------------------------
+        # Valores finales para INSERT
+        # ----------------------------
         
         valores_finales = (nombre, 
                     identificacion, 
@@ -2004,6 +1678,8 @@ class IngresarPacientes():
         self.db.cursor.execute(sql, valores_finales)
         
         self.db.conexion.commit()
+        datos_ingresados()
+        self.limpiar_campos()
 
     def obtener_id_estado(self, nombre_estado):
         """Obtiene el ID del estado basado en el nombre del estado."""
@@ -2041,12 +1717,6 @@ class IngresarPacientes():
             edad_fuera_rango()   # <-- aquí puedes definir otro messagebox o reutilizar
             self.entry_edad_paciente.delete(0, "end")
             self.entry_edad_paciente.focus_set()
-    
-    def mostrar(self):
-        
-        self.agregar_datos()
-        datos_ingresados()
-        self.limpiar_campos()
         
     def salir(self):
         """Método personalizado para el botón Salir.
@@ -2061,11 +1731,3 @@ class IngresarPacientes():
         
         abrir_ventana_visualizar_datos_ppal()
         
-
-        
-"""ventana_principal = VentanaPrincipal()
-ventana = ventana_principal.obtener_ventana()
-
-# Pasar esa ventana a PacientesModificar
-app_modificar = PacientesModificar(ventana)
-ventana.mainloop()"""

@@ -191,7 +191,7 @@ class ConexionDB():
         create TABLE if not EXISTS registrosPacientesDiferidos (
             id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
             nombre_paciente VARCHAR(60) not null,
-            identificacion_paciente INTEGER not NULL,
+            identificacion_paciente BIGINT not NULL,
             edad TINYINT not NULL,
             rango_edad INTEGER not NULL,
             fecha_orden DATE not NULL,
@@ -270,7 +270,7 @@ class ConexionDB():
         create TABLE if not EXISTS registrosPacientesRealizados (
             id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
             nombre_paciente VARCHAR(60) not null,
-            identificacion_paciente INTEGER not NULL,
+            identificacion_paciente BIGINT not NULL,
             edad TINYINT not NULL,
             rango_edad INTEGER not NULL,
             fecha_orden DATE not NULL,
@@ -349,7 +349,7 @@ class ConexionDB():
         create TABLE if not EXISTS registrosPacientesCancelados (
             id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
             nombre_paciente VARCHAR(60) not null,
-            identificacion_paciente INTEGER not NULL,
+            identificacion_paciente BIGINT not NULL,
             edad TINYINT not NULL,
             rango_edad INTEGER not NULL,
             fecha_orden DATE not NULL,
@@ -428,7 +428,7 @@ class ConexionDB():
         create TABLE if not EXISTS registrosPacientesModificados (
             id_registro INTEGER not null AUTO_INCREMENT PRIMARY KEY UNIQUE,
             nombre_paciente VARCHAR(60) not null,
-            identificacion_paciente INTEGER not NULL,
+            identificacion_paciente BIGINT not NULL,
             edad TINYINT not NULL,
             rango_edad INTEGER not NULL,
             fecha_orden DATE not NULL,

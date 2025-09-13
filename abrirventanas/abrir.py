@@ -164,6 +164,31 @@ def abrir_ventana_visualizar_datos_ppal_realizados():
     panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
     panel.visual_principal_datos()   # Se asume que maneja 'frame1'
 
+def abrir_ventana_visualizar_datos_ppal_radiologo():
+
+    from frames.frame_base_visualizacion import FrameBaseVisualizacion
+    from ventanas.visualizar_datos_ppal_radiologo import PanelPrincipalVisualizacionRadiologo
+    
+    ventana_visualizar_datos = VentanaPrincipal()
+    ventana_visualizar = ventana_visualizar_datos.obtener_ventana()
+    
+    # Aplica los ajustes de maximización y redimensionado
+    ventana_visualizar_datos.aplicar_ajustes_a_ventana(ventana_visualizar)
+    
+    ventana_visualizar.deiconify()  # Asegura que la ventana sea visible
+    ventana_visualizar.lift()  # Trae la ventana al frente
+    alto_pantalla_sup = 1
+    
+    frames_dict = FrameBaseVisualizacion(ventana_visualizar, alto_pantalla_sup).obtener_frames()
+    # frames_dict = frames_dict.obtener_frames()
+
+    # Crea una sola instancia pasando ambos frames al constructor
+    panel = PanelPrincipalVisualizacionRadiologo(frames_dict['framesup'], frames_dict['frame1'])
+    
+    # Llama métodos para llenar cada frame
+    panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
+    panel.visual_principal_datos()   # Se asume que maneja 'frame1'
+
 def abrir_ventana_registro_usuario(parent_window=None):
     
     from ventanas.ventana_registro_usuario import VentanaRegistroUsuario

@@ -24,7 +24,8 @@ from conexion_DB.conexionDB import Conexion_DB # Importa la clase Conexion_DB de
 from abrirventanas.abrir import (abrir_ventana_visualizar_datos_ppal, 
                                 abrir_ventana_registro_usuario, 
                                 abrir_ventana_envio_codigo, 
-                                abrir_ventana_admon
+                                abrir_ventana_admon,
+                                abrir_ventana_visualizar_datos_ppal_radiologo
                                 )
 # Importa funciones para abrir ventanas emergentes con diferentes mensajes de error o éxito
 from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito, 
@@ -92,15 +93,15 @@ class VentanaInicioPrograma():
             abrir_ventana_conn_fallida() # Si ocurre un error, abrir ventana indicando que la conexión falló
         
         # Cargar imágenes para los iconos de visibilidad de contraseña, ajustando su tamaño
-        self.ojo_abierto = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojoabierto.png")).resize((50, 50)), size=(50, 50))
-        self.ojo_cerrado = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojo-cerrado.png")).resize((50, 50)), size=(50, 50))
+        self.ojo_abierto = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojoabierto.png")).resize((30, 30)), size=(30, 30))
+        self.ojo_cerrado = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojo-cerrado.png")).resize((30, 30)), size=(30, 30))
         
         # Definir un diccionario con las fuentes de los textos utilizados en la interfaz
         self.fonts = {
-            'title':('Verdana', 30, 'bold'),
+            'title':('Verdana', 26, 'bold'),
             'label':('Verdana', 14, 'bold'),
-            'label_titulo':('Verdana', 18, 'bold'),
-            'boton':('Verdana', 18, 'bold'),
+            'label_titulo':('Verdana', 16, 'bold'),
+            'boton':('Verdana', 14, 'bold'),
         }
         
         # Crear y configurar los frames que estructuran la ventana
@@ -156,10 +157,10 @@ class VentanaInicioPrograma():
         # Lista de botones con sus configuraciones y acciones
         campos2 = [
             
-            {"label": "Registrarse", "color": "blue", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": lambda: (abrir_ventana_registro_usuario(self.root), self.root.iconify())},
-            {"label": " Ingresar ", "color": "greenyellow", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": self.validacion_entrada_sistema},
+            {"label": "Registrarse", "color": "#00155C", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": lambda: (abrir_ventana_registro_usuario(self.root), self.root.iconify())},
+            {"label": " Ingresar ", "color": "#00155C", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": self.validacion_entrada_sistema},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 50, "alto":50, "command": self.alternar_contrasena, 'image': self.ojo_abierto, "clave": "ver_contrasena"},
-            {"label": "Olvido\nContraseña", "color": "lightblue", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": lambda: (abrir_ventana_envio_codigo(self.root), self.root.iconify())},
+            {"label": "Olvidó\nContraseña", "color": "#00155C", "tipo": "boton", "ancho": 50, "alto":10, 'image': None, "command": lambda: (abrir_ventana_envio_codigo(self.root), self.root.iconify())},
 
         ]
         
@@ -256,9 +257,9 @@ class VentanaInicioPrograma():
 
             abrir_ventana_admon()
             
-        elif cargo== 'Radiólogo':
+        elif cargo== 'Radiologo':
             
-            pass
+            abrir_ventana_visualizar_datos_ppal_radiologo()
         
         else:
             
@@ -287,7 +288,7 @@ class VentanaInicioPrograma():
                             corner_radius=10,
                             width=ancho_widget,
                             height=alto_widget,
-                            fg_color='light gray',
+                            fg_color='lightgray',
                             show = show
                             )
         
@@ -304,12 +305,14 @@ class VentanaInicioPrograma():
                                 font=font,
                                 text=texto,
                                 fg_color=color_fondo,
-                                text_color='black',
+                                text_color='white',
                                 height=alto,
                                 width= ancho,
                                 command=command,
                                 corner_radius=10,
-                                image = image
+                                image = image,
+                                hover_color= 'lightgreen'
+                                
                             )
         
         # Posicionar el botón en la cuadrícula

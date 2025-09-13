@@ -159,7 +159,7 @@ class PanelPrincipalVisualizacionRealizados():
             
             {"label": "Sede", "valor": None, "ancho": 130, "tipo": "combobox", "opciones": self.sedes},
             {"label": "Fecha", "valor": None, "ancho": 100, "tipo": "fecha"},
-            {"label": "Todos", "color": "greenyellow", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
+            {"label": "Todos", "color": "lightblue", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
 
         ]
@@ -291,10 +291,11 @@ class PanelPrincipalVisualizacionRealizados():
                 ancho_widget=30, alto_widget=26, habilitado=False, textvariable=None):
     
         # Si no se pasa una variable, se crea una nueva
+        
         if textvariable is None:
             textvariable = ctk.StringVar(value=valor_predeterminado)
 
-        # Determinar el color de fondo según el valor
+        # Determinar el color de fondo según el valor 
         if campo_columna == "autorizacion" and valor_predeterminado != "Si":
             color_fondo = "#d2455b"  # rojo
         
@@ -344,8 +345,12 @@ class PanelPrincipalVisualizacionRealizados():
 
         # Normalizamos el valor (separando por comas y quitando espacios)
         valor_normalizado = [v.strip().title() for v in valor_real.split(",")]
+        
+        if campo_col == "comentarios del radiologo"  and valor_real.strip() != "":
+            
+            color_fondo = "lightgreen"
 
-        if campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
+        elif campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
             
             color_fondo = "#d2455b" # rojo
         
@@ -414,7 +419,9 @@ class PanelPrincipalVisualizacionRealizados():
             height=alto_widget,
             fg_color='lightgray',
             values=opciones,
-            command=comando  # Función al cambiar selección
+            command=comando,  # Función al cambiar selección
+            button_color= "lightgray",
+            button_hover_color= "lightgreen"
         )
 
         # Establecer valor predeterminado
@@ -601,7 +608,7 @@ class PanelPrincipalVisualizacionRealizados():
                 {"label": "Comentar Con\nRadiólogo","columna": "comentar con radiologo", "valor": paciente.get("comentar_radiologo", ""), "ancho": 40, "tipo": "entry"},
                 {"label": "Comentarios Del Radiólogo","columna": "comentarios del radiologo", "valor": paciente.get("comentarios_radiologo", ""), "ancho": 300, "tipo": "textbox"},
                 {"label": "Personal A Cargo","columna": "personal a cargo", "valor": UsuarioActual.nombre, "ancho": 300, "tipo": "entry"},
-                {"label": "Atrás", "color": "blue", "tipo": "boton", "ancho": 70, "alto":50, "command": self.salir, 'image' : None},
+                {"label": "Atrás", "color": "lightblue", "tipo": "boton", "ancho": 70, "alto":50, "command": self.salir, 'image' : None},
             ]
 
             # Generar etiquetas y entradas dinámicamente en fila 0 y 1

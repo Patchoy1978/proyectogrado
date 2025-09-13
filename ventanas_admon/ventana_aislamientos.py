@@ -100,7 +100,7 @@ class IngresoAislamientos():
             {'label': 'Ingresar', 'ancho': 100, 'alto': 50, 'color':'Lightblue', 'command': self.insertar_aislamiento},
             {'label': 'Eliminar', 'ancho': 100, 'alto': 50, 'color':'Lightblue', 'command': self.eliminar_aislamiento},
             {'label': 'Modificar', 'ancho': 100, 'alto': 50, 'color':'Lightblue', 'command': self.modificar_aislamiento},
-            {'label': 'Salir', 'ancho': 100, 'alto': 50, 'color':'red', 'command': self.salir},
+            {'label': 'Salir', 'ancho': 100, 'alto': 50, 'color':'lightblue', 'command': self.salir},
         ]
         
         
@@ -327,9 +327,9 @@ class IngresoAislamientos():
                             corner_radius=10,
                             width=ancho_widget,
                             height=alto_widget,
-                            fg_color='lightblue',
+                            fg_color='lightgray',
                             placeholder_text=placeholder,
-                            placeholder_text_color= 'gray',
+                            placeholder_text_color= 'black',
                             textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
@@ -347,7 +347,8 @@ class IngresoAislamientos():
                                 height=alto,
                                 width= ancho,
                                 command=command,
-                                corner_radius=10
+                                corner_radius=10,
+                                hover_color= "lightgreen"
                             )
         boton.grid(row=fila, column=columna, rowspan=alto, padx=15, pady= 15, sticky='nsew')
         return boton
@@ -358,12 +359,13 @@ class IngresoAislamientos():
                                     wrap=ctk.WORD,
                                     height=100,
                                     width=560,
-                                    fg_color="lightblue",
+                                    fg_color="lightgray",
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',
                                     border_color='black',
-                                    border_width=2)
+                                    border_width=2
+                                    )
     
         # Usamos grid después de crear el widget
         entry_textbox.grid(row=fila, column=columna, pady=5, padx=5, sticky='nsew')

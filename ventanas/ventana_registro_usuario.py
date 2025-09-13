@@ -183,9 +183,9 @@ class VentanaRegistroUsuario():
         # Campos para los botones de acción
         campos4 = [
             
-            {"label": "Registrarse", "color": "yellow", "tipo": "boton", "ancho": 60, "alto":40, "command": self.insertar_usuario, 'image':None},
+            {"label": "Registrarse", "color": "lightblue", "tipo": "boton", "ancho": 60, "alto":40, "command": self.insertar_usuario, 'image':None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 50, "alto":50, "command": self.alternar_contrasena, 'image': self.ojo_abierto, "clave": "ver_contrasena"},
-            {"label": "Salir", "color": "red", "tipo": "boton", "ancho": 60, "alto":40, "command": self.salir, 'image':None},
+            {"label": "Salir", "color": "lightblue", "tipo": "boton", "ancho": 60, "alto":40, "command": self.salir, 'image':None},
         ]
         
         # Crear la etiqueta del título en la ventana
@@ -470,16 +470,16 @@ class VentanaRegistroUsuario():
 
         # Crear un entry con las propiedades y configuraciones proporcionadas
         entry = ctk.CTkEntry(parent,
-                             font=font,  # Establecer la fuente del texto en el entry
-                             width=ancho_widget,  # Ancho del widget (campo de entrada)
-                             height=alto_widget,  # Alto del widget
-                             text_color='black',  # Color del texto
-                             corner_radius=10,  # Radio de las esquinas para bordes redondeados
-                             fg_color='lightblue',  # Color de fondo del entry
-                             placeholder_text=placeholder,  # Texto del placeholder cuando el campo está vacío
-                             placeholder_text_color='gray',  # Color del texto del placeholder
-                             textvariable=textvariable,  # Variable de control para el texto que se ingresa
-                             show=show  # Caracter a mostrar en el campo 
+                            font=font,  # Establecer la fuente del texto en el entry
+                            width=ancho_widget,  # Ancho del widget (campo de entrada)
+                            height=alto_widget,  # Alto del widget
+                            text_color='black',  # Color del texto
+                            corner_radius=10,  # Radio de las esquinas para bordes redondeados
+                            fg_color='lightgray',  # Color de fondo del entry
+                            placeholder_text=placeholder,  # Texto del placeholder cuando el campo está vacío
+                            placeholder_text_color='lightblue',  # Color del texto del placeholder
+                            textvariable=textvariable,  # Variable de control para el texto que se ingresa
+                            show=show  # Caracter a mostrar en el campo 
                             )
         
         # Colocar el entry en el grid dentro del contenedor (parent), en la fila y columna especificadas
@@ -504,8 +504,9 @@ class VentanaRegistroUsuario():
             corner_radius=10,  # Radio de las esquinas para bordes redondeados
             width=ancho_widget,  # Ancho del combobox
             height=alto_widget,  # Alto del combobox
-            fg_color='lightblue',  # Color de fondo del combobox
+            fg_color='lightgray',  # Color de fondo del combobox
             values=opciones,  # Lista de opciones que se mostrarán en el combobox
+            button_color= "lightgreen"
         )
         
         # Establecer el valor predeterminado si está en las opciones
@@ -540,7 +541,8 @@ class VentanaRegistroUsuario():
             width= ancho,  # Anchura del botón
             command=command, # Función que se ejecutará al presionar el botón
             corner_radius=10, # Radio de las esquinas del botón (bordes redondeados)
-            image=image # Imagen que se mostrará en el botón (si se proporciona)
+            image=image, # Imagen que se mostrará en el botón (si se proporciona)
+            hover_color= "lightgreen"
         )
         boton.grid(row=fila, column=columna, padx=5, pady=5, sticky='nsew')
         # Coloca el botón en una cuadrícula, en la fila y columna especificadas,
