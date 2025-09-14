@@ -78,8 +78,9 @@ class EnvioRecuperacionContrasena():
         self.fonts = {
             
             'title': ('verdana', 26,  'bold'),
-            'label_title': ('verdana', 16,  'bold'),
-            'label': ('verdana', 12,  'bold')
+            'label_title': ('verdana', 14,  'bold'),
+            'label': ('verdana', 12,  'bold'),
+            'boton': ('verdana', 14,  'bold')
         }
         
         # Crear los frames donde se organizarán los elementos en la ventana
@@ -122,21 +123,21 @@ class EnvioRecuperacionContrasena():
         # Campo para mostrar un mensaje de título
         campos = [
             
-            {'label': 'Envio del Código\nPara Recuperar Contraseña', 'tipo': 'label'},
+            {'label': 'Envió del Código\nPara Recuperar Contraseña', 'tipo': 'label'},
         ]
         
         # Campos para ingresar el email
         campos1 = [
             
             {'clave': 'email','label': 'Email', 'tipo': 'entry', 'ancho': 350, 'alto': 26, 'placeholder': 'Introduce tú Email'},
-           
+            
         ]
         
         # Botones para enviar código o salir
         campos2 = [
             
-            {"label": "Enviar", "color": "greenyellow", "tipo": "boton", "ancho": 50, "alto":50, "command": self.enviar_codigo, 'image': None,},
-            {"label": "Salir", "color": "red", "tipo": "boton", "ancho": 50, "alto":50, "command": self.salir, 'image': None,},
+            {"label": "Enviar", "color": "#00155c", "tipo": "boton", "ancho": 50, "alto":50, "command": self.enviar_codigo, 'image': None,},
+            {"label": "Salir", "color": "#00155c", "tipo": "boton", "ancho": 50, "alto":50, "command": self.salir, 'image': None,},
         ]       
         
         # Crear los labels de la ventana
@@ -166,7 +167,7 @@ class EnvioRecuperacionContrasena():
         # Crear los botones de la ventana (enviar y salir)     
         for i, campo2 in enumerate(campos2):
             
-            self.crear_boton(self.frame_2, self.fonts['label_title'], campo2['label'], campo2['color'], 0, i+1, image=campo2['image'], ancho_widget=campo2['ancho'], alto_widget=campo2['alto'], command=campo2['command'])
+            self.crear_boton(self.frame_2, self.fonts['boton'], campo2['label'], campo2['color'], 0, i+1, image=campo2['image'], ancho_widget=campo2['ancho'], alto_widget=campo2['alto'], command=campo2['command'])
                 
         self.root.after(100, self.entries['email'].focus()) # Focalizar el cursor en el campo de email después de un pequeño retraso
             
@@ -248,8 +249,10 @@ class EnvioRecuperacionContrasena():
         
         # Crear una etiqueta (label) usando customtkinter (ctk)
         label = ctk.CTkLabel(parent,
-                             text=texto,
-                             font=fuente)
+                            text=texto,
+                            font=fuente,
+                            text_color= "#484a4b"
+                            )
         
         # Colocar la etiqueta en el grid (rejilla) del layout de la ventana
         label.grid(row=fila, column=columna, sticky='ew', columnspan=ancho, rowspan=alto, padx = 5)
@@ -266,7 +269,7 @@ class EnvioRecuperacionContrasena():
                             height= alto_widget, # Alto del campo de texto
                             text_color='black', # Color del texto dentro del campo de texto
                             corner_radius=10, # Radio de curvatura de las esquinas del campo de texto
-                            fg_color='lightblue', # Color de fondo del campo de texto
+                            fg_color='lightgray', # Color de fondo del campo de texto
                             placeholder_text= placeholder, # Texto de ayuda (placeholder) dentro del campo de texto
                             placeholder_text_color= 'gray', # Color del texto de ayuda (placeholder)
                             show= show # Especifica si debe mostrar un carácter especial
@@ -286,12 +289,13 @@ class EnvioRecuperacionContrasena():
                                 font=font, # Fuente (tipo y tamaño de letra) del botón
                                 text=texto, # Texto del botón
                                 fg_color=color_fondo, # Color de fondo del botón
-                                text_color='black', # Color del texto del botón
+                                text_color='white', # Color del texto del botón
                                 height=alto_widget, # Alto del botón
                                 width= ancho_widget, # Ancho del botón
                                 command=command, # Acción a realizar cuando se presione el botón
                                 corner_radius=10, # Radio de curvatura de las esquinas del botón
                                 image=image, # Imagen a mostrar en el botón
+                                hover_color= "lightgreen"
                             )
         
         # Colocar el botón en la rejilla de la ventana (grid) en la posición especificada

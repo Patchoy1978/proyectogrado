@@ -50,8 +50,9 @@ class VentanaDB():
         self.fonts = {
             
             'title': ('verdana', 26,  'bold'),
+            'label_title': ('verdana', 14,  'bold'),
             'label': ('verdana', 12,  'bold'),
-            'boton': ('verdana', 18,  'bold')
+            'boton': ('verdana', 14,  'bold')
         }
         
         # Configuración de la estructura de la cuadrícula de la ventana
@@ -112,10 +113,9 @@ class VentanaDB():
         # Campos para los botones de acción
         campos2 = [
             
-            {'label': 'Crear DB', 'placeholder': 'Host','ancho': 100, 'alto': 50, 'color':'lightblue', 'image': None,
-            'command': self.validacion_entrada_sistema},
+            {'label': 'Crear DB', 'placeholder': 'Host','ancho': 100, 'alto': 50, 'color':'#00155c', 'image': None, 'command': self.validacion_entrada_sistema},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 50, "alto":50, "command": self.alternar_contrasena, 'image': self.ojo_abierto, "clave": "ver_contrasena"},
-            {'label': 'Salir', 'placeholder': 'User','ancho': 100, 'alto': 50, 'color':'red','image': None, 'command': self.cerrar},
+            {'label': 'Salir', 'placeholder': 'User','ancho': 100, 'alto': 50, 'color':'#00155c','image': None, 'command': self.cerrar},
         ]
         
         # Crear etiquetas de bienvenida
@@ -126,7 +126,7 @@ class VentanaDB():
         # Crear etiquetas y entradas para cada campo de la base de datos
         for i, campo1 in enumerate(campos1):
     
-            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label'], fila=i*2+1, columna=0)
+            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label_title'], fila=i*2+1, columna=0)
 
             if campo1['clave'] == 'Password':
                 
@@ -218,7 +218,7 @@ class VentanaDB():
         label = ctk.CTkLabel(parent,
                             text=text, # El texto que aparecerá en la etiqueta
                             font=font, # La fuente del texto
-                            text_color= 'black' # El color del texto
+                            text_color= '#484a4b' # El color del texto
                             )
         
         # Colocar el label en la cuadrícula con las propiedades de fila, columna, ancho y alto
@@ -236,9 +236,9 @@ class VentanaDB():
                             corner_radius=10, # El radio de las esquinas del entry
                             width=ancho_widget, # El ancho del entry
                             height=alto_widget, # El alto del entry
-                            fg_color='lightblue', # El color de fondo del entry
+                            fg_color='lightgray', # El color de fondo del entry
                             placeholder_text=placeholder, # El texto de marcador de posición
-                            placeholder_text_color= 'gray', # El color del texto de marcador de posición
+                            placeholder_text_color= 'lightblack', # El color del texto de marcador de posición
                             show = show 
                             )
         
@@ -256,12 +256,13 @@ class VentanaDB():
                                 font=font,  # La fuente del texto del botón
                                 text=texto, # El texto que aparecerá en el botón
                                 fg_color=color_fondo, # El color de fondo del botón
-                                text_color='black', # El color del texto del botón
+                                text_color='white', # El color del texto del botón
                                 height=alto, # El alto del botón
                                 width= ancho, # El ancho del botón
                                 command=command, # La acción a realizar al hacer clic en el botón
                                 corner_radius=10, # El radio de las esquinas del botón
-                                image= image
+                                image= image,
+                                hover_color= "lightgreen"
                             )
         
         # Colocar el botón en la cuadrícula con las propiedades de fila, columna, tamaño y espaciado
@@ -298,8 +299,7 @@ class VentanaDB():
             self.crear_db()  # Si todos los campos están completos, llama al método para crear la base de datos
             self.root.destroy()
             abrir_ventana_admon()
-            
-    
+
     def alternar_contrasena(self):
         
         # Alternar visibilidad del campo de contraseña

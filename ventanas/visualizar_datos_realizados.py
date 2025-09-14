@@ -78,10 +78,11 @@ class PanelPrincipalVisualizacionRealizados():
 
         # Fuentes usadas
         self.fonts = {
-            'title': ('verdana', 30, 'bold'),
-            'title_frame': ('verdana', 24, 'bold'),
-            'label': ('verdana', 11, 'bold'),
-            'boton': ('verdana', 18, 'bold'),
+            'title': ('verdana', 26, 'bold'),
+            #'title_frame': ('verdana', 24, 'bold'),
+            'label_title': ('verdana', 12, 'bold'),
+            'label': ('verdana', 12 ),
+            'boton': ('verdana', 14, 'bold'),
         }
         
         self.entries = {}
@@ -129,7 +130,7 @@ class PanelPrincipalVisualizacionRealizados():
         visual_datos_ppal.grid_rowconfigure(0, weight=1)
         
         # Crea una línea divisoria de color azul claro entre secciones
-        linea = ctk.CTkFrame(self.frame_sup, fg_color="lightblue", height=10, width=0)
+        linea = ctk.CTkFrame(self.frame_sup, fg_color="#00155c", height=10, width=0)
         linea.grid(row=1, column=0, columnspan=16, sticky="ew", pady=10)
 
         # Fija la altura de la línea para que no se modifique con el contenido
@@ -159,7 +160,7 @@ class PanelPrincipalVisualizacionRealizados():
             
             {"label": "Sede", "valor": None, "ancho": 130, "tipo": "combobox", "opciones": self.sedes},
             {"label": "Fecha", "valor": None, "ancho": 100, "tipo": "fecha"},
-            {"label": "Todos", "color": "lightblue", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
+            {"label": "Todos", "color": "#00155c", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
 
         ]
@@ -177,7 +178,7 @@ class PanelPrincipalVisualizacionRealizados():
             if campo["label"] == "Sede":
                 
                 self.sede_var = ctk.StringVar(value=None)
-                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label'], 0, i*2)
+                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label_title'], 0, i*2)
                 
                 # Función para actualizar la variable cuando se seleccione un valor
                 def actualizar_sede(valor):
@@ -203,7 +204,7 @@ class PanelPrincipalVisualizacionRealizados():
             # Si es un campo de fecha
             if campo ["tipo"] == "fecha":
                 
-                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label'], 0, i*2)
+                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label_title'], 0, i*2)
                 
                 self.fecha = DateEntry(visual_datos_ppal1,
                                     width=5,
@@ -226,7 +227,7 @@ class PanelPrincipalVisualizacionRealizados():
             if campo["tipo"] == "entry":
                 var_entry = ctk.StringVar(value=campo.get('valor', ''))
                 
-                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label'], 0, i*2)
+                self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label_title'], 0, i*2)
                 
                 habilitar = campo["label"] == "Identificación\nPaciente"
                 
@@ -259,7 +260,7 @@ class PanelPrincipalVisualizacionRealizados():
                 self.crear_boton(visual_datos_ppal1, self.fonts['boton'], campo['label'], campo['color'], 0, i*2+1, campo['alto'], campo['ancho'], command=campo['command'], image=campo.get('image'))
         
         # Segunda línea divisoria al final del panel
-        linea1 = ctk.CTkFrame(self.frame_sup, fg_color="lightblue", height=10, width=0)
+        linea1 = ctk.CTkFrame(self.frame_sup, fg_color="#00155c", height=10, width=0)
         linea1.grid(row=3, column=0, columnspan=16, sticky="ew", pady=10)
 
         # Fijar altura para evitar que se estire
@@ -273,7 +274,7 @@ class PanelPrincipalVisualizacionRealizados():
             text=texto, # Texto que mostrará el label
             font=font, # Fuente del texto (debe estar definida previamente)
             anchor='center', # Alineación del texto dentro del label
-            text_color='black' # Color del texto
+            text_color='#484a4b' # Color del texto
         )
         # Ubica el label en el grid del contenedor padre con sus coordenadas y tamaños
         label.grid(
@@ -282,6 +283,7 @@ class PanelPrincipalVisualizacionRealizados():
             columnspan=ancho, # Número de columnas que ocupará el label
             rowspan=alto, # Número de filas que ocupará el label
             padx=5, # Espaciado horizontal entre el label y los bordes adyacentes
+            pady = 5,
             sticky='nsew' # El label se expandirá en todas las direcciones dentro de su celda
             )
         
@@ -297,7 +299,7 @@ class PanelPrincipalVisualizacionRealizados():
 
         # Determinar el color de fondo según el valor 
         if campo_columna == "autorizacion" and valor_predeterminado != "Si":
-            color_fondo = "#d2455b"  # rojo
+            color_fondo = "#bd0936"  # rojo
         
         else:
             color_fondo = "lightgray"  # por defecto
@@ -352,7 +354,7 @@ class PanelPrincipalVisualizacionRealizados():
 
         elif campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
             
-            color_fondo = "#d2455b" # rojo
+            color_fondo = "#bd0936" # rojo
         
         else:
             
@@ -367,7 +369,8 @@ class PanelPrincipalVisualizacionRealizados():
             corner_radius=12, # Bordes redondeados
             width=ancho_widget, # Ancho del widget
             height=alto_widget, # Alto del widget
-            fg_color=color_fondo 
+            fg_color=color_fondo,
+            scrollbar_button_color= "lightgreen"
         )
 
         textbox.configure(state='normal') # Se habilita el textbox para poder insertar texto
@@ -449,12 +452,13 @@ class PanelPrincipalVisualizacionRealizados():
             font=font,
             text=texto,
             fg_color=color_fondo,
-            text_color='black',
+            text_color='white',
             height=alto,
             width= ancho,
             command=command,
             image = image,
-            corner_radius=10
+            corner_radius=10,
+            hover_color= "lightgreen"
         )
         boton.grid(row=fila, column=columna, rowspan=alto, padx=5, sticky='ew')
         return boton
@@ -504,6 +508,8 @@ class PanelPrincipalVisualizacionRealizados():
                     p for p in pacientes_por_sede_y_fecha
                     if identificacion_texto in str(p.get("identificacion_paciente", ""))
                 ]
+            
+            return pacientes_por_sede_y_fecha, True
 
         else:
             # Filtrar por identificación si hay texto
@@ -515,7 +521,7 @@ class PanelPrincipalVisualizacionRealizados():
                     if identificacion_texto in str(p.get("identificacion_paciente", ""))
                 ]
 
-            return pacientes_por_sede, True  # Retorna solo sede + identificación
+        return pacientes_por_sede, True  # Retorna solo sede + identificación
 
     def visual_principal_datos(self):
         
@@ -564,7 +570,7 @@ class PanelPrincipalVisualizacionRealizados():
                 datos_paciente_visual_ppal2.grid_columnconfigure(col, weight=1)
                 
             # Crear el frame como una línea negra
-            linea1 = ctk.CTkFrame(self.frame_ppal_visual_datos, fg_color="light green", height=10, width=0)
+            linea1 = ctk.CTkFrame(self.frame_ppal_visual_datos, fg_color="#228822", height=10, width=0)
             linea1.grid(row=base_row+3, column=0, columnspan=15, sticky="ew", pady=10)
 
             # Asegurar que el alto del frame no cambie
@@ -593,14 +599,14 @@ class PanelPrincipalVisualizacionRealizados():
             campos1 = [
                 
                 {"label": "Alergia","columna": "alergia", "valor": paciente.get("alergia", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Tipo\nAlergia","columna": "tipo_alergia", "valor": paciente.get("tipo_alergia", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Tipo\nAlergia","columna": "tipo_alergia", "valor": paciente.get("tipo_alergia", ""), "ancho": 280, "tipo": "textbox"},
                 {"label": "Estado","columna": "estado", "valor": self.obtener_nombre_estado(paciente.get("estado", "")), "ancho": 100, "tipo": "entry"},
                 {"label": "Sede","columna": "sede", "valor": self.obtener_nombre_sede(paciente.get("sede", "")), "ancho": 100, "tipo": "entry"},
                 {"label": "Causal Retraso","columna": "causal retraso", "valor": self.obtener_nombre_causal_retraso(paciente.get("causal_retraso", "")), "ancho": 300, "tipo": "entry"},
                 {"label": "Aislamiento","columna": "aislamiento", "valor": paciente.get("aislamiento", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Tipo Aislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Tipo\nAislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 280, "tipo": "textbox"},
                 {"label": "Diagnóstico","columna": "diagnostico", "valor": paciente.get("diagnostico", ""), "ancho": 300, "tipo": "textbox"},
-                {"label": "Estudios Ordenados Al Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Estudios Ordenados\nAl Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
             ]
             
             campos2 = [
@@ -608,13 +614,13 @@ class PanelPrincipalVisualizacionRealizados():
                 {"label": "Comentar Con\nRadiólogo","columna": "comentar con radiologo", "valor": paciente.get("comentar_radiologo", ""), "ancho": 40, "tipo": "entry"},
                 {"label": "Comentarios Del Radiólogo","columna": "comentarios del radiologo", "valor": paciente.get("comentarios_radiologo", ""), "ancho": 300, "tipo": "textbox"},
                 {"label": "Personal A Cargo","columna": "personal a cargo", "valor": UsuarioActual.nombre, "ancho": 300, "tipo": "entry"},
-                {"label": "Atrás", "color": "lightblue", "tipo": "boton", "ancho": 70, "alto":50, "command": self.salir, 'image' : None},
+                {"label": "Atrás", "color": "#00155c", "tipo": "boton", "ancho": 70, "alto":50, "command": self.salir, 'image' : None},
             ]
 
             # Generar etiquetas y entradas dinámicamente en fila 0 y 1
             for i, campo in enumerate(campos):
                 # datos_paciente_visual_ppal.grid_columnconfigure(i, weight=campo["ancho"])
-                self.crear_label(datos_paciente_visual_ppal, campo["label"], self.fonts['label'], 0, i)
+                self.crear_label(datos_paciente_visual_ppal, campo["label"], self.fonts['label_title'], 0, i)
                 
                 if campo["tipo"] == "entry":
                     
@@ -627,7 +633,7 @@ class PanelPrincipalVisualizacionRealizados():
             # Generar etiquetas y entradas dinámicamente en fila 2 y 3
             for i, campo1 in enumerate(campos1):
                 
-                self.crear_label(datos_paciente_visual_ppal1, campo1['label'], self.fonts['label'], 0, i)
+                self.crear_label(datos_paciente_visual_ppal1, campo1['label'], self.fonts['label_title'], 0, i)
                 
                 if campo1["tipo"] == "entry":
                     
@@ -645,7 +651,7 @@ class PanelPrincipalVisualizacionRealizados():
                 
                 if campo2["tipo"] == "entry":
                     
-                    self.crear_label(datos_paciente_visual_ppal2, campo2['label'], self.fonts['label'], 0, i)
+                    self.crear_label(datos_paciente_visual_ppal2, campo2['label'], self.fonts['label_title'], 0, i)
                     habilitar = campo2["label"] == ""
                     
                     datos, var = self.crear_entry(datos_paciente_visual_ppal2, self.fonts['label'], campo2["label"], campo2["columna"], campo2["valor"], 1, i, ancho_widget=campo2["ancho"], habilitado=habilitar)
@@ -653,7 +659,7 @@ class PanelPrincipalVisualizacionRealizados():
                     
                 elif campo2["tipo"] == "textbox":
                     
-                    self.crear_label(datos_paciente_visual_ppal2, campo2['label'], self.fonts['label'], 0, i)
+                    self.crear_label(datos_paciente_visual_ppal2, campo2['label'], self.fonts['label_title'], 0, i)
                     textbox = self.crear_textbox(datos_paciente_visual_ppal2, self.fonts['label'],campo2["columna"], 1, i, ancho_widget=campo2["ancho"], valor_db=campo2["valor"])
                     self.textbox[campo2["columna"]] = textbox
                     

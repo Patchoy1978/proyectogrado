@@ -82,7 +82,7 @@ class PanelPrincipalVisualizacion():
         self.frame_ppal_visual_datos.grid_rowconfigure(list(range(4)), weight=1)  # Permitir que todas las filas se expandan
         self.frame_ppal_visual_datos.grid_columnconfigure(list(range(16)), weight=1)
         
-        self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((50, 50)), size=(50, 50))
+        self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((30, 30)), size=(30, 30))
 
         """PanelPrincipalVisualizacion.refresh_db = ctk.CTkImage(
             light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((50, 50)),
@@ -94,7 +94,7 @@ class PanelPrincipalVisualizacion():
         # Fuentes usadas
         self.fonts = {
             'title': ('verdana', 26, 'bold'),
-            'title_frame': ('verdana', 24, 'bold'),
+            #'title_frame': ('verdana', 24, 'bold'),
             'label_titulo': ('verdana', 12, 'bold' ),
             'label': ('verdana', 12 ),
             'boton': ('verdana', 14, 'bold'),
@@ -240,7 +240,7 @@ class PanelPrincipalVisualizacion():
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
             {"label": "Diferidos", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_diferidos, 'image' : None},
             {"label": "Realizados", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_realizados, 'image' : None},
-            {"label": "Ingresar\nPaciente", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.boton_ingresar_presionado, 'image' : None},
+            {"label": "Ingresar Paciente", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.boton_ingresar_presionado, 'image' : None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
         ]
         
@@ -371,8 +371,8 @@ class PanelPrincipalVisualizacion():
             column=columna, # Columna en la que se ubicará el label
             columnspan=ancho, # Número de columnas que ocupará el label
             rowspan=alto, # Número de filas que ocupará el label
-            padx=5, # Espaciado horizontal entre el label y los bordes adyacentes
-            pady = 8,
+            padx=10, # Espaciado horizontal entre el label y los bordes adyacentes
+            pady = 5,
             sticky='nsew' # El label se expandirá en todas las direcciones dentro de su celda
             )
         
@@ -694,15 +694,15 @@ class PanelPrincipalVisualizacion():
             
             campos1 = [
                 
-                {"label": "Alergia","columna": "alergia", "valor": paciente.get("alergia", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Tipo\nAlergia","columna": "tipo_alergia", "valor": paciente.get("tipo_alergia", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Alergia","columna": "alergia", "valor": paciente.get("alergia", ""), "ancho": 50, "tipo": "entry"},
+                {"label": "Tipo\nAlergia","columna": "tipo_alergia", "valor": paciente.get("tipo_alergia", ""), "ancho": 280, "tipo": "textbox"},
                 {"label": "Estado","columna": "estado", "valor": self.obtener_nombre_estado(paciente.get("estado", "")), "ancho": 100, "tipo": "entry"},
                 {"label": "Sede","columna": "sede", "valor": self.obtener_nombre_sede(paciente.get("sede", "")), "ancho": 100, "tipo": "entry"},
                 {"label": "Causal Retraso","columna": "causal retraso", "valor": self.obtener_nombre_causal_retraso(paciente.get("causal_retraso", "")), "ancho": 300, "tipo": "entry"},
-                {"label": "Aislamiento","columna": "aislamiento", "valor": paciente.get("aislamiento", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Tipo Aislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Aislamiento","columna": "aislamiento", "valor": paciente.get("aislamiento", ""), "ancho": 50, "tipo": "entry"},
+                {"label": "Tipo\nAislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 280, "tipo": "textbox"},
                 {"label": "Diagnóstico","columna": "diagnostico", "valor": paciente.get("diagnostico", ""), "ancho": 300, "tipo": "textbox"},
-                {"label": "Estudios Ordenados Al Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Estudios Ordenados\nAl Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
             ]
             
             campos2 = [

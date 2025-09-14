@@ -46,8 +46,9 @@ class IngresoAlergias():
         self.fonts = {
             
             'title': ('verdana', 26,  'bold'),
-            'label': ('verdana', 12,  'bold'),
-            'boton': ('verdana', 18,  'bold')
+            'label_title': ('verdana', 14,  'bold'),
+            'label': ('verdana', 12 ),
+            'boton': ('verdana', 14,  'bold')
         }
         
         self.root.grid_columnconfigure(0, weight=1)
@@ -100,7 +101,7 @@ class IngresoAlergias():
         
         campos = [
             
-            {'label': 'Ingreso\nDatos'}
+            {'label': 'Ingreso Datos'}
         ]
         
         campos1 = [
@@ -112,10 +113,10 @@ class IngresoAlergias():
         
         campos2 = [
             
-            {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.insertar_alergia},
-            {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_alergia},
-            {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_alergia},
-            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'lightblue', 'command': self.salir},
+            {'label': 'Ingresar', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.insertar_alergia},
+            {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.eliminar_alergia},
+            {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.modificar_alergia},
+            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.salir},
         ]
         
         
@@ -125,7 +126,7 @@ class IngresoAlergias():
             
         for i, campo1 in enumerate(campos1):
     
-            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label'], fila=i*2+1, columna=0)
+            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label_title'], fila=i*2+1, columna=0)
         
             self.entry_alergia = self.crear_entry(self.frame1, 
                             font=self.fonts['label'], 
@@ -323,9 +324,9 @@ class IngresoAlergias():
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
         label = ctk.CTkLabel(parent,
-                             text=text,
-                             font=font,
-                             text_color= 'black'
+                            text=text,
+                            font=font,
+                            text_color= '#484a4b'
                             )
         label.grid(row= fila, column= columna, sticky='nsew', columnspan= ancho, rowspan= alto)
         
@@ -341,7 +342,7 @@ class IngresoAlergias():
                             height=alto_widget,
                             fg_color='lightgray',
                             placeholder_text=placeholder,
-                            placeholder_text_color= 'black',
+                            placeholder_text_color= 'gray',
                             textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
@@ -355,7 +356,7 @@ class IngresoAlergias():
                                 font=font,
                                 text=texto,
                                 fg_color=color_fondo,
-                                text_color='black',
+                                text_color='white',
                                 height=alto,
                                 width= ancho,
                                 command=command,
@@ -375,8 +376,7 @@ class IngresoAlergias():
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2
+                                    scrollbar_button_color= "lightgreen"
                                     )
     
         # Usamos grid después de crear el widget

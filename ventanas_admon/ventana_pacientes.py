@@ -5,16 +5,22 @@ import customtkinter as ctk
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+
 from conexion_DB.conexionDB import Conexion_DB
 
-class IngresoUsuariosAdmon():
+from tkinter import messagebox
+
+from PIL import Image
+
+class IngresoPacientesAdmon():
     
     def __init__(self, parent_window=None):
         
         self.parent_window = parent_window  # Guardamos la referencia del padre
         
-        ancho_ventana_nueva = 500
-        alto_ventana_nueva = 600
+        ancho_ventana_nueva = 1200
+        alto_ventana_nueva = 1050
         
         ctk.set_appearance_mode('light')
         ctk.set_default_color_theme('green')
@@ -36,52 +42,62 @@ class IngresoUsuariosAdmon():
         
         self.fonts = {
             
-            'title': ('verdana', 26,  'bold'),
-            'label': ('verdana', 12,  'bold'),
-            'boton': ('verdana', 18,  'bold')
+            'title': ('verdana', 26, 'bold'),
+            'label_title': ('verdana', 14, 'bold'),
+            'label': ('verdana', 12 ),
+            'boton': ('verdana', 14, 'bold')
         }
         
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_rowconfigure(2, weight=1)
+        #self.root.grid_rowconfigure(1, weight=1)
+        #self.root.grid_rowconfigure(2, weight=1)
         
-        self.frame = ctk.CTkFrame(self.root, fg_color='transparent')
-        self.frame.grid(row= 0, column= 0, sticky='nsew')
+        self.frame = ctk.CTkScrollableFrame(self.root, fg_color='transparent')
+        self.frame.grid(row= 0, column= 0, columnspan = 2, sticky='nsew')
         
-        self.frame1 = ctk.CTkFrame(self.root, fg_color='transparent')
+        self.frame_titulo = ctk.CTkFrame(self.frame, fg_color='transparent')
+        self.frame_titulo.grid(row= 0, column= 0, columnspan = 2, sticky='ew')
+        
+        self.frame1 = ctk.CTkFrame(self.frame, fg_color='transparent')
         self.frame1.grid(row= 1, column= 0, sticky='nsew')
         
-        self.frame2 = ctk.CTkFrame(self.root, fg_color='transparent')
-        self.frame2.grid(row= 2, column= 0, sticky='nsew')
+        self.frame2 = ctk.CTkFrame(self.frame, fg_color='transparent')
+        self.frame2.grid(row= 1, column= 1, sticky='nsew')
+        
+        self.frame3 = ctk.CTkFrame(self.frame, fg_color='transparent')
+        self.frame3.grid(row= 2, column= 0, columnspan = 2, sticky='ns')
         
         self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_rowconfigure(0, weight=1)
+        self.frame.grid_rowconfigure(1, weight=1)
+        self.frame.grid_rowconfigure(2, weight=1)
         self.frame1.grid_columnconfigure(0, weight=1)
-        self.frame2.grid_rowconfigure(0, weight=1)
-        self.frame2.grid_columnconfigure(1, weight=1)
-        self.frame2.grid_columnconfigure(2, weight=1)
+        self.frame_titulo.grid_columnconfigure(0, weight=1)
+        self.frame2.grid_columnconfigure(0, weight=1)
+        self.frame3.grid_columnconfigure(0, weight=1)
+        #self.frame3.grid_rowconfigure(0, weight=1)
+        
         
         
         self.db = Conexion_DB()
         self.db.conectar()  
         
+        self.atras = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, 'atras.png')).resize((35,35)), size= (35,35))
+        self.adelante = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, 'adelante.png')).resize((35,35)), size= (35,35))
+        
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
         self.entries = {}
-        self.combobox = {}
+        self.textbox = {}
+        self.botones = {}
         self.acciones = {
-                        'identificacion': self.buscar_usuario,
-                        'nombreusuario': self.actualizar_a_title,
-                        'contrasena': self.actualizar_a_title,
-                        'email': self.actualizar_a_title,
-                        'telefono': self.actualizar_a_title,
-                        'extension': self.actualizar_a_title
+                        'identificacion_paciente': self.buscar_paciente
                     }
-       
+
         self.usuario_id_seleccionado = None
         
         self.buscando = False
-        
         #self.root.bind_all("<Return>",)
         
         self.ingreso_datos()
@@ -94,37 +110,65 @@ class IngresoUsuariosAdmon():
         
         campos = [
             
-            {'label': 'Administrar\nUsuarios'}
+            {'label': 'Administrar Usuarios'}
         ]
         
         campos1 = [
             
-            {'clave': 'identificacion','label': 'Identificación', 'placeholder': 'Ingrese la Identificación','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'nombreusuario', 'label': 'Nombre Usuario', 'placeholder': 'Ingrese el Nombre','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'contrasena','label': 'Contraseña', 'placeholder': 'Ingrese la Contraseña','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'email','label': 'Email', 'placeholder': 'Ingrese el Email','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'telefono','label': 'Telefono', 'placeholder': 'Ingrese el Telefono','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'extension','label': 'Extensión', 'placeholder': 'Ingrese el Extensión','ancho': 100, 'alto': 26, 'tipo':'entry'},
-            {'clave': 'modalidad','label': 'Modalidad', 'placeholder': 'Ingrese la Modalidad','ancho': 100, 'alto': 26, 'tipo':'combobox', 'textvariable':'', 'opciones': self.obtener_modalidades()},
-            {'clave': 'cargo','label': 'Cargo', 'placeholder': 'Ingrese el Cargo','ancho': 100, 'alto': 26, 'tipo':'combobox', 'textvariable':'', 'opciones': self.obtener_cargos()},
+            {'clave': 'identificacion_paciente','label': 'Identificación', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'nombre_paciente', 'label': 'Nombre Paciente', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'edad','label': 'Edad', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'rango_edad','label': 'Rango Edad', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'fecha_orden','label': 'Fecha Orden', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'fecha_citacion','label': 'Fecha Citación', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'hc','label': 'Historia Clínica', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'ubicacion','label': 'Ubicación', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'modalidad','label': 'Modalidad', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'estudios_ordenados_paciente','label': 'Estudios Ordenados Paciente', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
+            {'clave': 'diagnostico','label': 'Diagnóstico', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
+            {'clave': 'ayuno','label': 'Ayuno', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'diferido','label': 'Diferido', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'alergia','label': 'Alergia', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            
 
         ]
         
         campos2 = [
+            
+            {'clave': 'tipo_alergia','label': 'Tipo Alergia', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
+            {'clave': 'aislamiento', 'label': 'Aislamiento', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'tipo_aislamiento','label': 'Tipo Aislamiento', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
+            {'clave': 'autorizacion','label': 'Autorización', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'anestesia','label': 'Anestesia', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'estado','label': 'Estado', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'sede','label': 'Sede', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'hora_citacion','label': 'Hora Citación', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'hora_realizacion','label': 'Hora Realización', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'causal_retraso','label': 'Causal De Retraso', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'comentarios_tecnologo','label': 'Comentarios Del Tecnólogo', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
+            {'clave': 'comentar_radiologo','label': 'Comentar Con El Radiólogo', 'ancho': 100, 'alto': 26, 'tipo':'entry'},
+            {'clave': 'comentarios_radiologo','label': 'Comentarios Del Radiólogo', 'ancho': 100, 'alto': 26, 'tipo':'textbox'},
 
-            {'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.eliminar_usuario},
-            {'label': 'Modificar', 'ancho': 100, 'alto': 30, 'color':'Lightblue', 'command': self.modificar_usuario},
-            {'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'lightblue', 'command': self.salir},
+        ]
+        
+        campos3 = [
+
+            {'clave' : 'anterior', 'label': "", 'ancho': 20, 'alto': 20, 'color':'transparent', 'command': self.paciente_anterior, 'image': self.atras, 'tipo':'boton', 'state' : 'normal'},
+            {'clave': 'contador','label': None, 'ancho': 80, 'alto': 26, 'tipo':'entry'},
+            {'clave' : 'siguiente', 'label': "", 'ancho': 20, 'alto': 20, 'color':'transparent', 'command': self.paciente_siguiente, 'image': self.adelante, 'tipo':'boton', 'state' : 'normal'},
+            {'clave' : 'eliminar', 'label': 'Eliminar', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.eliminar_paciente, 'image': None, 'tipo':'boton'},
+            {'clave' : 'limpiar_campos', 'label': 'Limpiar Pantalla', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.limpiar_campos, 'image': None, 'tipo':'boton', 'state' : 'normal'},
+            {'clave' : 'salir', 'label': 'Salir', 'ancho': 100, 'alto': 30, 'color':'#00155c', 'command': self.salir, 'image': None, 'tipo':'boton', 'state' : 'normal'},
         ]
         
         
         for i, campo in enumerate(campos):
         
-            self.crear_label(self.frame, text=campo['label'], font=self.fonts['title'], fila=0, columna=0)
+            self.crear_label(self.frame_titulo, text=campo['label'], font=self.fonts['title'], fila=0, columna=0)
             
         for i, campo1 in enumerate(campos1):
             # Se coloca la etiqueta de cada campo
-            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label'], fila=i*2+1, columna=0)
+            self.crear_label(self.frame1, text=campo1['label'], font=self.fonts['label_title'], fila=i*2+1, columna=0)
             
             if campo1['tipo'] == 'entry':
                 # Creamos la variable de control para el entry y lo guardamos en el diccionario
@@ -135,293 +179,285 @@ class IngresoUsuariosAdmon():
                     self.vars[campo1['clave']].trace_add("write", self.acciones[campo1['clave']])
                 
                 # Se crea el entry y se almacena en el diccionario
-                self.entries[campo1['clave']] = self.crear_entry(
+                entry = self.crear_entry(
                     self.frame1,
                     font=self.fonts['label'],
                     fila=i*2+2,
                     columna=0,
                     ancho_widget=campo1['ancho'],
                     alto_widget=campo1['alto'],
-                    placeholder=campo1['placeholder'],
                     textvariable=self.vars[campo1['clave']]
                 )
-            
-            elif campo1['tipo'] == 'combobox':
-                # Crear una variable de control
+                
+                self.entries[campo1['clave']] = entry
+                
+            elif campo1['tipo'] == 'textbox':
+                
+                # Creamos la variable de control para el entry y lo guardamos en el diccionario
                 self.vars[campo1['clave']] = ctk.StringVar()
                 
-                # Crear el combobox con opciones obtenidas desde la base de datos
-                self.combobox[campo1['clave']] = self.crear_combobox(
+                # Solo asignamos la función a la traza si la clave está en el diccionario
+                if campo1['clave'] in self.acciones:
+                    self.vars[campo1['clave']].trace_add("write", self.acciones[campo1['clave']])
+                
+                # Se crea el textbox y se asigna a un atributo específico
+                self.textbox_resultados = self.crear_textbox(
                     self.frame1,
                     font=self.fonts['label'],
                     fila=i*2+2,
                     columna=0,
-                    textvariable=self.vars[campo1['clave']],
-                    opciones=campo1['opciones']
-                )    
-
+                    alto=campo1['alto'],
+                    ancho=campo1['ancho']
+                )
+                
+                self.textbox[campo1['clave']] = self.textbox_resultados
+                
         for i, campo2 in enumerate(campos2):
+            
+            # Se coloca la etiqueta de cada campo
+            self.crear_label(self.frame2, text=campo2['label'], font=self.fonts['label_title'], fila=i*2+1, columna=0)
         
-            self.crear_boton(self.frame2, 
+            if campo2['tipo'] == 'entry':
+                # Creamos la variable de control para el entry y lo guardamos en el diccionario
+                self.vars[campo2['clave']] = ctk.StringVar()
+                
+                # Solo asignamos la función a la traza si la clave está en el diccionario
+                if campo2['clave'] in self.acciones:
+                    self.vars[campo2['clave']].trace_add("write", self.acciones[campo2['clave']])
+                
+                # Se crea el entry y se almacena en el diccionario
+                entry = self.crear_entry(
+                    self.frame2,
+                    font=self.fonts['label'],
+                    fila=i*2+2,
+                    columna=0,
+                    ancho_widget=campo2['ancho'],
+                    alto_widget=campo2['alto'],
+                    textvariable=self.vars[campo2['clave']]
+                )
+                
+                self.entries[campo2['clave']] = entry
+                
+            elif campo2['tipo'] == 'textbox':
+                
+                # Creamos la variable de control para el entry y lo guardamos en el diccionario
+                self.vars[campo2['clave']] = ctk.StringVar()
+                
+                # Solo asignamos la función a la traza si la clave está en el diccionario
+                if campo2['clave'] in self.acciones:
+                    self.vars[campo2['clave']].trace_add("write", self.acciones[campo2['clave']])
+                
+                # Se crea el textbox y se asigna a un atributo específico
+                self.textbox_resultados = self.crear_textbox(
+                    self.frame2,
+                    font=self.fonts['label'],
+                    fila=i*2+2,
+                    columna=0,
+                    alto=campo2['alto'],
+                    ancho=campo2['ancho']
+                )
+                
+                self.textbox[campo2['clave']] = self.textbox_resultados
+
+        for i, campo3 in enumerate(campos3):
+            
+            if campo3['tipo'] == 'entry':
+                # Creamos la variable de control para el entry y lo guardamos en el diccionario
+                self.vars[campo3['clave']] = ctk.StringVar()
+                
+                # Solo asignamos la función a la traza si la clave está en el diccionario
+                if campo3['clave'] in self.acciones:
+                    self.vars[campo3['clave']].trace_add("write", self.acciones[campo3['clave']])
+                
+                # Se crea el entry y se almacena en el diccionario
+                contador_p = self.crear_entry(
+                    self.frame3,
+                    font=self.fonts['label'],
+                    fila=0,
+                    columna=i+1,
+                    ancho_widget=campo3['ancho'],
+                    alto_widget=campo3['alto'],
+                    textvariable=self.vars[campo3['clave']]
+                )
+                contador_p.grid(pady=20, padx = 0)
+                self.entries[campo3['clave']] = contador_p
+                
+            elif campo3['tipo'] == 'boton':
+                
+                boton = self.crear_boton(self.frame3, 
                             font=self.fonts['boton'], 
-                            texto= campo2['label'], 
-                            color_fondo= campo2['color'], 
+                            texto= campo3['label'], 
+                            color_fondo= campo3['color'], 
                             fila=0, 
                             columna= i+1, 
-                            ancho=campo1['ancho'], 
-                            alto= campo1['alto'], 
-                            command = campo2['command']
+                            ancho=campo3['ancho'], 
+                            alto= campo3['alto'], 
+                            command = campo3['command'],
+                            image=campo3['image'],
+                            state='disabled' if campo3['clave'] in ['anterior', 'siguiente'] else 'normal'
                             )
-            
-        # para insertar
-            
-        self.sql_statement = """insert into usuarios (nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad, cargo) values (%s, %s, %s, %s, %s, %s, %s, %s)"""
-    
-    def actualizar_a_title(self, *args):
-        """
-        Callback que actualiza el contenido de la variable a formato Title.
-        """
-        # Actualizar el entry de 'nombre Usuario'
-        texto_nombreusuario = self.vars['nombreusuario'].get()
-        texto_title_nombreusuario = texto_nombreusuario.title()
-        
-        if texto_nombreusuario != texto_title_nombreusuario:
-            self.vars['nombreusuario'].set(texto_title_nombreusuario)
-        
-    def eliminar_usuario(self):
-        
-        nombreusuario = self.entries['nombreusuario'].get().strip()
-        identificacion = self.entries['identificacion'].get().strip()
-        contrasena = self.entries['contrasena'].get().strip()
-        email = self.entries['email'].get().strip()
-        telefono = self.entries['telefono'].get().strip()
-        extension = self.entries['extension'].get().strip()
-        modalidad = self.combobox['modalidad'].get().strip()  # Esto devuelve nombre + abreviación
-        cargo = self.combobox['cargo'].get().strip()  # Esto devuelve solo nombre del cargo
-
-        if not nombreusuario or not identificacion or not contrasena or not email or not telefono or not extension or not modalidad or not cargo:
-            print("Debe seleccionar un Usuario para eliminar.")
-            return
-        
-        # Obtener los IDs de modalidad y cargo usando las funciones creadas
-        id_modalidad = self.obtener_id_modalidad(modalidad)
-        id_cargo = self.obtener_id_cargo(cargo)
-        
-        # Verificar si los IDs son válidos
-        if not id_modalidad or not id_cargo:
-            print("Modalidad o Cargo no válidos.")
-            return
-        
-        # Consulta para eliminar el usuario usando los IDs de modalidad y cargo
-        sql_delete = """
-        DELETE FROM usuarios 
-        WHERE nombre_usuario = %s 
-        AND identificacion = %s 
-        AND contrasena = %s 
-        AND email = %s 
-        AND telefono = %s 
-        AND ext = %s 
-        AND modalidad = %s 
-        AND cargo = %s
-        """
-        
-        # Ejecutar la consulta pasando los valores adecuados
-        self.db.cursor.execute(sql_delete, (nombreusuario, identificacion, contrasena, email, telefono, extension, id_modalidad, id_cargo))
-        self.db.conexion.commit()
-        
-        # Limpiar las variables después de eliminar el usuario
-        self.vars['nombreusuario'].set("")
-        self.vars['identificacion'].set("")
-        self.vars['contrasena'].set("")
-        self.vars['email'].set("")
-        self.vars['telefono'].set("")
-        self.vars['extension'].set("")
-        self.vars['modalidad'].set("")
-        self.vars['cargo'].set("")
-    
-    def buscar_usuario(self, *args):
-        
-        user_identification = self.vars['identificacion'].get().strip()
-
-        if not user_identification:
-            self.limpiar_campos()
-            return  # Si no hay identificación, no buscar
-        
-        # Obtener el ID del usuario
-        self.usuario_id_seleccionado = self.obtener_id_usuario_seleccionado(user_identification)
-        
-        if self.usuario_id_seleccionado is None:
-            # print("No se encontró el usuario con esa identificación.")
-            return
-
-        sql_buscar_usuario = """
-            SELECT nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad, cargo 
-            FROM usuarios 
-            WHERE identificacion LIKE %s
-        """
-        self.db.cursor.execute(sql_buscar_usuario, (f"{user_identification}",))
-        resultado = self.db.cursor.fetchone()  # Obtener solo un resultado
-        
-        #Si hay resultados
-        if resultado:
-            # for resultado in resultado:
-            nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad_id, cargo_id = resultado
-            
-            # Obtener el nombre de modalidad y cargo
-            nombre_modalidad = self.obtener_nombre_modalidad(modalidad_id)
-            nombre_cargo = self.obtener_nombre_cargo(cargo_id)
-
-            # Llenar los campos correspondientes con los datos de la base de datos
-            self.vars['nombreusuario'].set(nombre_usuario)
-            self.vars['identificacion'].set(identificacion)
-            self.vars['contrasena'].set(contrasena)
-            self.vars['email'].set(email)
-            self.vars['telefono'].set(telefono)
-            self.vars['extension'].set(ext)
-            self.vars['modalidad'].set(nombre_modalidad)
-            self.vars['cargo'].set(nombre_cargo)
-            
-            # Hacer que el campo de contraseña sea de solo lectura
-            if  'contrasena' in self.entries:
                 
-                self.entries['contrasena'].configure(state="readonly")
-    
-    def modificar_usuario(self):
+                self.botones[campo3['clave']] = boton
         
-        # # Activamos la bandera de que estamos modificando
-        self.buscando = True
-
-        nombreusuario = self.vars['nombreusuario']
-        identificacion = self.vars['identificacion']
-        contrasena = self.vars['contrasena']
-        email = self.vars['email']
-        telefono = self.vars['telefono']
-        extension = self.vars['extension']
-        modalidad_nombre = self.vars['modalidad'].get()
-        cargo_nombre = self.vars['cargo'].get()
+    def eliminar_paciente(self):
         
-        if not self.usuario_id_seleccionado:
-            # print("No se ha seleccionado un usuario para modificar.")
+        if not self.pacientes_encontrados:  # aseguramos que la lista no está vacía
+            
+            messagebox.showinfo("Pacientes Encontrados", "No hay pacientes cargados para eliminar.")
+            
             return
 
-        if not nombreusuario.get().strip() or not identificacion.get().strip() or not contrasena.get().strip() or not email.get().strip() or not telefono.get().strip() or not extension.get().strip() or not modalidad_nombre.strip() or not cargo_nombre.strip():
-            print("Debe ingresar todos los datos.")
+        # Obtenemos el registro actual
+        registro_actual = self.pacientes_encontrados[self.indice_actual]
+        id_registro = registro_actual.get("id_registro")
+
+        if not id_registro:  # valida None o vacío
+            
+            messagebox.showinfo("Registro para Eliminar", "No hay registros cargados para eliminar.")
+            
             return
-
-        # Obtener los ID correspondientes de modalidad y cargo
-        modalidad_id = self.obtener_id_modalidad(modalidad_nombre)
-        cargo_id = self.obtener_id_cargo(cargo_nombre)
-
-        if not modalidad_id or not cargo_id:
-            # print("Modalidad o cargo no válidos.")
-            return
-
-        sql_modificar_usuario = """
-            UPDATE usuarios 
-            SET nombre_usuario = %s, identificacion = %s, contrasena = %s, email = %s, telefono = %s, ext = %s, modalidad = %s, cargo = %s 
-            WHERE id_usuario = %s
-        """
-
-        self.db.cursor.execute(sql_modificar_usuario, (
-            nombreusuario.get().strip(),
-            identificacion.get().strip(),
-            contrasena.get().strip(),
-            email.get().strip(),
-            telefono.get().strip(),
-            extension.get().strip(),
-            modalidad_id,  # Pasar el ID de modalidad
-            cargo_id,      # Pasar el ID de cargo
-            self.usuario_id_seleccionado  # Asegúrate de pasar el ID de usuario
-        ))
         
+        respuesta = messagebox.askyesno("Registro para Eliminar", "Estas Seguro De Eliminar Este Paciente?.")
+        
+        if not respuesta:
+            
+            return
+
+        # Consulta para eliminar el usuario
+        sql_delete = "DELETE FROM registrospacientes WHERE id_registro = %s"
+        self.db.cursor.execute(sql_delete, (id_registro,))
         self.db.conexion.commit()
 
-        # Limpiar campos y restablecer la bandera de búsqueda
-        self.buscando = False
+        nombre_paciente = registro_actual.get("nombre_paciente", "Desconocido")
         
-        # Limpiar campos y restablecer la bandera de búsqueda
-        self.buscando = False
-        self.usuario_id_seleccionado = None  # Resetear la selección
+        messagebox.showinfo("Registro Eliminado", f"Paciente con nombre {nombre_paciente} fue eliminado de la base de datos.")
 
-        # Limpiar los campos de entrada después de la modificación
-        self.vars['nombreusuario'].set("")
-        self.vars['identificacion'].set("")
-        self.vars['contrasena'].set("")
-        self.vars['email'].set("")
-        self.vars['telefono'].set("")
-        self.vars['extension'].set("")
-        self.vars['modalidad'].set("")
-        self.vars['cargo'].set("")
-        
-        self.usuario_id_seleccionado = None  # Resetear la selección
 
-    def obtener_resultados_busqueda(self, identificacion):
-        
-        # Realiza la búsqueda en la base de datos y devuelve los resultados
-        sql_buscar_identificacion = "SELECT nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad, cargo FROM usuarios WHERE nombre_usuario LIKE %s"
-        self.db.cursor.execute(sql_buscar_identificacion, (f"{identificacion}%",))
-        resultados = self.db.cursor.fetchall()
-        
-        # Crear un diccionario con los resultados, {id_alergia: nombre_alergia}
-        usuario_dict = {}
-        for resultado in resultados:
-            usuario_dict[resultado[0]] = resultado[1]  # {id_alergia: nombre_alergia}
-        
-        return usuario_dict
+        # Eliminar en memoria
+        self.pacientes_encontrados.pop(self.indice_actual)
+
+        # Ajustar índice
+        if self.indice_actual >= len(self.pacientes_encontrados):
+            self.indice_actual = max(0, len(self.pacientes_encontrados) - 1)
+
+        # Mostrar siguiente paciente o limpiar campos si no hay más
+        if self.pacientes_encontrados:
+            self.mostrar_paciente(self.indice_actual)
+        else:
+            # Limpiar todos los Entry
+            for var in self.vars.values():
+                var.set("")
+            # Limpiar todos los Text
+            for tb in self.textbox.values():
+                tb.delete("0.0", "end")
+            messagebox.showinfo("Paciente en lista", "No hay más pacientes.")
     
-    # def seleccionar_usuario(self, event):
+    def buscar_paciente(self, *args):
         
-        # Obtener la línea donde se hizo clic
-        widget = event.widget
-        index = widget.index("@%d,%d linestart" % (event.x, event.y))  # Obtiene el índice de la línea
-        seleccion = widget.get(index, "%s lineend" % index).strip()  # Obtiene el contenido de la línea
-
-        # Verificar que la línea no esté vacía
-        if not seleccion:
+        self.pacientes_encontrados = []
+    
+        user_identification = self.entries['identificacion_paciente'].get().strip()
+        if not user_identification:
+            
             return
 
-        # Extraer el ID (número antes de ":")
-        id_usuario, datos = seleccion.split(":", 1)
-        id_usuario = id_usuario.strip()
-        nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad, cargo = datos.split(" - ")
-
-        # Guardar ID en la variable para modificar/eliminar
-        self.usuario_id_seleccionado = id_usuario
-
-        # Colocar los datos en los Entry
-        self.vars['nombreusuario'].set("")
-        self.vars['identificacion'].set("")
-        self.vars['contrasena'].set("")
-        self.vars['email'].set("")
-        self.vars['telefono'].set("")
-        self.vars['extension'].set("")
-        self.vars['modalidad'].set("")
-        self.vars['cargo'].set("")
-    
-    def obtener_id_usuario_seleccionado(self, identificacion):
+        sql_buscar_usuario = "SELECT * FROM registrospacientes WHERE identificacion_paciente LIKE %s"
+        self.db.cursor.execute(sql_buscar_usuario, (user_identification,))
         
-        sql_buscar_id = "SELECT id_usuario FROM usuarios WHERE identificacion = %s"
-        self.db.cursor.execute(sql_buscar_id, (identificacion,))
-        resultado = self.db.cursor.fetchone()  # Obtener solo un resultado
+        columnas = self.db.cursor.column_names
+        filas = self.db.cursor.fetchall()
         
-        if resultado:
-            return resultado[0]
+        resultado = [dict(zip(columnas, fila)) for fila in filas]
+        self.pacientes_encontrados.extend(resultado)
+        
+        # Inicializar índice y total solo si no existen o la lista estaba vacía
+        if not hasattr(self, 'indice_actual') or not hasattr(self, 'total_pacientes') or len(self.pacientes_encontrados) == 0:
+            self.indice_actual = 0
+
+        self.total_pacientes = len(self.pacientes_encontrados)
+
+        if self.total_pacientes == 0:
+            
+            return
+
+        # Mostrar el paciente actual según el índice actual
+        self.mostrar_paciente(self.indice_actual)
+        
+    # Función interna para mostrar un paciente según el índice
+    def mostrar_paciente(self,indice):
+        
+        val = self.pacientes_encontrados[indice]
+
+        # Obtener modalidad y rango de edad
+        nombre_modalidad = self.obtener_nombre_modalidad(val['modalidad'])
+        rango_edad = self.obtener_rango_edad(val['rango_edad'])
+        estado = self.obtener_estado(val['estado'])
+        sede = self.obtener_sede(val['sede'])
+        retraso = self.obtener_causal_retraso(val['causal_retraso'])
+
+        # Diccionario con valores a mostrar
+        datos = {
+            'nombre_paciente': val['nombre_paciente'],
+            'identificacion_paciente': val['identificacion_paciente'],
+            'edad': val['edad'],
+            'rango_edad': rango_edad,
+            'fecha_orden': val['fecha_orden'],
+            'fecha_citacion': val['fecha_citacion'],
+            'hc': val['hc'],
+            'ubicacion': val['ubicacion'],
+            'modalidad': nombre_modalidad,
+            'estudios_ordenados_paciente': val['estudios_ordenados_paciente'],
+            'diagnostico': val['diagnostico'],
+            'ayuno': val['ayuno'],
+            'diferido': val['diferido'],
+            'alergia': val['alergia'],
+            'tipo_alergia': val['tipo_alergia'],
+            'aislamiento': val['aislamiento'],
+            'tipo_aislamiento': val['tipo_aislamiento'],
+            'autorizacion': val['autorizacion'],
+            'anestesia': val['anestesia'],
+            'estado': estado,
+            'sede': sede,
+            'hora_citacion': val['hora_citacion'],
+            'hora_realizacion': val['hora_realizacion'],
+            'causal_retraso': retraso,
+            'comentarios_tecnologo': val['comentarios_tecnologo'],
+            'comentar_radiologo': val['comentar_radiologo'],
+            'comentarios_radiologo': val['comentarios_radiologo'],
+        }
+
+        # Rellenar widgets
+        for clave, valor in datos.items():
+            if clave in self.textbox:  # Si es un Textbox
+                widget = self.textbox[clave]
+                widget.delete("0.0", "end")
+                widget.insert("0.0", str(valor) if valor else "")
+            elif clave in self.vars:  # Si es un Entry
+                self.vars[clave].set(str(valor) if valor else "")
+
+        # Actualizar contador
+        self.vars['contador'].set(f"{indice+1} / {self.total_pacientes}")
+
+        # Habilitar o deshabilitar botones
+        if self.total_pacientes > 1:
+            self.botones['anterior'].configure(state='normal' if indice > 0 else 'disabled')
+            self.botones['siguiente'].configure(state='normal' if indice < self.total_pacientes-1 else 'disabled')
         else:
-            # print(f"Usuario con identificación {identificacion} no encontrado.")
-            return None
+            self.botones['anterior'].configure(state='disabled')
+            self.botones['siguiente'].configure(state='disabled')
 
     def crear_label(self, parent, text, font, fila, columna, ancho= 1, alto= 1):
         
         label = ctk.CTkLabel(parent,
                             text=text,
                             font=font,
-                            text_color= 'black'
+                            text_color= '#484a4b'
                             )
         label.grid(row= fila, column= columna, sticky='nsew', columnspan= ancho, rowspan= alto)
         
         return label
     
-    def crear_entry(self,parent, font, fila, columna, placeholder, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
+    def crear_entry(self,parent, font, fila, columna, ancho=1, alto=1, ancho_widget=150, alto_widget=26, textvariable =None):
         
         entry = ctk.CTkEntry(parent,
                             font = font,
@@ -430,25 +466,24 @@ class IngresoUsuariosAdmon():
                             width=ancho_widget,
                             height=alto_widget,
                             fg_color='lightgray',
-                            placeholder_text=placeholder,
-                            placeholder_text_color= 'black',
                             textvariable=textvariable
                             )
         entry.grid(row=fila, column=columna, columnspan=ancho, rowspan=alto, padx=5, sticky='ew')
                 
         return entry
         
-    def crear_boton(self, parent, font, texto, color_fondo, fila, columna, ancho=70, alto=70, command=None):
+    def crear_boton(self, parent, font, texto, color_fondo, fila, columna, ancho=70, alto=70, command=None, image = None, state = 'normal'):
         
         boton = ctk.CTkButton(
                                 parent,
                                 font=font,
                                 text=texto,
                                 fg_color=color_fondo,
-                                text_color='black',
+                                text_color='white',
                                 height=alto,
                                 width= ancho,
                                 command=command,
+                                image=image,
                                 corner_radius=10,
                                 hover_color= "lightgreen"
                             )
@@ -459,14 +494,13 @@ class IngresoUsuariosAdmon():
         
         entry_textbox = ctk.CTkTextbox(parent,
                                     wrap=ctk.WORD,
-                                    height=100,
+                                    height=70,
                                     width=560,
                                     fg_color="lightgray",
                                     corner_radius=10,
                                     font=font,
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2
+                                    scrollbar_button_color= "lightgreen"
                                     )
     
         # Usamos grid después de crear el widget
@@ -476,7 +510,7 @@ class IngresoUsuariosAdmon():
 
     def crear_combobox (self, parent, font, fila, columna, textvariable, opciones):
         
-        entry_combobox = ctk.CTkComboBox(parent,
+        entry_combobox = ctk.CTkOptionMenu(parent,
                                         font= font,
                                         values= opciones,
                                         variable = textvariable,
@@ -488,33 +522,48 @@ class IngresoUsuariosAdmon():
         
         return entry_combobox
 
-    def salir(self):
-            """Método personalizado para el botón Salir.
-            Cierra la ventana de alergias y restablece la ventana de administración."""
-            
-            if self.db:
-                
-                self.db.cerrar_conexion()  # Llamamos al método de cerrar conexión
-            
-            self.root.destroy()  # Cierra la ventana de alergias
-            
-            if self.parent_window:
-                
-                self.parent_window.deiconify()
-                self.parent_window.lift()
-
-    def obtener_cargos(self):
+    def obtener_rango_edad(self, id_rango):
         
         """Obtiene los nombres de los cargos desde la base de datos."""
-    
-        self.db.cursor.execute("SELECT id_cargo, nombre_cargo FROM cargos") 
-        cargos = self.db.cursor.fetchall()  # Lista de tuplas (id_cargo, nombre_cargo)
 
-        # Diccionario para mapear nombres a IDs
-        self.mapeo_cargos = {nombre: id_cargo for id_cargo, nombre in cargos}
+        sql = "SELECT rango FROM rangosedades WHERE id_rangoedad = %s"
+        
+        self.db.cursor.execute(sql, (id_rango, )) 
+    
+        resultado = self.db.cursor.fetchone()  # Lista de tuplas (id_cargo, nombre_cargo)
 
         # Retornar solo los nombres de los cargos para el combobox
-        return list(self.mapeo_cargos.keys())
+        return resultado[0]
+
+    def obtener_estado(self, id_estado):
+        
+        sql = "SELECT nombre_estado FROM estados WHERE id_estado = %s"
+        
+        self.db.cursor.execute(sql, (id_estado, ))
+        
+        resultado = self.db.cursor.fetchone()
+        
+        return resultado[0]
+    
+    def obtener_sede(self, id_sede):
+        
+        sql = "SELECT nombre_sede FROM sedes WHERE id_sede = %s"
+        
+        self.db.cursor.execute(sql, (id_sede, ))
+        
+        resultado = self.db.cursor.fetchone()
+        
+        return resultado[0]
+    
+    def obtener_causal_retraso(self, id_retraso):
+        
+        sql = "SELECT causal_retraso FROM retrasos WHERE id_retraso = %s"
+        
+        self.db.cursor.execute(sql, (id_retraso, ))
+        
+        resultado = self.db.cursor.fetchone()
+        
+        return resultado[0]
 
     def obtener_modalidades(self):
         
@@ -534,13 +583,6 @@ class IngresoUsuariosAdmon():
         resultado = self.db.cursor.fetchone()
         return resultado[0] if resultado else None
 
-    def obtener_nombre_cargo(self, id_cargo):
-        """Obtiene el nombre del cargo desde la base de datos usando su ID."""
-        sql = "SELECT nombre_cargo FROM cargos WHERE id_cargo = %s"
-        self.db.cursor.execute(sql, (id_cargo,))
-        resultado = self.db.cursor.fetchone()
-        return resultado[0] if resultado else None
-    
     def obtener_id_modalidad(self, nombre_modalidad):
         """Obtiene el ID de modalidad basado en el nombre de la modalidad."""
         # La modalidad está en formato 'nombre (abreviación)', por lo que solo tomamos el nombre
@@ -562,17 +604,61 @@ class IngresoUsuariosAdmon():
         # Retornar el ID si lo encuentra, de lo contrario None
         return resultado[0] if resultado else None
 
-    def limpiar_campos(self):
-        """Limpia todos los campos de entrada."""
-        self.vars['nombreusuario'].set("")
-        self.vars['identificacion'].set("")
-        self.vars['contrasena'].set("")
-        self.vars['email'].set("")
-        self.vars['telefono'].set("")
-        self.vars['extension'].set("")
-        self.vars['modalidad'].set("")
-        self.vars['cargo'].set("")
+    def paciente_siguiente(self):
+        if self.indice_actual + 1 < self.total_pacientes:
+            self.indice_actual += 1
+            self.mostrar_paciente(self.indice_actual)
 
+    def paciente_anterior(self):
+        if self.indice_actual - 1 >= 0:
+            self.indice_actual -= 1
+            self.mostrar_paciente(self.indice_actual)
+
+    def limpiar_campos(self):
+        
+        """Limpia todos los campos de entrada."""
+        self.vars['identificacion_paciente'].set("")
+        self.vars['nombre_paciente'].set("")
+        self.vars['edad'].set("")
+        self.vars['rango_edad'].set("")
+        self.vars['fecha_orden'].set("")
+        self.vars['fecha_citacion'].set("")
+        self.vars['hc'].set("")
+        self.vars['ubicacion'].set("")
+        self.vars['modalidad'].set("")
+        self.textbox['estudios_ordenados_paciente'].delete("0.0", "end")
+        self.textbox['diagnostico'].delete("0.0", "end")
+        self.vars['ayuno'].set("")
+        self.vars['diferido'].set("")
+        self.vars['alergia'].set("")
+        self.textbox['tipo_alergia'].delete("0.0", "end")
+        self.vars['aislamiento'].set("")
+        self.textbox['tipo_aislamiento'].delete("0.0", "end")
+        self.vars['autorizacion'].set("")
+        self.vars['anestesia'].set("")
+        self.vars['estado'].set("")
+        self.vars['sede'].set("")
+        self.vars['hora_citacion'].set("")
+        self.vars['hora_realizacion'].set("")
+        self.vars['causal_retraso'].set("")
+        self.textbox['comentarios_tecnologo'].delete("0.0", "end")
+        self.vars['comentar_radiologo'].set("")
+        self.textbox['comentarios_radiologo'].delete("0.0", "end")
+    
+    def salir(self):
+            """Método personalizado para el botón Salir.
+            Cierra la ventana de alergias y restablece la ventana de administración."""
+            
+            if self.db:
+                
+                self.db.cerrar_conexion()  # Llamamos al método de cerrar conexión
+            
+            self.root.destroy()  # Cierra la ventana de alergias
+            
+            if self.parent_window:
+                
+                self.parent_window.deiconify()
+                self.parent_window.lift()
 # a= IngresoUsuariosAdmon()
 # g= a.obtener_ventana()
 # g.mainloop()

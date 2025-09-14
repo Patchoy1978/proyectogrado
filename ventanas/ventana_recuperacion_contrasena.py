@@ -83,9 +83,10 @@ class RecuperacionContrasena():
         # Definir estilos de fuente para los textos
         self.fonts = {
             
-            'title': ('verdana', 30,  'bold'),
-            'label_title': ('verdana', 16,  'bold'),
-            'label': ('verdana', 12,  'bold')
+            'title': ('verdana', 26,  'bold'),
+            'label_title': ('verdana', 14,  'bold'),
+            'label': ('verdana', 12,  'bold'),
+            'boton': ('verdana', 14,  'bold')
         }
         
         # Crear los frames de la interfaz
@@ -151,10 +152,10 @@ class RecuperacionContrasena():
         
         campos2 = [
             
-            {"label": "Registrar\nContraseña", "color": "blue", "tipo": "boton", "ancho": 50, "alto":10, "command": self.actualizar_contrasena, 'image': None,},
-            {"label": "Validar\nEmail", "color": "greenyellow", "tipo": "boton", "ancho": 50, "alto":10, "command": self.validar_email_para_recuperacion, 'image': None,},
+            {"label": "Registrar\nContraseña", "color": "#00155c", "tipo": "boton", "ancho": 50, "alto":10, "command": self.actualizar_contrasena, 'image': None,},
+            {"label": "Validar\nEmail", "color": "#00155c", "tipo": "boton", "ancho": 50, "alto":10, "command": self.validar_email_para_recuperacion, 'image': None,},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 50, "alto":50, "command": self.alternar_contrasena, 'image': self.ojo_abierto, "clave": "ver_contrasena"},
-            {"label": "Salir", "color": "red", "tipo": "boton", "ancho": 50, "alto":10, "command": self.salir, 'image': None,},
+            {"label": "Salir", "color": "#00155c", "tipo": "boton", "ancho": 50, "alto":10, "command": self.salir, 'image': None,},
         ]       
         
         # Creación de etiquetas
@@ -189,7 +190,17 @@ class RecuperacionContrasena():
         # Creación de botones      
         for i, campo2 in enumerate(campos2):
             
-            boton = self.crear_boton(self.frame_2, self.fonts['label_title'], campo2['label'], campo2['color'], 0, i+1, image=campo2['image'], ancho_widget=campo2['ancho'], alto_widget=campo2['alto'], command=campo2['command'])
+            boton = self.crear_boton(self.frame_2, 
+                                    self.fonts['boton'],
+                                    campo2['label'],
+                                    campo2['color'],
+                                    0,
+                                    i+1,
+                                    image=campo2['image'],
+                                    ancho_widget=campo2['ancho'],
+                                    alto_widget=campo2['alto'],
+                                    command=campo2['command']
+                                    )
 
             if "clave" in campo2:
                 self.botones_ver_contrasena["ver_contrasena"] = boton
@@ -245,34 +256,6 @@ class RecuperacionContrasena():
             
             return None
 
-        # # Buscar el email en la base de datos
-        # sql_buscar_codigo = "SELECT id_usuario, codigo FROM usuarios WHERE email = %s"
-        # self.db.cursor.execute(sql_buscar_codigo, (email,))
-        # resultado = self.db.cursor.fetchone()
-
-        # if not resultado:
-            
-        #     email_no_esta()
-            
-        #     return
-
-        # id_usuario, codigo = resultado
-
-        # if codigo is None:
-            
-        #     codigo_no_esta()
-            
-        #     return 
-
-        # self.email_validado = True
-        # # self.id_usuario = id_usuario  # Guarda el ID del usuario
-
-        # email_validado()
-        # self.entries['nueva_contrasena'].configure(state="normal")
-        # self.entries['rep_nueva_contrasena'].configure(state="normal")
-
-        # return id_usuario  # Retorna el ID del usuario si todo está correcto
-
     def actualizar_contrasena(self):
         
         # Verificar si el correo ha sido validado antes de continuar con la actualización
@@ -326,8 +309,10 @@ class RecuperacionContrasena():
         
         # Crear un widget de etiqueta (label) con el texto y la fuente especificados
         label = ctk.CTkLabel(parent,
-                             text=texto,
-                             font=fuente)
+                            text=texto,
+                            font=fuente,
+                            text_color= "#484a4b"
+                            )
         
         # Colocar el label en la cuadrícula (grid) con las configuraciones de fila, columna, tamaño y espaciado
         label.grid(row=fila, column=columna, sticky='ew', columnspan=ancho, rowspan=alto, padx = 5)
@@ -343,7 +328,7 @@ class RecuperacionContrasena():
                             height= alto_widget,
                             text_color='black',
                             corner_radius=10,
-                            fg_color='lightblue',
+                            fg_color='lightgray',
                             placeholder_text= placeholder,
                             placeholder_text_color= 'gray',
                             show= show
@@ -362,12 +347,13 @@ class RecuperacionContrasena():
                                 font=font,
                                 text=texto,
                                 fg_color=color_fondo,
-                                text_color='black',
+                                text_color='white',
                                 height=alto_widget,
                                 width= ancho_widget,
                                 command=command,
                                 corner_radius=10,
-                                image=image
+                                image=image,
+                                hover_color= "lightgreen"
                             )
         
         # Colocar el botón en la cuadrícula (grid) con las configuraciones de fila, columna, y espaciado

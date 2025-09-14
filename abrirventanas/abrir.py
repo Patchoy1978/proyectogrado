@@ -368,3 +368,14 @@ def abrir_ventana_usuarios_admon(parent_window=None):
     mostrar_ventana_estado.grab_set()
     
     mostrar_ventana_estado.deiconify()  
+    
+def abrir_ventana_pacientes_admon(parent_window=None):
+    
+    from ventanas_admon.ventana_pacientes import IngresoPacientesAdmon
+    
+    abrir_ventana_estado = IngresoPacientesAdmon(parent_window=parent_window)
+    
+    mostrar_ventana_estado = abrir_ventana_estado.obtener_ventana()
+    mostrar_ventana_estado.grab_set()
+    
+    mostrar_ventana_estado.deiconify()

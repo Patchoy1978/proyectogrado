@@ -95,8 +95,9 @@ class VentanaRegistroUsuario():
         self.fonts = {
             
             'title': ('verdana', 26, 'bold'),
-            'label': ('verdana', 14, 'bold'),
-            'boton': ('verdana', 18, 'bold'),
+            'label_title': ('verdana', 14, 'bold'),
+            'label': ('verdana', 12, 'bold'),
+            'boton': ('verdana', 14, 'bold'),
         }
         
         # Crear un marco principal para contener otros elementos de la interfaz
@@ -183,9 +184,9 @@ class VentanaRegistroUsuario():
         # Campos para los botones de acción
         campos4 = [
             
-            {"label": "Registrarse", "color": "lightblue", "tipo": "boton", "ancho": 60, "alto":40, "command": self.insertar_usuario, 'image':None},
+            {"label": "Registrarse", "color": "#00155c", "tipo": "boton", "ancho": 60, "alto":40, "command": self.insertar_usuario, 'image':None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 50, "alto":50, "command": self.alternar_contrasena, 'image': self.ojo_abierto, "clave": "ver_contrasena"},
-            {"label": "Salir", "color": "lightblue", "tipo": "boton", "ancho": 60, "alto":40, "command": self.salir, 'image':None},
+            {"label": "Salir", "color": "#00155c", "tipo": "boton", "ancho": 60, "alto":40, "command": self.salir, 'image':None},
         ]
         
         # Crear la etiqueta del título en la ventana
@@ -198,21 +199,21 @@ class VentanaRegistroUsuario():
             
             # Crear etiquetas para cada campo
             self.crear_label(self.frame_widgets_sup, 
-                            font=self.fonts['label'], 
+                            font=self.fonts['label_title'], 
                             texto=campo1['label'], 
                             fila=0, 
                             columna=i+1
                             )
             
             self.crear_label(self.frame_widgets_medio, 
-                            font=self.fonts['label'], 
+                            font=self.fonts['label_title'], 
                             texto=campo2['label'], 
                             fila=0, 
                             columna=i+1
                             )
             
             self.crear_label(self.frame_widgets_medio1, 
-                            font=self.fonts['label'], 
+                            font=self.fonts['label_title'], 
                             texto=campo3['label'], 
                             fila=0, 
                             columna=i+1
@@ -453,9 +454,10 @@ class VentanaRegistroUsuario():
         
         # Crear el label con el texto y la fuente especificados
         label = ctk.CTkLabel(parent,
-                             font = font,
-                             text = texto,
-                             )
+                            font = font,
+                            text = texto,
+                            text_color= "#484a4b"
+                            )
         
         # Colocar el label en el grid del contenedor (parent) en la fila y columna especificadas
         # Se ajusta su tamaño con los parámetros 'ancho' y 'alto', y se utiliza 'nsew' para que ocupe todo el espacio disponible
@@ -477,7 +479,7 @@ class VentanaRegistroUsuario():
                             corner_radius=10,  # Radio de las esquinas para bordes redondeados
                             fg_color='lightgray',  # Color de fondo del entry
                             placeholder_text=placeholder,  # Texto del placeholder cuando el campo está vacío
-                            placeholder_text_color='lightblue',  # Color del texto del placeholder
+                            placeholder_text_color='gray',  # Color del texto del placeholder
                             textvariable=textvariable,  # Variable de control para el texto que se ingresa
                             show=show  # Caracter a mostrar en el campo 
                             )
@@ -506,7 +508,8 @@ class VentanaRegistroUsuario():
             height=alto_widget,  # Alto del combobox
             fg_color='lightgray',  # Color de fondo del combobox
             values=opciones,  # Lista de opciones que se mostrarán en el combobox
-            button_color= "lightgreen"
+            button_color= "lightgray",
+            button_hover_color= "lightgreen"
         )
         
         # Establecer el valor predeterminado si está en las opciones
@@ -536,7 +539,7 @@ class VentanaRegistroUsuario():
             font=font, # Fuente del texto del botón
             text=texto, # Texto que se mostrará en el botón
             fg_color=color_fondo, # Color de fondo del botón
-            text_color='black', # Color del texto del botón
+            text_color='white', # Color del texto del botón
             height=alto,  # Altura del botón
             width= ancho,  # Anchura del botón
             command=command, # Función que se ejecutará al presionar el botón

@@ -100,7 +100,7 @@ class VentanaInicioPrograma():
         self.fonts = {
             'title':('Verdana', 26, 'bold'),
             'label':('Verdana', 14, 'bold'),
-            'label_titulo':('Verdana', 16, 'bold'),
+            'label_titulo':('Verdana', 14, 'bold'),
             'boton':('Verdana', 14, 'bold'),
         }
         

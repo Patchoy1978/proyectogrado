@@ -86,6 +86,7 @@ class ConexionDB():
             ext integer, 
             modalidad integer not null,
             cargo integer not null,
+            codigo integer,
             CONSTRAINT usuarios_modalidad FOREIGN KEY  (modalidad) REFERENCES modalidades (id_modalidad) on delete cascade on update cascade,
             CONSTRAINT usuarios_cargo FOREIGN KEY  (cargo) REFERENCES cargos (id_cargo) on delete cascade on update cascade
         )

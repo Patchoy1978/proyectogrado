@@ -23,7 +23,8 @@ from abrirventanas.abrir import (abrir_ventana_alergias,
                                 abrir_ventana_ratrasos,
                                 abrir_ventana_cargos,
                                 abrir_ventana_usuarios_admon,
-                                abrir_ventana_inicio
+                                abrir_ventana_inicio,
+                                abrir_ventana_pacientes_admon
                                 )
 
 from abrirventanasemergentes.abrir_ventanas import addmon_debes_hacer_primero
@@ -61,8 +62,8 @@ class VentanaAdmon():
         # Define una estructura para almacenar fuentes tipográficas utilizadas en la interfaz.
         self.fonts = {
             
-            'title': ('verdana', 30, 'bold'),
-            'boton': ('verdana', 16, 'bold'),
+            'title': ('verdana', 26, 'bold'),
+            'boton': ('verdana', 14, 'bold'),
         }
         
         # Cargar imágenes para los iconos de visibilidad de contraseña, ajustando su tamaño
@@ -130,7 +131,7 @@ class VentanaAdmon():
         # Lista de botones para la primera columna de la interfaz
         campos1 = [
             
-            {'label': 'Pacientes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': None, 'state' : 'disabled'},
+            {'label': 'Pacientes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_pacientes_admon(self.root), self.root.iconify()), 'state' : 'disabled'},
             {'label': 'Usuarios', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_usuarios_admon(self.root), self.root.iconify()), 'state' : 'disabled'},
             {'label': 'Alergias', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify()), 'state' : 'disabled'},
             {'label': 'Aislamientos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify()), 'state' : 'disabled'},
@@ -207,7 +208,8 @@ class VentanaAdmon():
         # Crea un label con el texto y la fuente especificados
         label = ctk.CTkLabel(parent,
                             text= texto,
-                            font= fuente
+                            font= fuente,
+                            text_color = "#484a4b"
                             )
         
         # Ubica el label en la grilla del parent, permitiendo que se expanda
@@ -236,14 +238,16 @@ class VentanaAdmon():
         
         # Crea un botón con el texto, fuente y otras propiedades visuales
         boton = ctk.CTkButton(parent,
-                            text=text,               # Texto que mostrará el botón
-                            font=font,               # Fuente del texto
-                            text_color='black',      # Color del texto en el botón
-                            corner_radius=10,        # Radio de las esquinas para un diseño redondeado
-                            command=command,         # Acción que se ejecutará al hacer clic en el botón
-                            width=widget_ancho,      # Ancho del botón
-                            height=widget_alto,      # Alto del botón
-                            state= state             # estado del boton
+                            text=text,                  # Texto que mostrará el botón
+                            font=font,                  # Fuente del texto
+                            text_color='white',         # Color del texto en el botón
+                            corner_radius=10,           # Radio de las esquinas para un diseño redondeado
+                            command=command,            # Acción que se ejecutará al hacer clic en el botón
+                            width=widget_ancho,         # Ancho del botón
+                            height=widget_alto,         # Alto del botón
+                            state= state,               # estado del boton
+                            hover_color= "lightgreen",  # al pasar el mouse
+                            fg_color= "#00155C"
                             )
         
         # Posiciona el botón dentro de la grilla del contenedor

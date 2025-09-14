@@ -115,13 +115,17 @@ class PacientesModificar():
         # Diccionario con estilos de fuente para los textos
         self.fonts = {
 
-            "title": ("Verdana", 30, 'bold'),
+            "title": ("Verdana", 26, 'bold'),
 
             "title_frame": ("Verdana", 24, 'bold'),
 
-            "label": ("Verdana", 12, 'bold'),
+            "label_title": ("Verdana", 14, 'bold'),
             
-            "date": ("Verdana", 12, 'bold')
+            "label": ("Verdana", 12 ),
+            
+            "date": ("Verdana", 12 ),
+            
+            "boton": ("Verdana", 14, 'bold'),
 
         }
         
@@ -366,16 +370,16 @@ class PacientesModificar():
     
     def contenidotituloppalmodificar(self):
         
-        self.titulo = ctk.CTkLabel(self.frame_sup, text='Modificar Datos Del Paciente', font=self.fonts['title'], fg_color='white', bg_color= 'white')
+        self.titulo = ctk.CTkLabel(self.frame_sup, text='Modificar Datos Del Paciente', font=self.fonts['title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=0, columnspan=3, sticky="nsew") 
     
     def contenidosframe1modificar(self):
 
-        self.titulo_frame = ctk.CTkLabel(self.frame_sup1, text='Datos Del Paciente', font=self.fonts['title_frame'], fg_color='white', bg_color= 'white')
+        self.titulo_frame = ctk.CTkLabel(self.frame_sup1, text='Datos Del Paciente', font=self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo_frame.grid(row=0, column=0, sticky='nsew')
         
-        self.lab_identificacion = ctk.CTkLabel(self.frame1, text='Identificación Del Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_identificacion.grid(row=0, column=0, pady= 8, columnspan=2, sticky='ew')
+        self.lab_identificacion = ctk.CTkLabel(self.frame1, text='Identificación Del Paciente', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_identificacion.grid(row=0, column=0, pady= 4, columnspan=2, sticky='ew')
         
         self.entry_identificacion_paciente = ctk.CTkEntry(self.frame1, 
                                                     font=self.fonts['label'],
@@ -384,13 +388,12 @@ class PacientesModificar():
                                                     fg_color='lightgray',
                                                     bg_color='white',
                                                     corner_radius=10,
-                                                    text_color='black',
-                                                    border_color='black'
+                                                    text_color='black'
                                                     )
-        self.entry_identificacion_paciente.grid(row=1, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_identificacion_paciente.grid(row=1, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_nombre = ctk.CTkLabel(self.frame1, text='Nombre Del Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_nombre.grid(row=2, column=0, pady= 10, columnspan=2, sticky='nsew')
+        self.lab_nombre = ctk.CTkLabel(self.frame1, text='Nombre Del Paciente', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_nombre.grid(row=2, column=0, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_nombre_paciente = ctk.CTkEntry(self.frame1, 
                                             font=self.fonts['label'],
@@ -399,15 +402,14 @@ class PacientesModificar():
                                             fg_color='lightgray',
                                             bg_color='white',
                                             corner_radius=10,
-                                            text_color='black',
-                                            border_color='black'
+                                            text_color='black'
                                             )
-        self.entry_nombre_paciente.grid(row=3, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_nombre_paciente.grid(row=3, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_nombre_paciente.bind("<KeyRelease>", self.poner_title_nombre)
         
-        self.lab_edad = ctk.CTkLabel(self.frame1, text='Edad', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_edad.grid(row=4, column=0, pady= 10, sticky='nsew')
+        self.lab_edad = ctk.CTkLabel(self.frame1, text='Edad', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_edad.grid(row=4, column=0, pady= 4, sticky='nsew')
         
         self.entry_edad_paciente = ctk.CTkEntry(self.frame1, 
                                         font=self.fonts['label'],
@@ -416,15 +418,14 @@ class PacientesModificar():
                                         fg_color='lightgray',
                                         bg_color='white',
                                         corner_radius=10,
-                                        text_color='black',
-                                        border_color='black'
+                                        text_color='black'
                                         )
-        self.entry_edad_paciente.grid(row=5, column=0, padx= 15, pady= 10, sticky='nsew')
+        self.entry_edad_paciente.grid(row=5, column=0, padx= 15, pady= 4, sticky='nsew')
         
-        self.lab_rango_edad = ctk.CTkLabel(self.frame1, text='Rango Edad', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_rango_edad.grid(row=4, column=1, pady= 10, sticky='nsew')
+        self.lab_rango_edad = ctk.CTkLabel(self.frame1, text='Rango Edad', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_rango_edad.grid(row=4, column=1, pady= 4, sticky='nsew')
         
-        self.entry_rango_edad_paciente = ctk.CTkComboBox(self.frame1,
+        self.entry_rango_edad_paciente = ctk.CTkOptionMenu(self.frame1,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -435,13 +436,12 @@ class PacientesModificar():
                                                     text_color='black',
                                                     values=[] ,
                                                     button_color="lightgray",
-                                                    button_hover_color='lightgreen',
-                                                    border_color='black'
+                                                    button_hover_color='lightgreen'
                                                     )
-        self.entry_rango_edad_paciente.grid(row=5, column=1, sticky='nsew', padx= 15, pady= 10)
+        self.entry_rango_edad_paciente.grid(row=5, column=1, sticky='nsew', padx= 15, pady= 4)
         
-        self.lab_historia_clin = ctk.CTkLabel(self.frame1, text='Historia Clinica', font=self.fonts['label'], fg_color='white',bg_color='white')
-        self.lab_historia_clin.grid(row=6, column=0, pady= 10, columnspan=2, sticky='nsew')
+        self.lab_historia_clin = ctk.CTkLabel(self.frame1, text='Historia Clinica', font=self.fonts['label_title'], fg_color='white',bg_color='white', text_color= "#484a4b")
+        self.lab_historia_clin.grid(row=6, column=0, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_historia_clin_paciente = ctk.CTkEntry(self.frame1, 
                                                     font=self.fonts['label'],
@@ -450,13 +450,12 @@ class PacientesModificar():
                                                     fg_color='lightgray',
                                                     bg_color='white',
                                                     corner_radius=10,
-                                                    text_color='black',
-                                                    border_color='black'
+                                                    text_color='black'
                                                     )
-        self.entry_historia_clin_paciente.grid(row=7, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_historia_clin_paciente.grid(row=7, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_ubicacion = ctk.CTkLabel(self.frame1, text='Ubicación Paciente', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_ubicacion.grid(row=8, column=0, pady= 5, columnspan=2, sticky='nsew')
+        self.lab_ubicacion = ctk.CTkLabel(self.frame1, text='Ubicación Paciente', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_ubicacion.grid(row=8, column=0, pady= 4, columnspan=2, sticky='nsew')
         
         self.entry_ubicacion_paciente = ctk.CTkEntry(self.frame1, 
                                                 font=self.fonts['label'],
@@ -465,15 +464,14 @@ class PacientesModificar():
                                                 fg_color='lightgray',
                                                 bg_color='white',
                                                 corner_radius=10,
-                                                text_color='black',
-                                                border_color='black'
+                                                text_color='black'
                                                 )
-        self.entry_ubicacion_paciente.grid(row=9, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_ubicacion_paciente.grid(row=9, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
-        self.lab_sede = ctk.CTkLabel(self.frame1, text='Sede', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_sede.grid(row=10, column=0, pady= 8, columnspan=2, sticky='nsew')
+        self.lab_sede = ctk.CTkLabel(self.frame1, text='Sede', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_sede.grid(row=10, column=0, pady= 4, columnspan=2, sticky='nsew')
         
-        self.entry_sede_paciente = ctk.CTkComboBox(self.frame1,
+        self.entry_sede_paciente = ctk.CTkOptionMenu(self.frame1,
                                             font=self.fonts['label'],
                                             state="normal",
                                             width= 285,
@@ -484,9 +482,9 @@ class PacientesModificar():
                                             text_color='black',
                                             values=[],
                                             button_color="lightgray",
-                                            button_hover_color='lightgreen',
-                                            border_color='black')
-        self.entry_sede_paciente.grid(row=11, column=0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+                                            button_hover_color='lightgreen'
+                                            )
+        self.entry_sede_paciente.grid(row=11, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
         # Frame contenedor solo para los radios
         self.frame_radios = ctk.CTkFrame(self.frame1, fg_color="white",bg_color='white')
@@ -498,7 +496,7 @@ class PacientesModificar():
         self.frame_radios.grid_columnconfigure(0, weight=1)
         self.frame_radios.grid_columnconfigure(1, weight=1)
         
-        self.lab_alergias_paciente = ctk.CTkLabel(self.frame_radios, text='Alergias', font=self.fonts['label'], fg_color='white', bg_color='white')
+        self.lab_alergias_paciente = ctk.CTkLabel(self.frame_radios, text='Alergias', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_alergias_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
         
         self.var_alergias = tk.IntVar(value=None)  # Valor predeterminado es 0
@@ -511,7 +509,7 @@ class PacientesModificar():
                                         font=self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_alergias1.grid(row=1, column=0, padx=55, pady= 25, sticky='ew')
 
@@ -523,14 +521,14 @@ class PacientesModificar():
                                         font=self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen',
+                                        border_color= 'lightgray',
                                         )
         self.radio_alergias2.grid(row=1, column=1, sticky='nsew')
         
-        self.lab_tipo_alergia = ctk.CTkLabel(self.frame_radios, text='Selección de Alergias', font=self.fonts['label'], fg_color='white', bg_color='white')
+        self.lab_tipo_alergia = ctk.CTkLabel(self.frame_radios, text='Selección de Alergias', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_tipo_alergia.grid(row=0, column= 2, sticky='nsew')
         
-        self.entry_tipo_alergia_paciente = ctk.CTkComboBox(self.frame_radios,
+        self.entry_tipo_alergia_paciente = ctk.CTkOptionMenu(self.frame_radios,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -542,14 +540,12 @@ class PacientesModificar():
                                                     values=[],
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    border_color='black',
                                                     command=self.llenar_textbox_alergia
                                                     )
-        self.entry_tipo_alergia_paciente.grid(row=1, column= 2, padx= 20, pady= 10, sticky='ew')
-        #self.entry_tipo_alergia_paciente.bind("<<ComboboxSelected>>", self.llenar_textbox_alergia)
+        self.entry_tipo_alergia_paciente.grid(row=1, column= 2, padx= 20, pady= 4, sticky='ew')
         
-        self.lab_alergias_paciente = ctk.CTkLabel(self.frame1, text='Alergias del Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_alergias_paciente.grid(row=13, column=0, pady = 8, columnspan = 2,  sticky='nsew')
+        self.lab_alergias_paciente = ctk.CTkLabel(self.frame1, text='Alergias del Paciente', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_alergias_paciente.grid(row=13, column=0, pady = 4, columnspan = 2,  sticky='nsew')
         
         self.entry_texto_alergias_paciente = ctk.CTkTextbox(self.frame1,
                                     wrap=tk.WORD,
@@ -560,14 +556,14 @@ class PacientesModificar():
                                     corner_radius= 10,
                                     font= self.fonts['label'],
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_alergias_paciente.configure(state="disable")
-        self.entry_texto_alergias_paciente.grid(row=14, column=0, columnspan= 2, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_alergias_paciente.grid(row=14, column=0, columnspan= 2, pady=4, padx= 15, sticky='nsew')
         
         # Frame contenedor solo para los radios
         self.frame_radios1 = ctk.CTkFrame(self.frame1, fg_color="white",bg_color='white')
-        self.frame_radios1.grid(row=15, column=0, columnspan=3, pady=10, sticky="nsew")
+        self.frame_radios1.grid(row=15, column=0, columnspan=3, pady=4, sticky="nsew")
 
         # Configura 2 columnas en el sub-frame
         self.frame_radios1.grid_rowconfigure(0, weight=1)
@@ -575,7 +571,7 @@ class PacientesModificar():
         self.frame_radios1.grid_columnconfigure(0, weight=1)
         self.frame_radios1.grid_columnconfigure(1, weight=1)
         
-        self.lab_aislamiento_paciente = ctk.CTkLabel(self.frame_radios1, text='Aislamiento', font=self.fonts['label'], fg_color='white', bg_color='white')
+        self.lab_aislamiento_paciente = ctk.CTkLabel(self.frame_radios1, text='Aislamiento', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_aislamiento_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
         
         self.var_aislamiento = tk.IntVar(value=None)  # Valor predeterminado es No
@@ -588,7 +584,7 @@ class PacientesModificar():
                                             font=self.fonts['label'],
                                             fg_color= 'black',
                                             bg_color='white',
-                                            border_color= 'lightgreen'
+                                            border_color= 'lightgray'
                                             )
         self.radio_aislamiento1.grid(row=1, column=0, padx=55, sticky='ew')
 
@@ -600,14 +596,14 @@ class PacientesModificar():
                                             font=self.fonts['label'],
                                             fg_color= 'black',
                                             bg_color='white',
-                                            border_color= 'lightgreen'
+                                            border_color= 'lightgray'
                                             )
         self.radio_aislamiento2.grid(row=1, column=1, sticky='ew')
         
-        self.lab_tipo_aislamiento = ctk.CTkLabel(self.frame_radios1, text='Tipo De Aislamiento', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_tipo_aislamiento.grid(row=0, column= 2, pady= 10, sticky='nsew')
+        self.lab_tipo_aislamiento = ctk.CTkLabel(self.frame_radios1, text='Tipo De Aislamiento', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_tipo_aislamiento.grid(row=0, column= 2, pady= 4, sticky='nsew')
         
-        self.entry_tipo_aislamiento_paciente = ctk.CTkComboBox(self.frame_radios1,
+        self.entry_tipo_aislamiento_paciente = ctk.CTkOptionMenu(self.frame_radios1,
                                                         font=self.fonts['label'],
                                                         state="normal",
                                                         width= 285,
@@ -619,13 +615,12 @@ class PacientesModificar():
                                                         values=[],
                                                         button_color="lightgray",
                                                         button_hover_color='lightgreen',
-                                                        border_color='black',
                                                         command=self.llenar_textbox_aislamiento
                                                         )
-        self.entry_tipo_aislamiento_paciente.grid(row=1, column= 2, padx= 20, pady= 10, sticky='nsew')
+        self.entry_tipo_aislamiento_paciente.grid(row=1, column= 2, padx= 20, pady= 4, sticky='nsew')
         
-        self.lab_aislam_paciente = ctk.CTkLabel(self.frame1, text='Aislamientos del Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_aislam_paciente.grid(row=16, column=0, pady = 8, columnspan = 2,  sticky='nsew')
+        self.lab_aislam_paciente = ctk.CTkLabel(self.frame1, text='Aislamientos del Paciente', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_aislam_paciente.grid(row=16, column=0, pady = 4, columnspan = 2,  sticky='nsew')
         
         self.entry_texto_aislamientos_paciente = ctk.CTkTextbox(self.frame1,
                                     wrap=tk.WORD,
@@ -636,15 +631,15 @@ class PacientesModificar():
                                     corner_radius= 10,
                                     font= self.fonts['label'],
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_aislamientos_paciente.configure(state="disable")
-        self.entry_texto_aislamientos_paciente.grid(row=17, column=0, columnspan= 2, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_aislamientos_paciente.grid(row=17, column=0, columnspan= 2, pady=4, padx= 15, sticky='nsew')
         
-        self.lab_estado = ctk.CTkLabel(self.frame1, text='Estado', font=self.fonts['label'], fg_color='white', bg_color='white')
-        self.lab_estado.grid(row=18, column= 0, pady=8, columnspan=2, sticky='nsew')
+        self.lab_estado = ctk.CTkLabel(self.frame1, text='Estado', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
+        self.lab_estado.grid(row=18, column= 0, pady=4, columnspan=2, sticky='nsew')
         
-        self.entry_estado_paciente = ctk.CTkComboBox(self.frame1,
+        self.entry_estado_paciente = ctk.CTkOptionMenu(self.frame1,
                                                 font=self.fonts['label'],
                                                 state="normal",
                                                 width= 285,
@@ -656,49 +651,46 @@ class PacientesModificar():
                                                 values=[],
                                                 button_color="lightgray",
                                                 button_hover_color='lightgreen',
-                                                border_color='black',
                                                 command= self.cambio_diferido_a_pendiente
                                                 )
-        self.entry_estado_paciente.grid(row=19, column= 0, padx= 15, pady= 10, columnspan=2, sticky='nsew')
+        self.entry_estado_paciente.grid(row=19, column= 0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
     
     def contenidosframe2modificar (self):
         
-        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Datos Del Estudio', font= self.fonts['title_frame'], fg_color='white', bg_color= 'white')
+        self.titulo = ctk.CTkLabel(self.frame_sup1, text='Datos Del Estudio', font= self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=1, sticky='nsew')
         
-        self.lab_fecha_orden = ctk.CTkLabel(self.frame2, font= self.fonts['label'], fg_color= 'white', text='Fecha De La Orden', bg_color= 'white')
-        self.lab_fecha_orden.grid(row= 0, column= 0, sticky= 'nsew', pady= 8)
+        self.lab_fecha_orden = ctk.CTkLabel(self.frame2, font= self.fonts['label_title'], fg_color= 'white', text='Fecha De La Orden', bg_color= 'white', text_color= "#484a4b")
+        self.lab_fecha_orden.grid(row= 0, column= 0, sticky= 'nsew', pady= 4)
         
         self.entry_fecha_orden = DateEntry(self.frame2,
                                     width=20,
                                     background='lightgray',
                                     foreground='white',
-                                    borderwidth=2,
                                     date_pattern= 'dd/MM/yyyy',
                                     font=self.fonts['date'],
                                     locale = 'es')
-        self.entry_fecha_orden.grid(row=1, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_fecha_orden.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
         self.entry_fecha_orden.delete(0, 'end')
         
-        self.lab_fecha_citacion = ctk.CTkLabel(self.frame2, font= self.fonts['label'], fg_color= 'white', text='Fecha De La Cita', bg_color= 'white')
-        self.lab_fecha_citacion.grid(row= 2, column= 0, sticky= 'nsew', pady= 8)
+        self.lab_fecha_citacion = ctk.CTkLabel(self.frame2, font= self.fonts['label_title'], fg_color= 'white', text='Fecha De La Cita', bg_color= 'white', text_color= "#484a4b")
+        self.lab_fecha_citacion.grid(row= 2, column= 0, sticky= 'nsew', pady= 4)
         
         self.entry_fecha_cita = DateEntry(self.frame2,
                                 width=20,
                                 background='lightgray',
                                 foreground='white',
-                                borderwidth=2,
                                 date_pattern= 'dd/MM/yyyy',
                                 font= self.fonts['date'],
                                 locale = 'es'
                                 )
-        self.entry_fecha_cita.grid(row=3, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_modalidad.grid(row=4, column=0, pady = 8, sticky='nsew')
+        self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
         
-        self.entry_modalidad = ctk.CTkComboBox(self.frame2,
+        self.entry_modalidad = ctk.CTkOptionMenu(self.frame2,
                                         font= self.fonts['label'],
                                         state="normal",
                                         width= 275,
@@ -710,13 +702,12 @@ class PacientesModificar():
                                         values=[],
                                         button_color="lightgray",
                                         button_hover_color='lightgreen',
-                                        border_color='black',
                                         command=self.actualizar_estudios
                                         )
-        self.entry_modalidad.grid(row=5, column=0, sticky='nsew', padx= 15, pady= 8)
+        self.entry_modalidad.grid(row=5, column=0, sticky='nsew', padx= 15, pady= 4)
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Lista de Estudios', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=6, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Lista de Estudios', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=6, column=0, pady = 4, sticky='nsew')
         
         self.entry_texto_est_ord = ctk.CTkTextbox(self.frame2,
                                     wrap=tk.WORD,
@@ -727,13 +718,13 @@ class PacientesModificar():
                                     corner_radius= 10,
                                     font= self.fonts['label'],
                                     text_color='black',
-                                    border_color='black',
-                                    border_width=2)
+                                    scrollbar_button_color= "lightgreen"
+                                    )
         self.entry_texto_est_ord.configure(state="disable")
-        self.entry_texto_est_ord.grid(row=7, column=0, columnspan= 4, pady=8, padx= 15, sticky='nsew')
+        self.entry_texto_est_ord.grid(row=7, column=0, columnspan= 4, pady=4, padx= 15, sticky='nsew')
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Estudios Ordenados Al Paciente', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=8, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Estudios Ordenados Al Paciente', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=8, column=0, pady = 4, sticky='nsew')
         
         self.entry_list_estud_ordenados = ctk.CTkTextbox(self.frame2,
                                                     wrap=tk.WORD,
@@ -744,13 +735,13 @@ class PacientesModificar():
                                                     corner_radius= 10,
                                                     font= self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2)
+                                                    scrollbar_button_color= "lightgreen"
+                                                    )
         self.entry_list_estud_ordenados.configure(state= 'disable')
-        self.entry_list_estud_ordenados.grid(row=9, column=0, columnspan= 4, pady=8, padx= 15, sticky='nsew')
+        self.entry_list_estud_ordenados.grid(row=9, column=0, columnspan= 4, pady=4, padx= 15, sticky='nsew')
         
-        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Buscador de Estudios', font= self.fonts['label'], fg_color='white', bg_color= 'white')
-        self.lab_estud_ordenados.grid(row=10, column=0, pady = 8, sticky='nsew')
+        self.lab_estud_ordenados = ctk.CTkLabel(self.frame2, text='Buscador de Estudios', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
+        self.lab_estud_ordenados.grid(row=10, column=0, pady = 4, sticky='nsew')
         
         self.entry_busqueda = ctk.CTkEntry(self.frame2,
                                     font= self.fonts['label'],
@@ -759,10 +750,9 @@ class PacientesModificar():
                                     fg_color='lightgray',
                                     bg_color= 'white',
                                     corner_radius=10,
-                                    text_color='black',
-                                    border_color='black'
+                                    text_color='black'
                                     )
-        self.entry_busqueda.grid (row=11, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_busqueda.grid (row=11, column=0, pady=4, padx= 15, sticky='nsew')
         
         self.entry_busqueda.bind("<KeyRelease>", self.buscar_estudios_en_textbox)
         
@@ -776,7 +766,7 @@ class PacientesModificar():
         self.frame_radios2.grid_columnconfigure(0, weight=1)
         self.frame_radios2.grid_columnconfigure(1, weight=1)
         
-        self.lab_ayuno_paciente = ctk.CTkLabel(self.frame_radios2, text='Ayuno', font= self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_ayuno_paciente = ctk.CTkLabel(self.frame_radios2, text='Ayuno', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_ayuno_paciente.grid(row=0, column=0, columnspan = 2, sticky='nsew')
         
         self.var_ayuno = tk.IntVar(value=0)  # Valor predeterminado es 0
@@ -789,7 +779,7 @@ class PacientesModificar():
                                     font= self.fonts['label'],
                                     bg_color= 'white',
                                     fg_color= 'black',
-                                    border_color= 'lightgreen'
+                                    border_color= 'lightgray'
                                     )
         self.radio_ayuno1.grid(row=1, column=0, padx=55, sticky='nsew')
 
@@ -801,11 +791,11 @@ class PacientesModificar():
                                     font= self.fonts['label'],
                                     bg_color= 'white',
                                     fg_color= 'black',
-                                    border_color= 'lightgreen'
+                                    border_color= 'lightgray'
                                     )
         self.radio_ayuno2.grid(row=1, column=1, sticky='nsew')
         
-        self.lab_diferido_paciente = ctk.CTkLabel(self.frame_radios2, text='Diferido', font= self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_diferido_paciente = ctk.CTkLabel(self.frame_radios2, text='Diferido', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_diferido_paciente.grid(row=0, column=2, columnspan = 2, sticky='nsew')
         
         self.var_diferido = tk.IntVar(value=0)  # Valor predeterminado es 0
@@ -818,7 +808,7 @@ class PacientesModificar():
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_diferido1.grid(row=1, column=2, padx=12, sticky='nsew')
 
@@ -830,11 +820,11 @@ class PacientesModificar():
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_diferido2.grid(row=1, column=3, sticky='nsew')
         
-        self.lab_autorizacion_paciente = ctk.CTkLabel(self.frame_radios2, text='Autorización', font= self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_autorizacion_paciente = ctk.CTkLabel(self.frame_radios2, text='Autorización', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_autorizacion_paciente.grid(row=2, column=0, columnspan =2, sticky='nsew')
         
         self.var_autorizacion = tk.IntVar(value=0)  # Valor predeterminado es 0
@@ -847,7 +837,7 @@ class PacientesModificar():
                                             font= self.fonts['label'],
                                             bg_color= 'white',
                                             fg_color= 'black',
-                                            border_color= 'lightgreen'
+                                            border_color= 'lightgray'
                                             )
         self.radio_autorizacion1.grid(row=3, column=0, padx=55, sticky='nsew')
 
@@ -858,12 +848,12 @@ class PacientesModificar():
                                             value=2,
                                             font= self.fonts['label'],
                                             bg_color= 'white',
-                                            fg_color= "#d2455b",
-                                            border_color= 'lightgreen'
+                                            fg_color= "#bd0936",
+                                            border_color= 'lightgray'
                                             )
         self.radio_autorizacion2.grid(row=3, column=1, sticky='nsew')
         
-        self.lab_anestesia_paciente = ctk.CTkLabel(self.frame_radios2, text='Anestesia', font= self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_anestesia_paciente = ctk.CTkLabel(self.frame_radios2, text='Anestesia', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_anestesia_paciente.grid(row=2, column= 2, columnspan = 2, sticky='nsew')
         
         self.var_anestesia = tk.IntVar(value=0)  # Valor predeterminado es 0
@@ -876,7 +866,7 @@ class PacientesModificar():
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_anestesia1.grid(row=3, column=2, padx=12, sticky='nsew')
 
@@ -888,11 +878,11 @@ class PacientesModificar():
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
-                                        border_color= 'lightgreen'
+                                        border_color= 'lightgray'
                                         )
         self.radio_anestesia2.grid(row=3, column=3, sticky='nsew')
         
-        self.lab_diagnostico = ctk.CTkLabel(self.frame2, text='Diagnóstico', font= self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_diagnostico = ctk.CTkLabel(self.frame2, text='Diagnóstico', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_diagnostico.grid(row=13, column=0, pady = 8, sticky='nsew')
         
         self.entry_texto_diagnostico = ctk.CTkTextbox(self.frame2,
@@ -900,11 +890,12 @@ class PacientesModificar():
                                         height=100,
                                         width=560,
                                         fg_color="lightgray",
+                                        bg_color= "white",
                                         corner_radius= 10,
                                         font= self.fonts['label'],
                                         text_color='black',
-                                        border_color='black',
-                                        border_width=2)
+                                        scrollbar_button_color= "lightgreen"
+                                        )
         self.entry_texto_diagnostico.grid(row=14, column=0, columnspan= 4, pady=10, padx= 15, sticky='nsew')
     
     def contenidosframe3modificar (self):
@@ -914,30 +905,11 @@ class PacientesModificar():
         self.titulo = ctk.CTkLabel(self.frame_sup1, text='Realización Del Estudio', fg_color='white', font=self.fonts['title_frame'], bg_color= 'white')
         self.titulo.grid(row=0, column=2, sticky='nsew')
         
-        self.lab_hora_citacion = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Hora De La Cita', bg_color= 'white')
+        self.lab_hora_citacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Hora De La Cita', bg_color= 'white')
         self.lab_hora_citacion.grid(row = 0, column = 0, sticky='nsew')
         
         self.horas = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 5)]  # Intervalos de 5 minutos
-        self.entry_combobox_hora_citacion = ctk.CTkComboBox(self.frame3,
-                                                    font=self.fonts['label'],
-                                                    state="readonly",
-                                                    width= 285,
-                                                    height= 26,
-                                                    fg_color='lightgray',
-                                                    bg_color= 'white',
-                                                    corner_radius=10,
-                                                    text_color='black',
-                                                    button_color="lightgray",
-                                                    button_hover_color='lightgreen',
-                                                    border_color='black',
-                                                    values=['Seleccione Una Hora'] + self.horas
-                                                    )
-        self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=8, padx=15, sticky='nsew')
-        
-        self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white')
-        self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=8)
-        
-        self.entry_combobox_hora_realizacion = ctk.CTkComboBox(self.frame3,
+        self.entry_combobox_hora_citacion = ctk.CTkOptionMenu(self.frame3,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -948,15 +920,32 @@ class PacientesModificar():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    border_color='black',
                                                     values=['Seleccione Una Hora'] + self.horas
                                                     )
-        self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white')
-        self.lab_causal_retraso.grid(row = 4, column = 0, sticky = 'nsew', pady=8)
+        self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white')
+        self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
         
-        self.entry_list_caus_retraso = ctk.CTkComboBox(self.frame3,
+        self.entry_combobox_hora_realizacion = ctk.CTkOptionMenu(self.frame3,
+                                                    font=self.fonts['label'],
+                                                    state="normal",
+                                                    width= 285,
+                                                    height= 26,
+                                                    fg_color='lightgray',
+                                                    bg_color= 'white',
+                                                    corner_radius=10,
+                                                    text_color='black',
+                                                    button_color="lightgray",
+                                                    button_hover_color='lightgreen',
+                                                    values=['Seleccione Una Hora'] + self.horas
+                                                    )
+        self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
+        
+        self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white')
+        self.lab_causal_retraso.grid(row = 4, column = 0, sticky = 'nsew', pady=4)
+        
+        self.entry_list_caus_retraso = ctk.CTkOptionMenu(self.frame3,
                                                 font=self.fonts['label'],
                                                 state="normal",
                                                 width= 610,
@@ -967,12 +956,11 @@ class PacientesModificar():
                                                 text_color='black',
                                                 values=[],
                                                 button_color="lightgray",
-                                                button_hover_color='lightgreen',
-                                                border_color='black'
+                                                button_hover_color='lightgreen'
                                                 )
-        self.entry_list_caus_retraso.grid(row=5, column=0, pady=8, padx=15, sticky='nsew')
+        self.entry_list_caus_retraso.grid(row=5, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.lab_coment_tecnologo = ctk.CTkLabel(self.frame3, text='Comentarios Tecnólogo', font=self.fonts['label'], fg_color='white')
+        self.lab_coment_tecnologo = ctk.CTkLabel(self.frame3, text='Comentarios Tecnólogo', font=self.fonts['label_title'], fg_color='white')
         self.lab_coment_tecnologo.grid(row=6, column=0, pady = 8, sticky='nsew')
         
         self.entry_texto_coment_tecnologo = ctk.CTkTextbox(self.frame3,
@@ -984,14 +972,13 @@ class PacientesModificar():
                                                     corner_radius= 10,
                                                     font=self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2
+                                                    scrollbar_button_color= "lightgreen"
                                                     )
-        self.entry_texto_coment_tecnologo.grid(row=7, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_texto_coment_tecnologo.grid(row=7, column=0, pady=4, padx= 15, sticky='nsew')
         
         # Frame contenedor solo para los radios
         self.frame_radios = ctk.CTkFrame(self.frame3, fg_color="white",bg_color='white')
-        self.frame_radios.grid(row=8, column=0, columnspan =2, pady = 20, sticky="nsew")
+        self.frame_radios.grid(row=8, column=0, columnspan =2, pady = 10, sticky="nsew")
 
         # Configura 2 columnas en el sub-frame
         self.frame_radios.grid_rowconfigure(0, weight=1)
@@ -999,7 +986,7 @@ class PacientesModificar():
         self.frame_radios.grid_columnconfigure(0, weight=1)
         self.frame_radios.grid_columnconfigure(1, weight=1)
         
-        self.lab_coment_al_radiologo = ctk.CTkLabel(self.frame_radios, font=self.fonts['label'], fg_color= 'white', text='Comentar Estudio Con Radiólogo', bg_color= 'white')
+        self.lab_coment_al_radiologo = ctk.CTkLabel(self.frame_radios, font=self.fonts['label_title'], fg_color= 'white', text='Comentar Estudio Con Radiólogo', bg_color= 'white')
         self.lab_coment_al_radiologo.grid(row = 0, column = 0, columnspan = 2, sticky = 'nsew')
         
         self.var_coment_al_rad = tk.IntVar(value=None)  # Valor predeterminado es 0
@@ -1028,7 +1015,7 @@ class PacientesModificar():
         # frame_coment_radiologo = tk.Frame(self.frame, bg= 'white')
         # frame_coment_radiologo.grid(row=9, column=0, pady=10, sticky='nsew')
         
-        self.lab_coment_radiologo = ctk.CTkLabel(self.frame3, text='Comentarios Radiólogo', font=self.fonts['label'], fg_color='white', bg_color= 'white')
+        self.lab_coment_radiologo = ctk.CTkLabel(self.frame3, text='Comentarios Radiólogo', font=self.fonts['label_title'], fg_color='white', bg_color= 'white')
         self.lab_coment_radiologo.grid(row=9, column=0, pady = 8, sticky='nsew')
         
         self.entry_texto_coment_radiologo = ctk.CTkTextbox(self.frame3,
@@ -1040,11 +1027,10 @@ class PacientesModificar():
                                                     corner_radius= 10,
                                                     font=self.fonts['label'],
                                                     text_color='black',
-                                                    border_color='black',
-                                                    border_width=2
+                                                    scrollbar_button_color= "lightgreen"
                                                     )
         self.entry_texto_coment_radiologo.configure(state = 'disable')
-        self.entry_texto_coment_radiologo.grid(row=10, column=0, pady=10, padx= 15, sticky='nsew')
+        self.entry_texto_coment_radiologo.grid(row=10, column=0, pady=4, padx= 15, sticky='nsew')
         
         self.frame_buttons = ctk.CTkFrame(self.frame3,
                                     width=610,
@@ -1052,7 +1038,7 @@ class PacientesModificar():
                                     fg_color='white',
                                     bg_color= 'white'
                                     )
-        self.frame_buttons.grid(row= 11, column=0, sticky='nsew', padx= 15, pady= 8)
+        self.frame_buttons.grid(row= 11, column=0, sticky='nsew', padx= 15, pady= 4)
         
         # Configura las columnas dentro de frame_buttons para que se expandan
         self.frame_buttons.grid_columnconfigure(list(range(3)), weight=1)
@@ -1061,51 +1047,35 @@ class PacientesModificar():
         
         self.btn_nuevo = ctk.CTkButton(self.frame_buttons,
                                 text='Modificar Paciente',
-                                text_color='black',
-                                font=self.fonts['label'],
+                                text_color='White',
+                                font=self.fonts['boton'],
                                 width=20,
                                 height=50,
                                 corner_radius=20,
-                                fg_color='lightblue',
+                                fg_color='#00155c',
                                 bg_color= 'white',
                                 hover_color = 'lightgreen',
                                 anchor='center',
                                 command= self.mostrar
                                 )
         
-        self.btn_nuevo.grid(row= 0, column= 0, padx= 8, pady= 70, sticky='nsew')
-        
-        """self.btn_limpiar = ctk.CTkButton(self.frame_buttons,
-                                text='Limpiar Pantalla',
-                                text_color='black',
-                                font=self.fonts['label'],
-                                width=20,
-                                height=50,
-                                corner_radius=20,
-                                fg_color='lightblue',
-                                bg_color= 'white',
-                                hover_color = 'lightgreen',
-                                anchor='center',
-                                command= self.mostrar
-                                )
-        
-        self.btn_limpiar.grid(row= 0, column= 1, padx= 8, pady= 70, sticky='nsew')"""
+        self.btn_nuevo.grid(row= 0, column= 0, padx= 4, pady= 70, sticky='nsew')
         
         self.btn_atras = ctk.CTkButton(self.frame_buttons,
                                 text='Atrás',
-                                text_color='black',
-                                font=self.fonts['label'],
+                                text_color='white',
+                                font=self.fonts['boton'],
                                 width=20,
                                 height=50,
                                 corner_radius=20,
-                                fg_color='lightblue',
+                                fg_color='#00155c',
                                 bg_color= 'white',
                                 hover_color = 'lightgreen',
                                 anchor='center',
                                 command= lambda: cerrar_ppal(self.frame3.winfo_toplevel())
                                 )
         
-        self.btn_atras.grid(row= 0, column= 2, padx= 8, pady= 70, sticky='nsew')
+        self.btn_atras.grid(row= 0, column= 2, padx= 4, pady= 70, sticky='nsew')
     
     def llenado_pacientes(self):
         
@@ -1202,7 +1172,7 @@ class PacientesModificar():
                     widget.configure(state="disable")
 
             # para los combobox
-            elif isinstance(widget, ctk.CTkComboBox):
+            elif isinstance(widget, ctk.CTkOptionMenu):
 
                 opciones = []
                 
