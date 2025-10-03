@@ -238,7 +238,7 @@ class VentanaDB():
                             height=alto_widget, # El alto del entry
                             fg_color='lightgray', # El color de fondo del entry
                             placeholder_text=placeholder, # El texto de marcador de posición
-                            placeholder_text_color= 'lightblack', # El color del texto de marcador de posición
+                            placeholder_text_color= 'gray', # El color del texto de marcador de posición
                             show = show 
                             )
         

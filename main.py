@@ -5,15 +5,6 @@ import mysql.connector
 # Agrega el directorio raíz del proyecto al PATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Obtener la ruta absoluta del directorio "img"
-#ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__),'img'))
-
-#ruta_ojo_abierto = os.path.join(ruta_base, "ojoabierto.png")
-#ruta_ojo_cerrado = os.path.join(ruta_base, "ojo-cerrado.png")
-
-
-#from PIL import Image # Importa la clase Image de la biblioteca Pillow para manipulación de imágenes
-
 from ventanas.ventana_inicio import VentanaInicioPrograma #esta es la linea que queda
 from ventanas.ventana_db_inicio import VentanaDB
 
@@ -22,12 +13,12 @@ from verificar_datos_db.verificar_datos import cargar_datos_db
 
 def verificar_db():
     
-    # Cargar imágenes para los iconos de visibilidad de contraseña, ajustando su tamaño
-    #ojo_abierto = ctk.CTkImage(light_image=Image.open(ruta_ojo_abierto).resize((50, 50)), size=(50, 50))
-    #ojo_cerrado = ctk.CTkImage(light_image=Image.open(ruta_ojo_cerrado).resize((50, 50)), size=(50, 50))
-    
     # Cargar los datos de conexión desde el archivo JSON
     datos = cargar_datos_db()
+    
+    if datos is None:
+        
+        return False
     
     # try:
     # Conexión con la base de datos

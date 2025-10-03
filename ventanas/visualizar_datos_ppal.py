@@ -1,7 +1,8 @@
 ﻿import sys
 import os
 from datetime import datetime, date
-from tkinter import TclError
+from tkinter import TclError,messagebox
+import pygame
 
 """Añade al path del sistema la ruta del directorio padre del archivo actual.
 Esto permite importar módulos desde la carpeta superior."""
@@ -9,6 +10,7 @@ Esto permite importar módulos desde la carpeta superior."""
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+ruta_base_sound = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sound'))
 
 # Importación de librerías necesarias para la interfaz
 
@@ -36,6 +38,7 @@ from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
 from abrirventanas.abrir import (abrir_ventana_ingreso, 
                                 abrir_ventana_visualizar_datos_ppal_diferidos,
                                 abrir_ventana_visualizar_datos_ppal_realizados,
+                                abrir_ventana_visualizar_datos_ppal_cancelados,
                                 )
 
 # Importar la clase de conexión a la base de datos desde el módulo correspondiente
@@ -99,6 +102,10 @@ class PanelPrincipalVisualizacion():
             'label': ('verdana', 12 ),
             'boton': ('verdana', 14, 'bold'),
         }
+        
+        pygame.mixer.init()
+        
+        self.pacientes_comentados = []
         
         self.entries = {}
         self.textbox = {}
@@ -240,6 +247,7 @@ class PanelPrincipalVisualizacion():
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
             {"label": "Diferidos", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_diferidos, 'image' : None},
             {"label": "Realizados", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_realizados, 'image' : None},
+            {"label": "Cancelados", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_cancelados, 'image' : None},
             {"label": "Ingresar Paciente", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.boton_ingresar_presionado, 'image' : None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
         ]
@@ -1008,6 +1016,8 @@ class PanelPrincipalVisualizacion():
         self.obtener_pacientes_filtrados()
         
         self.visual_principal_datos()
+        
+        self.ventana.after(600000, self.actualizar_pantalla)
 
     def ver_pacientes_diferidos(self):
         
@@ -1068,6 +1078,36 @@ class PanelPrincipalVisualizacion():
         destruir_completo(self.frame.winfo_toplevel())
         
         abrir_ventana_visualizar_datos_ppal_realizados()
+    
+    def ver_pacientes_cancelados(self):
+        
+        if self.db:
+            self.db.cerrar_conexion()
+            PanelPrincipalVisualizacion.conexion_realizada = None
+        cerrar_conexion()
+
+        # Cancelar cualquier after pendiente de este frame
+        try:
+            for after_id in self.frame.tk.eval('after info').split():
+                try:
+                    self.frame.after_cancel(after_id)
+                except:
+                    pass
+        except:
+            pass
+
+        # Destruir todos los widgets hijos del frame principal, incluyendo scrollable frames
+        def destruir_completo(widget):
+            for child in widget.winfo_children():
+                destruir_completo(child)
+            try:
+                widget.destroy()
+            except:
+                pass
+
+        destruir_completo(self.frame.winfo_toplevel())
+        
+        abrir_ventana_visualizar_datos_ppal_cancelados()
     
     # crud
     
@@ -1440,6 +1480,58 @@ class PanelPrincipalVisualizacion():
             
             self.actualizar_pantalla()
 
+    def aviso_tecnologo(self):
+        
+        sql = """SELECT id_registro, estado FROM registrospacientes WHERE  comentar_radiologo = 'Si'"""
+        
+        # Reconectar si es necesario
+        if not self.db.conexion.is_connected():
+            try:
+                self.db.conectar()
+            except Exception as e:
+                print("No se pudo reconectar a la base de datos:", e)
+                self.ventana.after(300000, self.aviso_tecnologo)
+                return
+
+        cursor = self.db.conexion.cursor()
+        try:
+            cursor.execute(sql)
+            resultado = cursor.fetchall()
+        except Exception as e:
+            print("Error al ejecutar SQL:", e)
+            cursor.close()
+            self.ventana.after(300000, self.aviso_tecnologo)
+            return
+        cursor.close()
+        
+        print(f"los comentados son: {resultado}")
+        
+        for paciente in resultado:
+            id_estado = paciente[1]
+            nombre_estado = self.obtener_nombre_estado(id_estado)
+            id_registro = paciente[0]
+            
+            if nombre_estado == 'Comentado' and id_registro not in self.pacientes_comentados:
+            
+                ruta_sonido = os.path.join(ruta_base_sound, "new-notification.mp3")
+                    
+                if os.path.exists(ruta_sonido):
+                
+                    try:
+                
+                        pygame.mixer.music.load(ruta_sonido)
+                        pygame.mixer.music.play()
+                        
+                    except Exception as e:
+                        
+                        print("Error al reproducir sonido:", e)
+                        
+                messagebox.showwarning("Aviso Importante","Tiene(s) paciente(s) comentado(s).")
+                
+                self.pacientes_comentados.append(id_registro)
+                
+        self.ventana.after(300000, self.aviso_tecnologo)
+    
     # limpiar la fecha
     
     def limpiar_fecha(self):

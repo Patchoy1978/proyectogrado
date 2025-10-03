@@ -1,8 +1,7 @@
 ﻿import sys
 import os
 from datetime import datetime, date
-from tkinter import TclError, messagebox
-import pygame
+from tkinter import TclError
 
 """Añade al path del sistema la ruta del directorio padre del archivo actual.
 Esto permite importar módulos desde la carpeta superior."""
@@ -10,7 +9,6 @@ Esto permite importar módulos desde la carpeta superior."""
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
-ruta_base_sound = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sound'))
 
 # Importación de librerías necesarias para la interfaz
 
@@ -29,21 +27,16 @@ from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     cerrar_conexion,
                                                     debes_hacer_primero,
                                                     si_la_db_esta_vacia,
-                                                    paciente_comentado,
-                                                    datos_ingresados
                                                     )
 
 # Importa funciones para abrir una nueva ventana y cerrar la principal
-from abrirventanas.abrir import (abrir_ventana_ingreso, 
-                                abrir_ventana_visualizar_datos_ppal_diferidos,
-                                abrir_ventana_visualizar_datos_ppal_realizados,
-                                )
+#from abrirventanas.abrir import (abrir_ventana_ingreso, )
 
 # Importar la clase de conexión a la base de datos desde el módulo correspondiente
 from conexion_DB.conexionDB import Conexion_DB
 
 # Clase que define el panel principal de visualización
-class PanelPrincipalVisualizacionRadiologo():
+class PanelPrincipalVisualizacionCancelados():
     
     conexion_realizada = False  # variable de clase para controlar si ya se conectó
     db = None
@@ -56,12 +49,12 @@ class PanelPrincipalVisualizacionRadiologo():
         self.ventana = self.frame.winfo_toplevel()
         self.ventana.protocol("WM_DELETE_WINDOW", self.salir)
 
-        if not PanelPrincipalVisualizacionRadiologo.conexion_realizada:
+        if not PanelPrincipalVisualizacionCancelados.conexion_realizada:
             try:
-                PanelPrincipalVisualizacionRadiologo.db = Conexion_DB()
-                PanelPrincipalVisualizacionRadiologo.db.conectar()
+                PanelPrincipalVisualizacionCancelados.db = Conexion_DB()
+                PanelPrincipalVisualizacionCancelados.db.conectar()
                 abrir_ventana_conn_exito()
-                PanelPrincipalVisualizacionRadiologo.conexion_realizada = True
+                PanelPrincipalVisualizacionCancelados.conexion_realizada = True
             except Exception:
 
                 abrir_ventana_conn_fallida()
@@ -70,7 +63,7 @@ class PanelPrincipalVisualizacionRadiologo():
             
             pass
 
-        self.db = PanelPrincipalVisualizacionRadiologo.db
+        self.db = PanelPrincipalVisualizacionCancelados.db
 
         # Configuración de grid para que filas y columnas se expandan
         self.frame_sup.grid_rowconfigure(list(range(4)), weight=1)
@@ -82,23 +75,13 @@ class PanelPrincipalVisualizacionRadiologo():
         self.frame_ppal_visual_datos.grid(row=0, column=0, columnspan = 16, sticky='nsew')
         self.frame_ppal_visual_datos.grid_rowconfigure(list(range(4)), weight=1)  # Permitir que todas las filas se expandan
         self.frame_ppal_visual_datos.grid_columnconfigure(list(range(16)), weight=1)
-        
-        self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((30, 30)), size=(30, 30))
 
-        """PanelPrincipalVisualizacion.refresh_db = ctk.CTkImage(
-            light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((50, 50)),
-            size=(50, 50)
-        )
-
-        self.refresh_db = PanelPrincipalVisualizacion.refresh_db"""
-
-        pygame.mixer.init()
-        
         # Fuentes usadas
         self.fonts = {
             'title': ('verdana', 26, 'bold'),
+            #'title_frame': ('verdana', 24, 'bold'),
             'label_title': ('verdana', 12, 'bold'),
-            'label': ('verdana', 12),
+            'label': ('verdana', 12 ),
             'boton': ('verdana', 14, 'bold'),
         }
         
@@ -111,15 +94,13 @@ class PanelPrincipalVisualizacionRadiologo():
         self.combobox_sede = None
 
         self.cargar_pacientes()
-        
-        self.aviso_radiologo()
-        
+    
     def cargar_pacientes(self):
         
         self.datos_db = []
         #print("Ejecutando cargar_pacientes...")
         
-        consulta_pacientes = "SELECT * FROM registrospacientes ORDER BY hora_citacion"
+        consulta_pacientes = "SELECT * FROM registrospacientescancelados ORDER BY hora_citacion"
         
         self.db.cursor.execute(consulta_pacientes)
         
@@ -135,10 +116,10 @@ class PanelPrincipalVisualizacionRadiologo():
         self.datos_db.extend(nuevos_datos)
         
         #print(self.datos_db)
-
+    
     def visual_principal_titulo(self):
         
-        #self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((50, 50)), size=(50, 50))
+        self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((50, 50)), size=(50, 50))
         
         # Crea el primer frame principal para los títulos y lo hace transparente
         visual_datos_ppal = ctk.CTkFrame(self.frame_sup, fg_color= 'white')
@@ -168,7 +149,7 @@ class PanelPrincipalVisualizacionRadiologo():
         # Lista de campos que forman parte del encabezado visual
         campos = [
             
-            {"label": "Visualización De Pacientes Para Comentar", "valor": None, "ancho": 400, "tipo": "label"},
+            {"label": "Visualizacion De Pacientes Cancelados", "valor": "", "ancho": 400, "tipo": "label"},
             
         ]
         
@@ -179,10 +160,9 @@ class PanelPrincipalVisualizacionRadiologo():
             
             {"label": "Sede", "valor": None, "ancho": 130, "tipo": "combobox", "opciones": self.sedes},
             {"label": "Fecha", "valor": None, "ancho": 100, "tipo": "fecha"},
-            {"label": "Todos", "color": "#00155c", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha, 'image' : None},
+            {"label": "Todos", "color": "#00155c", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
-            {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
-            
+
         ]
         
         # Agrega el título principal al primer frame
@@ -273,21 +253,11 @@ class PanelPrincipalVisualizacionRadiologo():
                     habilitado=habilitar,
                     textvariable=var_entry
                 )
-                
+            
             # Si es un botón  
             if campo['tipo'] == 'boton':
                 
-                self.crear_boton(visual_datos_ppal1, 
-                                self.fonts['boton'], 
-                                campo['label'],
-                                campo['color'], 
-                                0, 
-                                i*2+1, 
-                                campo['alto'], 
-                                campo['ancho'], 
-                                command=campo['command'], 
-                                image=campo['image']
-                                )
+                self.crear_boton(visual_datos_ppal1, self.fonts['boton'], campo['label'], campo['color'], 0, i*2+1, campo['alto'], campo['ancho'], command=campo['command'], image=campo.get('image'))
         
         # Segunda línea divisoria al final del panel
         linea1 = ctk.CTkFrame(self.frame_sup, fg_color="#00155c", height=10, width=0)
@@ -313,6 +283,7 @@ class PanelPrincipalVisualizacionRadiologo():
             columnspan=ancho, # Número de columnas que ocupará el label
             rowspan=alto, # Número de filas que ocupará el label
             padx=5, # Espaciado horizontal entre el label y los bordes adyacentes
+            pady = 5,
             sticky='nsew' # El label se expandirá en todas las direcciones dentro de su celda
             )
         
@@ -322,10 +293,11 @@ class PanelPrincipalVisualizacionRadiologo():
                 ancho_widget=30, alto_widget=26, habilitado=False, textvariable=None):
     
         # Si no se pasa una variable, se crea una nueva
+        
         if textvariable is None:
             textvariable = ctk.StringVar(value=valor_predeterminado)
 
-        # Determinar el color de fondo según el valor
+        # Determinar el color de fondo según el valor 
         if campo_columna == "autorizacion" and valor_predeterminado != "Si":
             color_fondo = "#bd0936"  # rojo
         
@@ -375,8 +347,12 @@ class PanelPrincipalVisualizacionRadiologo():
 
         # Normalizamos el valor (separando por comas y quitando espacios)
         valor_normalizado = [v.strip().title() for v in valor_real.split(",")]
+        
+        if campo_col == "comentarios del radiologo"  and valor_real.strip() != "":
+            
+            color_fondo = "lightgreen"
 
-        if campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
+        elif campo_col == "tipo_aislamiento" and any(v in ["Tbc", "Covid"] for v in valor_normalizado):
             
             color_fondo = "#bd0936" # rojo
         
@@ -399,11 +375,7 @@ class PanelPrincipalVisualizacionRadiologo():
 
         textbox.configure(state='normal') # Se habilita el textbox para poder insertar texto
         textbox.insert('0.0', valor_real) # Inserta el texto predeterminado en la posición inicial (línea 0, carácter 0)
-        
-        # Solo si quieres deshabilitar otros campos:
-        if campo_col != "comentarios del radiologo":
-            textbox.configure(state='disable')
-        
+        textbox.configure(state='disable') # Se desactiva el textbox para que el usuario no lo pueda editar
         
         # Posiciona el textbox dentro del grid del contenedor
         textbox.grid(
@@ -502,7 +474,6 @@ class PanelPrincipalVisualizacionRadiologo():
         if sede_seleccionada == "Elije una opción":
             print("No se ha seleccionado una sede válida.")
             return [], False # No continuar si no hay sede
-        #print("La sede es:", sede_seleccionada)
 
         # Convertir nombre de sede a ID
         id_sede = self.obtener_id_sede(sede_seleccionada)
@@ -511,14 +482,12 @@ class PanelPrincipalVisualizacionRadiologo():
             return [], False
 
         # Filtrar pacientes por sede
-        id_pendiente = self.obtener_id_estado("Pendiente")
-        id_comentado = self.obtener_id_estado("Comentado")
+        id_cancelado = self.obtener_id_estado("Cancelado")
         pacientes_por_sede = [
             paciente for paciente in self.datos_db
             if paciente.get("sede") == id_sede
-            and paciente.get("estado", "") in (id_pendiente, id_comentado)
-            and paciente.get("comentar_radiologo") == "Si"
-        ]            
+            and paciente.get("estado", "") in ((id_cancelado, ))
+        ]
 
         # Filtrar por fecha si está seleccionada
         fecha_str = self.fecha.get().strip()
@@ -551,7 +520,7 @@ class PanelPrincipalVisualizacionRadiologo():
                     if identificacion_texto in str(p.get("identificacion_paciente", ""))
                 ]
 
-            return pacientes_por_sede, True  # Retorna solo sede + identificación
+        return pacientes_por_sede, True  # Retorna solo sede + identificación
 
     def visual_principal_datos(self):
         
@@ -606,10 +575,6 @@ class PanelPrincipalVisualizacionRadiologo():
             # Asegurar que el alto del frame no cambie
             linea1.grid_propagate(False)
             
-            
-
-            #paciente = self.datos_db[0]  # Obtienes el primer paciente para mostrar
-            
             # Configuración de datos
             campos = [
                 {"label": "Identificación\nPaciente", "columna": "identificacion_paciente", "valor": paciente.get("identificacion_paciente", ""), "ancho": 130, "tipo": "entry"},
@@ -638,19 +603,17 @@ class PanelPrincipalVisualizacionRadiologo():
                 {"label": "Sede","columna": "sede", "valor": self.obtener_nombre_sede(paciente.get("sede", "")), "ancho": 100, "tipo": "entry"},
                 {"label": "Causal Retraso","columna": "causal retraso", "valor": self.obtener_nombre_causal_retraso(paciente.get("causal_retraso", "")), "ancho": 300, "tipo": "entry"},
                 {"label": "Aislamiento","columna": "aislamiento", "valor": paciente.get("aislamiento", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Tipo Aislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 280, "tipo": "textbox"},
+                {"label": "Tipo\nAislamiento","columna": "tipo_aislamiento", "valor": paciente.get("tipo_aislamiento", ""), "ancho": 280, "tipo": "textbox"},
                 {"label": "Diagnóstico","columna": "diagnostico", "valor": paciente.get("diagnostico", ""), "ancho": 300, "tipo": "textbox"},
-                {"label": "Estudios Ordenados Al Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
+                {"label": "Estudios Ordenados\nAl Paciente","columna": "estudios ordenados", "valor": paciente.get("estudios_ordenados_paciente", ""), "ancho": 300, "tipo": "textbox"},
             ]
             
             campos2 = [
-                #self.obtener_nombre_usuario(paciente.get("usuario", "")
                 {"label": "Comentarios Tecnólogos","columna": "comentarios tecnologos", "valor": paciente.get("comentarios_tecnologo", ""), "ancho": 300, "tipo": "textbox"},
                 {"label": "Comentar Con\nRadiólogo","columna": "comentar con radiologo", "valor": paciente.get("comentar_radiologo", ""), "ancho": 40, "tipo": "entry"},
-                {"label": "Comentarios Del Radiólogo","columna": "comentarios del radiologo", "valor": paciente.get("comentarios_radiologo", ""), "ancho": 500, "tipo": "textbox"},
+                {"label": "Comentarios Del Radiólogo","columna": "comentarios del radiologo", "valor": paciente.get("comentarios_radiologo", ""), "ancho": 300, "tipo": "textbox"},
                 {"label": "Personal A Cargo","columna": "personal a cargo", "valor": UsuarioActual.nombre, "ancho": 300, "tipo": "entry"},
-                {"label": "Comentar Estudio", "color": "#00155c", "tipo": "boton", "ancho": 70, "alto":50, "command": lambda p=paciente: self.comentar_paciente(p), 'image' : None},
-                
+                {"label": "Atrás", "color": "#00155c", "tipo": "boton", "ancho": 70, "alto":50, "command": self.salir, 'image' : None},
             ]
 
             # Generar etiquetas y entradas dinámicamente en fila 0 y 1
@@ -682,10 +645,6 @@ class PanelPrincipalVisualizacionRadiologo():
                     textbox = self.crear_textbox(datos_paciente_visual_ppal1, self.fonts['label'],campo1["columna"], 1, i, ancho_widget=campo1["ancho"], valor_db=campo1["valor"])
                     self.textbox[campo1["columna"]] = textbox
                     
-                    # Habilitar solo si es "comentarios del radiologo" y hay pacientes filtrados
-                    if campo1["columna"] == "comentarios del radiologo":
-                        textbox.configure(state='normal')
-                    
             # Generar etiquetas y entradas dinámicamente en fila 4 y 5
             for i, campo2 in enumerate(campos2):
                 
@@ -716,7 +675,7 @@ class PanelPrincipalVisualizacionRadiologo():
                         command=campo2['command'],
                         image= campo2['image']
                     )
-    
+        
     # obtener datos de la db
     
     def obtener_nombre_modalidad(self, id_modalidad):
@@ -886,176 +845,7 @@ class PanelPrincipalVisualizacionRadiologo():
         
         # Retornar el ID si lo encuentra, de lo contrario None
         return resultado[0] if resultado else None
-    
-    # para el crud
-    
-    def comentar_paciente(self, paciente):
-        
-        # variables para obtener los valores de cada widget
-        
-        identificacion = self.entries['identificacion_paciente'].get()
-        nombre = self.entries['nombre_paciente'].get()
-        edad = self.entries['edad'].get()
-        # Convertir nombre de rango de edad a id
-        seleccion_rango = self.entries['rango_edad'].get()  # nombre
-        id_rango = self.obtener_id_rangoedad(seleccion_rango)
-        hc = self.entries['hc'].get()
-        ubicacion = self.entries['ubicacion'].get()
-        seleccion_sede = self.entries['sede'].get()
-        id_sede = self.obtener_id_sede(seleccion_sede)
-        alergia = self.entries['alergia'].get()
-        seleccion_alergia = self.textbox['tipo_alergia'].get("1.0", "end-1c")
-        aislamiento = self.entries['aislamiento'].get()
-        seleccion_aislamiento = self.textbox['tipo_aislamiento'].get("1.0", "end-1c")
-        #seleccion_estado = self.entries['estado'].get()
-        id_estado = self.obtener_id_estado("Comentado")
-        fecha1 = self.entries['fecha_orden'].get()
-        fecha_orden = datetime.strptime(fecha1, "%Y-%m-%d").date().isoformat()
-        fecha2 = self.entries['fecha_citacion'].get()
-        fecha_cita = datetime.strptime(fecha2, "%Y-%m-%d").date().isoformat()
-        modalidad = self.entries['modalidad'].get()
-        id_modalidad = self.obtener_id_modalidad(modalidad)
-        estud_ord = self.textbox['estudios ordenados'].get("1.0", "end-1c")
-        diagnostico = self.textbox['diagnostico'].get("1.0", "end-1c")
-        hora_cita = self.entries['hora citacion estudio'].get()
-        hora_realizacion = self.entries['hora realizacion estudio'].get()
-        causal_retraso = self.entries['causal retraso'].get()
-        id_retraso = self.obtener_id_retraso(causal_retraso)
-        coment_tecnologo = self.textbox['comentarios tecnologos'].get("1.0", "end-1c")
-        comentar_radiologo = self.entries['comentar con radiologo'].get()
-        coment_radiologo = self.textbox['comentarios del radiologo'].get("1.0", "end-1c")
-        ayuno = self.entries['ayuno'].get()
-        autorizacion = self.entries['autorizacion'].get()
-        anestesia = self.entries['anestesia'].get()
-        diferido = self.entries['diferido'].get()
-        
-        respuesta = paciente_comentado()
-        
-        if respuesta == "No":
-        
-            return
-        
-        else:
-            
-            sql = "UPDATE registrospacientes SET estado = %s, comentarios_radiologo = %s, usuario = %s WHERE identificacion_paciente = %s"
-            
-            self.db.cursor.execute(sql, (id_estado, coment_radiologo, UsuarioActual.id_usuario, paciente["identificacion_paciente"]))
-            
-            valores1 = (nombre, identificacion, edad, 
-                    id_rango, fecha_orden, fecha_cita, 
-                    hc, ubicacion, id_modalidad, 
-                    estud_ord, diagnostico, ayuno,
-                    diferido, alergia, seleccion_alergia,
-                    aislamiento, seleccion_aislamiento,
-                    autorizacion, anestesia, id_estado,
-                    id_sede, hora_cita,
-                    hora_realizacion, id_retraso,
-                    coment_tecnologo, comentar_radiologo,
-                    coment_radiologo, UsuarioActual.id_usuario
-                    )
-            
-            sql1 = """INSERT INTO registrospacientesmodificados
-                (
-                nombre_paciente, identificacion_paciente, edad,
-                rango_edad, fecha_orden, fecha_citacion, hc, 
-                ubicacion, modalidad, estudios_ordenados_paciente,
-                diagnostico, ayuno, diferido, alergia, tipo_alergia,
-                aislamiento, tipo_aislamiento, autorizacion,
-                anestesia, estado, sede, hora_citacion,
-                hora_realizacion, causal_retraso, comentarios_tecnologo,
-                comentar_radiologo, comentarios_radiologo, usuario
-                )
-                VALUES (
-                    %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-                    
-            self.db.cursor.execute(sql1, valores1)
-            
-            datos_ingresados()
-            
-            self.db.conexion.commit()
-    
-    def actualizar_pantalla(self):
-        
-        if self.db:
-            self.db.cerrar_conexion()
-            PanelPrincipalVisualizacionRadiologo.conexion_realizada = None
-        cerrar_conexion()
-        
-        if not PanelPrincipalVisualizacionRadiologo.conexion_realizada:
-            try:
-                PanelPrincipalVisualizacionRadiologo.db = Conexion_DB()
-                PanelPrincipalVisualizacionRadiologo.db.conectar()
-                abrir_ventana_conn_exito()
-                PanelPrincipalVisualizacionRadiologo.conexion_realizada = True
-            except Exception:
 
-                abrir_ventana_conn_fallida()
-                
-        else:
-            
-            pass
-
-        self.db = PanelPrincipalVisualizacionRadiologo.db
-        
-        self.cargar_pacientes()
-        
-        self.obtener_pacientes_filtrados()
-        
-        self.visual_principal_datos()
-        
-        self.aviso_radiologo()
-        
-        self.ventana.after(600000, self.actualizar_pantalla)
-
-    def aviso_radiologo(self):
-        
-        sql = """SELECT * FROM registrospacientes WHERE comentar_radiologo = 'Si'"""
-    
-        # Reconectar si es necesario
-        if not self.db.conexion.is_connected():
-            try:
-                self.db.conectar()
-            except Exception as e:
-                print("No se pudo reconectar a la base de datos:", e)
-                self.ventana.after(600000, self.aviso_radiologo)
-                return
-
-        cursor = self.db.conexion.cursor()
-        try:
-            cursor.execute(sql)
-            resultado = cursor.fetchall()
-        except Exception as e:
-            print("Error al ejecutar SQL:", e)
-            cursor.close()
-            self.ventana.after(600000, self.aviso_radiologo)
-            return
-        cursor.close()
-        
-        pacientes_comentar = []
-
-        for paciente in resultado:
-            id_estado = paciente[20]  # o el índice correcto si es lista
-            nombre_estado = self.obtener_nombre_estado(id_estado)
-            
-            if nombre_estado == 'Pendiente':
-                pacientes_comentar.append(paciente)
-                
-        cantidad = len(pacientes_comentar)
-
-        if cantidad > 0:
-            ruta_sonido = os.path.join(ruta_base_sound, "new-notification.mp3")
-            
-            if os.path.exists(ruta_sonido):
-                try:
-                    pygame.mixer.music.load(ruta_sonido)
-                    pygame.mixer.music.play()
-                except Exception as e:
-                    print("Error al reproducir sonido:", e)
-            
-            messagebox.showwarning("Aviso Importante",f"Tienes {cantidad} paciente(s) pendiente(s) de comentario.")
-        
-        self.ventana.after(600000, self.aviso_radiologo)
-    
     # limpiar la fecha
     
     def limpiar_fecha(self):
@@ -1067,12 +857,15 @@ class PanelPrincipalVisualizacionRadiologo():
         self.visual_principal_datos()
             
     def salir(self):
+        
+        from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal
+        
         """Método personalizado para el botón Salir.
-        """
+        Cierra la ventana de aislamientos y restablece la ventana de administración."""
         
         if self.db:
             self.db.cerrar_conexion()
-            PanelPrincipalVisualizacionRadiologo.conexion_realizada = None
+            PanelPrincipalVisualizacionCancelados.conexion_realizada = None
         cerrar_conexion()
 
         # Cancelar cualquier after pendiente de este frame
@@ -1095,3 +888,5 @@ class PanelPrincipalVisualizacionRadiologo():
                 pass
 
         destruir_completo(self.frame.winfo_toplevel())
+        
+        abrir_ventana_visualizar_datos_ppal()

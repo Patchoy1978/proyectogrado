@@ -1,5 +1,6 @@
 ﻿import sys # Importa el módulo sys, que proporciona acceso a funciones y variables del sistema.
 import os # Importa el módulo os, que permite interactuar con el sistema operativo, como manejar rutas de archivos.
+import mysql.connector
 
 # Agrega el directorio padre al sys.path para poder importar módulos desde otros directorios del proyecto.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
@@ -9,7 +10,11 @@ ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img')
 
 from PIL import Image # Importa la clase Image de la biblioteca Pillow para manipulación de imágenes
 
+from conexion_DB.conexionDB import Conexion_DB # Importa la clase Conexion_DB desde el módulo conexion_DB.conexionDB para la conexión con la base de datos
+
 import customtkinter as ctk # Importa la biblioteca CustomTkinter y la asigna al alias 'ctk' para facilitar su uso.
+
+from verificar_datos_db.verificar_datos import cargar_datos_db
 
 # Importa funciones específicas del módulo 'abrir' dentro del paquete 'abrirventanas', 
 # cada una de estas funciones abre una ventana diferente en la aplicación.
@@ -27,7 +32,7 @@ from abrirventanas.abrir import (abrir_ventana_alergias,
                                 abrir_ventana_pacientes_admon
                                 )
 
-from abrirventanasemergentes.abrir_ventanas import addmon_debes_hacer_primero
+from abrirventanasemergentes.abrir_ventanas import addmon_debes_hacer_primero, abrir_ventana_conn_exito, abrir_ventana_conn_fallida, cerrar_conexion
 
 class VentanaAdmon():
     
@@ -58,6 +63,17 @@ class VentanaAdmon():
         self.root.iconbitmap('img/documento.ico') # Establece el icono de la ventana.
         
         self.root.resizable(False,False) # Evita que la ventana se redimensione.
+        
+        try:
+            
+            # Intentar establecer la conexión con la base de datos
+            self.db = Conexion_DB()
+            self.db.conectar()
+            abrir_ventana_conn_exito() # Abrir ventana indicando que la conexión fue exitosa
+        
+        except Exception:
+            
+            abrir_ventana_conn_fallida() # Si ocurre un error, abrir ventana indicando que la conexión falló
         
         # Define una estructura para almacenar fuentes tipográficas utilizadas en la interfaz.
         self.fonts = {
@@ -94,12 +110,15 @@ class VentanaAdmon():
         # Configura la grilla del segundo frame para distribuir elementos en 6 filas.
         for i in range(6):
             
-            self.frame1.grid_rowconfigure(i, weight=1) 
+            self.frame1.grid_rowconfigure(i, weight=1)
         
         # Llama al método widgets_admon() para agregar los widgets a la interfaz.
         self.widgets_admon()
         
         addmon_debes_hacer_primero()
+        
+        # Ajustar estados según si hay administrador
+        self.ajustar_estado_botones()
         
     def obtener_ventana(self):
         
@@ -116,76 +135,70 @@ class VentanaAdmon():
         
         """
         Configura y crea los widgets de la ventana de administración.
-        
-        Se definen listas de diccionarios con las etiquetas y características de los botones.
-        Los botones permiten abrir diferentes ventanas relacionadas con la administración
-        de la base de datos, y la ventana principal se minimiza al abrir una nueva.
+        Los botones se habilitan dinámicamente según si hay un administrador registrado.
         """
-        
-        # Define la sección de encabezado con un solo label
-        campos = [
-            
-            {'label': 'Administrar\nBases De Datos'}
-        ]
-        
-        # Lista de botones para la primera columna de la interfaz
+
+        # Encabezado
+        campos = [{'label': 'Administrar\nBases De Datos'}]
+
+        # Botones primera columna
         campos1 = [
-            
-            {'label': 'Pacientes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_pacientes_admon(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Usuarios', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_usuarios_admon(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Alergias', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_rango_edad(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Lista De Estudios', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_estudio_ordenado(self.root), self.root.iconify()), 'state' : 'disabled'},
+            {'label': 'Pacientes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_pacientes_admon(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Usuarios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_usuarios_admon(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Alergias', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_rango_edad(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Lista De Estudios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estudio_ordenado(self.root), self.root.iconify()), 'state': 'disabled'},
         ]
-        
-        # Lista de botones para la segunda columna de la interfaz
+
+        # Botones segunda columna
         campos2 = [
-            
-            {'label': 'Modalidades', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_modalidad(self.root), self.root.iconify()), 'state' : 'normal'},
-            {'label': 'Estados', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Sedes', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Retrasos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify()), 'state' : 'disabled'},
-            {'label': 'Cargos', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': lambda: (abrir_ventana_cargos(self.root), self.root.iconify()), 'state' : 'normal'},
-            {'label': 'Salir', 'tipo': 'boton', 'ancho' : 50, 'alto': 40, 'command': self.cerrar, 'state' : 'normal'},
+            {'label': 'Modalidades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_modalidad(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Estados', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Sedes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Retrasos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Cargos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_cargos(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Salir', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': self.cerrar, 'state': 'disabled'},
         ]
         
-        # Agrega el título de la ventana de administración
+        # Crear label del encabezado
         for i, campo in enumerate(campos):
-        
-            self.crear_label(self.frame, campo['label'], self.fonts['title'], fila = 0, columna = 0)
-        
-        # Crea los botones de la primera columna
-        for i, campo1 in enumerate(campos1):
+            self.crear_label(self.frame, campo['label'], self.fonts['title'], fila=0, columna=0)
+
+        # Crear botones primera columna
+        for i, campo in enumerate(campos1):
+            boton = self.crear_boton(
+                self.frame1,
+                text=campo['label'],
+                font=self.fonts['boton'],
+                fila=i,
+                columna=0,
+                command=campo['command'],
+                widget_alto=campo['alto'],
+                widget_ancho=campo['ancho'],
+                state=campo['state']
+            )
             
-            boton = self.crear_boton(self.frame1,
-                            text= campo1['label'], 
-                            font= self.fonts['boton'], 
-                            fila = i, 
-                            columna = 0, 
-                            command= campo1['command'], 
-                            widget_alto = campo1['alto'],
-                            widget_ancho = campo1['ancho'],
-                            state= campo1['state']
-                            )
+            self.botones.append(boton)
+
+        # Crear botones segunda columna
+        for i, campo in enumerate(campos2):
+            boton = self.crear_boton(
+                self.frame1,
+                text=campo['label'],
+                font=self.fonts['boton'],
+                fila=i,
+                columna=1,
+                command=campo['command'],
+                widget_alto=campo['alto'],
+                widget_ancho=campo['ancho'],
+                state=campo['state']
+            )
             
             self.botones.append(boton)
         
-        # Crea los botones de la segunda columna
-        for i, campo2 in enumerate(campos2):
-            
-            boton = self.crear_boton(self.frame1,
-                            text= campo2['label'], 
-                            font= self.fonts['boton'], 
-                            fila = i, 
-                            columna = 1, 
-                            command= campo2['command'], 
-                            widget_alto = campo2['alto'],
-                            widget_ancho = campo2['ancho'],
-                            state= campo2['state']
-                            )
-            
-            self.botones.append(boton)
+        # ajustar el estado real de los botones
+        self.ajustar_estado_botones()
         
     def crear_label(self, parent, texto, fuente, fila, columna, ancho = 1, alto = 1):
         
@@ -255,13 +268,81 @@ class VentanaAdmon():
         
         return boton # Devuelve el objeto del botón para su posible reutilización
 
-    def set_botones_estado(self, estado='normal'):
+    def admin_registrado(self):
+        """
+        Devuelve True si hay al menos un usuario con cargo 'Administrador' en la DB, False si no.
+        """
+        datos = cargar_datos_db()
+        if datos is None:
+            print("⚠️ No hay datos de conexión a la base de datos.")
+            return False
+
+        try:
+            #conexion = mysql.connector.connect(
+            host=datos['host'],
+            user=datos['user'],
+            password=datos['password'],
+            database='entregaturno',
+            port=datos['port']
+            
+            
+            id_cargo = self.obtener_id_cargo('Administrador')
+            
+            self.db.cursor.execute("SELECT COUNT(*) FROM usuarios WHERE cargo = %s;", (id_cargo,))
+            cantidad = self.db.cursor.fetchone()[0]
+            
+            return cantidad > 0
+
+        except mysql.connector.Error as e:
+            print(f"❌ Error al verificar administrador: {e}")
+            return False
+
+    def ajustar_estado_botones(self):
+        """
+        Habilita o deshabilita los botones según si hay administrador registrado.
+        """
+                
+        tiene_admin = self.admin_registrado()
+
         for boton in self.botones:
-            boton.configure(state=estado)
+            texto = boton.cget("text")
+            if tiene_admin:
+                boton.configure(state="normal")
+            else:
+                if texto in ["Modalidades", "Cargos", "Salir"]:
+                    boton.configure(state="normal")
+                else:
+                    boton.configure(state="disabled")
+
+        self.root.update_idletasks()
+        
+    def obtener_id_cargo(self, nombre_cargo):
+        
+        # solo tomamos el nombre
+        nombre_cargo = nombre_cargo.split(' (')[0]
+        
+        sql = "SELECT * FROM cargos WHERE nombre_cargo = %s"
+        
+        self.db.cursor.execute(sql, (nombre_cargo,))
+        
+        resultado = self.db.cursor.fetchone()
+        
+        # Retornar el ID si lo encuentra, de lo contrario None
+        return resultado[0] if resultado else None
 
     def cerrar(self):
         
-        self.root.destroy() #cierra la ventana actual
+        """Método personalizado para el botón Salir.
+        """
+        # Si existe una conexión a la base de datos, se cierra
+        if self.db:
+            
+            self.db.cerrar_conexion()  # Llamamos al método de la clase 'Conexion_DB' para cerrar la conexión con la base de datos
+            
+            cerrar_conexion()
+        
+        self.root.destroy() # Cierra la ventana actual de la aplicación
+            
         abrir_ventana_inicio()
 
 #a=VentanaAdmon()
