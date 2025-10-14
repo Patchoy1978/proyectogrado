@@ -1,4 +1,4 @@
-﻿# Importa la biblioteca CustomTkinter y la asigna al alias 'ctk' para facilitar su uso.
+# Importa la biblioteca CustomTkinter y la asigna al alias 'ctk' para facilitar su uso.
 import customtkinter as ctk 
 
 class VentanaPrincipal():

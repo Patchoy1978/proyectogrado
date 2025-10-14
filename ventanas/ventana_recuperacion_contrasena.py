@@ -1,4 +1,4 @@
-﻿# Importar módulos estándar del sistema
+# Importar módulos estándar del sistema
 import sys
 import os
 import customtkinter as ctk # Importar CustomTkinter para la interfaz gráfica

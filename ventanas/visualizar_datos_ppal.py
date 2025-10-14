@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 from datetime import datetime, date
 from tkinter import TclError,messagebox

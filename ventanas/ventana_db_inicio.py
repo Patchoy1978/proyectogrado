@@ -1,4 +1,4 @@
-﻿# Importación de los módulos necesarios del sistema
+# Importación de los módulos necesarios del sistema
 import sys
 import os
 
@@ -274,6 +274,7 @@ class VentanaDB():
     def cerrar(self):
         
         self.root.destroy() #cierra la ventana actual
+        
         sys.exit()  # Cierra completamente el programa
     
     # Método que valida si todos los campos requeridos para la conexión a la base de datos han sido ingresados            

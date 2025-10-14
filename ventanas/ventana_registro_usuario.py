@@ -1,4 +1,4 @@
-﻿import sys  # Módulo para interactuar con el sistema y modificar rutas de búsqueda de módulos
+import sys  # Módulo para interactuar con el sistema y modificar rutas de búsqueda de módulos
 import os  # Módulo para interactuar con el sistema operativo (rutas, directorios, archivos)
 import re# Importar módulo de expresiones regulares
 import bcrypt # Importar bcrypt para el manejo de contraseñas cifradas

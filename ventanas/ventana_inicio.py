@@ -1,4 +1,4 @@
-﻿import sys # Importa el módulo sys para interactuar con el sistema y modificar rutas de importación
+import sys # Importa el módulo sys para interactuar con el sistema y modificar rutas de importación
 import os # Importa el módulo os para manipular rutas y directorios del sistema operativo
 import customtkinter as ctk # Importa la biblioteca CustomTkinter para la creación de interfaces gráficas
 import bcrypt # Importa la biblioteca bcrypt para el manejo y cifrado de contraseñas seguras
@@ -32,7 +32,8 @@ from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     abrir_ventana_conn_fallida, 
                                                     email_incorrecto, 
                                                     contrasena_incorrecta, 
-                                                    campos_requeridos
+                                                    campos_requeridos,
+                                                    cerrar_conexion
                                                     )
 
 class VentanaInicioPrograma():
@@ -352,6 +353,8 @@ class VentanaInicioPrograma():
         if self.db:
             
             self.db.cerrar_conexion()  # Llamamos al método de la clase 'Conexion_DB' para cerrar la conexión con la base de datos
+            
+            cerrar_conexion()
         
         self.root.destroy() # Cierra la ventana actual de la aplicación
         

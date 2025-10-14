@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 import mysql.connector
 #import customtkinter as ctk # Importa la biblioteca CustomTkinter y la asigna al alias 'ctk' para facilitar su uso.
@@ -10,6 +10,8 @@ from ventanas.ventana_db_inicio import VentanaDB
 
 # Importa la función para leer el archivo JSON
 from verificar_datos_db.verificar_datos import cargar_datos_db
+
+from abrirventanasemergentes.abrir_ventanas import mostrar_inicio
 
 def verificar_db():
     
@@ -53,6 +55,7 @@ if __name__ == "__main__":
 
     else:
         
+        mostrar_inicio()
         ventana_inicio_db = VentanaDB()
         ventana_mostrar = ventana_inicio_db.obtener_ventana()
     

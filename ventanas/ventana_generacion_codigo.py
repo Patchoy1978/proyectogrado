@@ -1,4 +1,4 @@
-﻿# Importación de módulos estándar y externos para el manejo de sistema de archivos y funcionalidades específicas
+# Importación de módulos estándar y externos para el manejo de sistema de archivos y funcionalidades específicas
 import sys # Permite interactuar con el sistema de Python y la configuración del entorno
 import os # Permite interactuar con el sistema de archivos de Python y realizar operaciones de sistema de Python
 import customtkinter as ctk # Importa el módulo de interfaz de usuario personalizado

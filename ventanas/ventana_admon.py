@@ -1,4 +1,4 @@
-﻿import sys # Importa el módulo sys, que proporciona acceso a funciones y variables del sistema.
+import sys # Importa el módulo sys, que proporciona acceso a funciones y variables del sistema.
 import os # Importa el módulo os, que permite interactuar con el sistema operativo, como manejar rutas de archivos.
 import mysql.connector
 
@@ -32,7 +32,7 @@ from abrirventanas.abrir import (abrir_ventana_alergias,
                                 abrir_ventana_pacientes_admon
                                 )
 
-from abrirventanasemergentes.abrir_ventanas import addmon_debes_hacer_primero, abrir_ventana_conn_exito, abrir_ventana_conn_fallida, cerrar_conexion
+from abrirventanasemergentes.abrir_ventanas import admon_debes_hacer_primero, abrir_ventana_conn_exito, abrir_ventana_conn_fallida, cerrar_conexion
 
 class VentanaAdmon():
     
@@ -114,11 +114,6 @@ class VentanaAdmon():
         
         # Llama al método widgets_admon() para agregar los widgets a la interfaz.
         self.widgets_admon()
-        
-        addmon_debes_hacer_primero()
-        
-        # Ajustar estados según si hay administrador
-        self.ajustar_estado_botones()
         
     def obtener_ventana(self):
         
@@ -310,9 +305,16 @@ class VentanaAdmon():
                 boton.configure(state="normal")
             else:
                 if texto in ["Modalidades", "Cargos", "Salir"]:
+                    
                     boton.configure(state="normal")
+                    
                 else:
+                    
                     boton.configure(state="disabled")
+
+        # Solo mostrar ventana si NO hay administrador
+        if not tiene_admin:
+            admon_debes_hacer_primero()
 
         self.root.update_idletasks()
         

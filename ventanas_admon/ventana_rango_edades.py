@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 import customtkinter as ctk

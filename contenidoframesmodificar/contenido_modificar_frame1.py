@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 # Agrega el directorio raíz del proyecto al PATH

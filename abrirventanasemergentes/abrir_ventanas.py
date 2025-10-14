@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -18,6 +18,10 @@ def abrir_ventana_conn_fallida():
 def archivo_creado():
 
     messagebox.showinfo("Creado", "Archivo creado con éxito")
+    
+def mostrar_inicio():
+
+    messagebox.showinfo("Bienvenido", "Como administrador que eres\nlo primero que debes hacer es\nconfigurar los datos necesarios para\nconectarse a la Base de Datos")
     
 def archivo_fallido():
 
@@ -119,9 +123,9 @@ def debes_hacer_primero():
     
     messagebox.showinfo("Primer Paso","Si no hay pacientes para visualizar\n\nDebes Ingresar Pacientes y Despues\n\nDebes seleccionar una sede\n\npara visualizar los pacientes,\n\nSi quieres observar por un día en especifico\n\ntambién selecciona una fecha.")
     
-def addmon_debes_hacer_primero():
+def admon_debes_hacer_primero():
     
-    messagebox.showinfo("Primer Paso","Debes Ingresar Una Modalidad\n\nDebes Ingresar Una Cargo,\n\nDebes Salir De Esta Ventana\n\nDebes Registrarte Para Poder Ingresar\n\nComo el Administrador.")
+    messagebox.showinfo("Primer Paso","Debes Ingresar Una Modalidad\n\nDebes Ingresar Un Cargo,\n\nDebes Salir De Esta Ventana\n\nDebes Registrarte Para Poder Ingresar\n\nComo el Administrador.")
     
 def modificacion_realizada():
     
