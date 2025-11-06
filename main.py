@@ -1,34 +1,54 @@
-﻿import sys
+import sys
 import os
-
+import mysql.connector
+#import customtkinter as ctk # Importa la biblioteca CustomTkinter y la asigna al alias 'ctk' para facilitar su uso.
 # Agrega el directorio raíz del proyecto al PATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# from ventanas.ventanasprograma import VentanaPrincipal
 from ventanas.ventana_inicio import VentanaInicioPrograma #esta es la linea que queda
-# from ventanas.ventana_registro_usuario import VentanaRegistroUsuario
+from ventanas.ventana_db_inicio import VentanaDB
 
-# from ventanas.ventana_recuperacion_contrasena import RecuperacionContrasena
+# Importa la función para leer el archivo JSON
+from verificar_datos_db.verificar_datos import cargar_datos_db
 
+from abrirventanasemergentes.abrir_ventanas import mostrar_inicio
+
+def verificar_db():
+    
+    # Cargar los datos de conexión desde el archivo JSON
+    datos = cargar_datos_db()
+    
+    if datos is None:
+        
+        return False
+    
+    # Conexión con la base de datos
+    conexion = mysql.connector.connect(
+        host=datos['host'],
+        user=datos['user'],
+        password=datos['password'],
+        port = datos['port']
+    )
+    cursor = conexion.cursor()
+    cursor.execute("SHOW DATABASES LIKE 'entregaturno';")
+    db_existe = cursor.fetchone() is not None
+    conexion.close()
+
+    return db_existe
 
 if __name__ == "__main__":
     
-    # ventana_programa = VentanaPrincipal()
-    # ventana = ventana_programa.obtener_ventana()
-# este es el codigo 
-    ventana_inicio = VentanaInicioPrograma()
-    ventana_mostrar = ventana_inicio.obtener_ventana()
-    
-    # ventana_mostrar.deiconify()  # Asegura que la ventana sea visible
-    # ventana_mostrar.lift()  # Trae la ventana al frente
-    
-    # ventana_registro_usuario = VentanaRegistroUsuario()
-    # ventana_mostrar = ventana_registro_usuario.obtener_ventana()
-    
-    # ventana_recuperacion = RecuperacionContrasena()
-    
-    # ventana_mostrar = ventana_recuperacion.obtener_ventana()
-    
-    
+    db_exists = verificar_db()
 
+    if db_exists:  # Si tanto la DB como el JSON existen
+        
+        ventana_inicio = VentanaInicioPrograma()
+        ventana_mostrar = ventana_inicio.obtener_ventana()
+
+    else:
+        
+        mostrar_inicio()
+        ventana_inicio_db = VentanaDB()
+        ventana_mostrar = ventana_inicio_db.obtener_ventana()
+    
     ventana_mostrar.mainloop()

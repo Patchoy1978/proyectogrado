@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
@@ -30,7 +30,7 @@ class ContenidoModificarFrame2 ():
 
         }
         
-    def contenidosframe2modificar (self):
+    def contenidosframe2 (self):
         
         titulo = tk.Label(self.frame, text='Datos Del Estudio', font= self.fonts['title_frame'], bg='white')
         titulo.grid(row=0, column=0, columnspan=2, sticky='nsew')

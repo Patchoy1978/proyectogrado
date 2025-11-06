@@ -1,17 +1,10 @@
-﻿import sys
+import sys
 import os
 
 # Agrega el directorio raíz del proyecto al PATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
                 
-import tkinter as tk
-# from ventanas.ventanasprograma import VentanaPrincipal
-# from contenidoframes.contenido_frame1 import ContenidoFrame1
-# from contenidoframes.contenido_frame2 import ContenidoFrame2
-# from contenidoframes.contenido_frame3 import ContenidoFrame3
-# from contenidoframesmodificar.contenido_frame1_modificar import ContenidoFrame1modificar
-# from contenidoframesmodificar.contenido_frame2_modificar import ContenidoFrame2modificar
-# from contenidoframesmodificar.contenido_frame3_modificar import ContenidoFrame3modificar
+import customtkinter as ctk
 
 class FrameBase():
     
@@ -27,20 +20,20 @@ class FrameBase():
         self.ventana.grid_columnconfigure(2, weight=1)  # Frame 3
 
         # Frame superior
-        self.frame_sup = tk.Frame(self.ventana, bg="white", height=alto_pantalla_sup, borderwidth=1)
+        self.frame_sup = ctk.CTkFrame(self.ventana, bg_color="white", fg_color='white', height=alto_pantalla_sup)
         self.frame_sup.grid(row=0, column=0, columnspan=3, sticky="nsew")
         
 
         # Frame 1
-        self.frame1 = tk.Frame(self.ventana, bg="white", borderwidth=1)
+        self.frame1 = ctk.CTkFrame(self.ventana, bg_color="white", fg_color='white')
         self.frame1.grid(row=1, column=0, sticky="nsew")
 
         # Frame 2
-        self.frame2 = tk.Frame(self.ventana, bg="white", borderwidth=1)
+        self.frame2 = ctk.CTkFrame(self.ventana, bg_color="white", fg_color='white')
         self.frame2.grid(row=1, column=1, sticky="nsew")
 
         # Frame 3
-        self.frame3 = tk.Frame(self.ventana, bg="white", borderwidth=1)
+        self.frame3 = ctk.CTkFrame(self.ventana, bg_color="white", fg_color='white')
         self.frame3.grid(row=1, column=2, sticky="nsew")
         
         self.frames = {
