@@ -175,7 +175,7 @@ class PanelPrincipalVisualizacionDiferidos():
             # Si es un combobox (sede)
             if campo["label"] == "Sede":
                 
-                self.sede_var = ctk.StringVar(value=None)
+                self.sede_var = ctk.StringVar(value=0)
                 self.crear_label(visual_datos_ppal1, campo["label"], self.fonts['label_title'], 0, i*2)
                 
                 # Función para actualizar la variable cuando se seleccione un valor

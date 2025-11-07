@@ -43,14 +43,9 @@ class PanelPrincipalVisualizacionCancelados():
         self.frame = frame  # Contenedor principal
         self.parent_window = parent_window
 
-        #self.ventana = self.frame.winfo_toplevel()
-        #self.ventana = self.frame.winfo_toplevel()#ctk.CTkToplevel()
-        # Usar parent_window si se pasa, si no, tomar el toplevel del frame
-        if parent_window is not None:
-            self.ventana = parent_window
-            self.ventana.grab_set()  # Hace la ventana modal
-        else:
-            self.ventana = self.frame.winfo_toplevel()
+        self.parent_window = parent_window  # ← esta es la ventana principal real
+        self.ventana = self.frame.winfo_toplevel()
+        
         self.ventana.protocol("WM_DELETE_WINDOW", self.salir)
 
         if not PanelPrincipalVisualizacionCancelados.conexion_realizada:
@@ -881,10 +876,10 @@ class PanelPrincipalVisualizacionCancelados():
             
     def salir(self):
         
-        from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal
+        """from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal
         
-        """Método personalizado para el botón Salir.
-        Cierra la ventana de aislamientos y restablece la ventana de administración."""
+        Método personalizado para el botón Salir.
+        Cierra la ventana de aislamientos y restablece la ventana de administración
         
         if self.db:
             self.db.cerrar_conexion()
@@ -912,5 +907,39 @@ class PanelPrincipalVisualizacionCancelados():
 
         destruir_completo(self.frame.winfo_toplevel())
         
-        abrir_ventana_visualizar_datos_ppal()
+        abrir_ventana_visualizar_datos_ppal()"""
+        
+        if self.db:
+            self.db.cerrar_conexion()
+            PanelPrincipalVisualizacionCancelados.conexion_realizada = None
+        cerrar_conexion()
+
+        import tkinter as tk
+
+        # 2️⃣ Cerrar ventana de diferidos
+        try:
+            if isinstance(self.ventana, tk.Toplevel):
+                self.ventana.grab_release()
+                self.ventana.destroy()
+                print("✅ Ventana de diferidos cerrada correctamente.")
+        except Exception as e:
+            print(f"⚠️ No se pudo destruir la ventana Toplevel: {e}")
+
+        # 3️⃣ Restaurar ventana principal real (parent_window)
+        if self.parent_window and self.parent_window.winfo_exists():
+            def restaurar_principal():
+                try:
+                    self.parent_window.deiconify()
+                    self.parent_window.lift()
+                    self.parent_window.focus_force()
+                    self.parent_window.state("normal")
+                    self.parent_window.update()
+                    self.parent_window.state("zoomed")
+                    print("✅ Ventana principal restaurada correctamente.")
+                except Exception as e:
+                    print(f"⚠️ No se pudo restaurar la ventana principal: {e}")
+
+            self.parent_window.after(400, restaurar_principal)
+        else:
+            print("⚠️ No se encontró ventana principal para restaurar.")
 

@@ -1000,7 +1000,7 @@ class PanelPrincipalVisualizacion():
     
     def ver_pacientes_cancelados(self):
         
-        if self.db:
+        """if self.db:
             self.db.cerrar_conexion()
             PanelPrincipalVisualizacion.conexion_realizada = None
         cerrar_conexion()
@@ -1011,7 +1011,24 @@ class PanelPrincipalVisualizacion():
             self.parent_window.deiconify()
             self.parent_window.lift()
         
-        abrir_ventana_visualizar_datos_ppal_cancelados(parent_window=self.parent_window)
+        abrir_ventana_visualizar_datos_ppal_cancelados(parent_window=self.parent_window)"""
+        
+        if self.db:
+            self.db.cerrar_conexion()
+            PanelPrincipalVisualizacion.conexion_realizada = None
+        cerrar_conexion()
+        
+        try:
+            from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal_cancelados
+
+            # 🔹 Ocultamos la ventana principal (no la minimizamos)
+            self.ventana.withdraw()
+
+            # 🔹 Abrimos la ventana de diferidos, pasándole la principal
+            abrir_ventana_visualizar_datos_ppal_cancelados(parent_window=self.ventana)
+
+        except Exception as e:
+            print(f"Error al abrir la ventana de realizados: {e}")
     
     # crud
     
@@ -1143,7 +1160,7 @@ class PanelPrincipalVisualizacion():
         if not respuesta:  # Si el usuario eligió "No"
             return
         
-        # variables para obtener los valores de cada widget
+        """# variables para obtener los valores de cada widget
         
         identificacion = self.entries['identificacion_paciente'].get()
         nombre = self.entries['nombre_paciente'].get()
@@ -1182,8 +1199,22 @@ class PanelPrincipalVisualizacion():
         # Asignar correctamente "Si" porque el usuario eligió diferir
         diferido = "Si"
         
+        id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
+
+        # --- DEPURACIÓN EXTRA ANTES DE EJECUTAR ---
+        print("=== DEPURACIÓN DE DIFERIR PACIENTE (ANTES DE SQL) ===")
+        print(f"Identificación entry: '{identificacion}'")
+        print(f"Identificación en dict paciente (original): '{id_original_paciente}'")
+        print(f"ID estado (Diferido): {id_estado}")
+        print("=====================================================")
+
+        # Protege: si id_original_paciente está vacío, aborta y registra
+        if not id_original_paciente:
+            print("ERROR: id_original_paciente vacío. Aborto para evitar actualizar registro incorrecto.")
+            return
+        
         valores1 = (nombre, 
-                    identificacion, 
+                    id_original_paciente, 
                     edad, 
                     id_rango, 
                     fecha_orden,
@@ -1216,9 +1247,15 @@ class PanelPrincipalVisualizacion():
         
         sql = "UPDATE registrospacientes SET estado = %s WHERE identificacion_paciente = %s"
         
-        self.db.cursor.execute(sql, (id_estado, paciente["identificacion_paciente"]))
+        print("=== DEPURACIÓN DE DIFERIR PACIENTE ===")
+        print(f"Identificación desde entry: {identificacion}")
+        print(f"Identificación desde diccionario paciente: {paciente['identificacion_paciente']}")
+        print(f"Estado asignado (id_estado): {id_estado}")
+        print("=======================================")
         
-        sql1 = """INSERT INTO registrospacientesdiferidos
+        self.db.cursor.execute(sql, (id_estado, id_original_paciente))
+        
+        sql1 = INSERT INTO registrospacientesdiferidos
             (
             nombre_paciente, 
             identificacion_paciente,
@@ -1250,11 +1287,102 @@ class PanelPrincipalVisualizacion():
             usuario
             )
             VALUES (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) 
                 
         self.db.cursor.execute(sql1, valores1)
         
+        self.db.conexion.commit()"""
+        
+        # Obtener la identificación original desde el diccionario del paciente
+        id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
+
+        # --- Obtener id_registro correspondiente a la identificación del paciente ---
+        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        self.db.cursor.execute(sql_id, (id_original_paciente,))
+        resultado = self.db.cursor.fetchone()
+
+        if resultado:
+            id_registro = resultado[0]
+            print(f"id_registro obtenido: {id_registro}")
+        else:
+            print(f"No se encontró id_registro para identificación {id_original_paciente}.")
+            return
+
+        # --- Obtener dinámicamente el id_estado del estado 'Diferido' ---
+        sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Diferido'"
+        self.db.cursor.execute(sql_estado)
+        resultado_estado = self.db.cursor.fetchone()
+
+        if resultado_estado:
+            id_estado = resultado_estado[0]
+            print(f"id_estado (Diferido) obtenido: {id_estado}")
+        else:
+            print("No se encontró el estado 'Diferido' en la tabla estados.")
+            return
+
+        # --- DEPURACIÓN: Mostrar información clave ---
+        print("=== DEPURACIÓN DE DIFERIR PACIENTE ===")
+        print(f"Identificación desde diccionario paciente: {id_original_paciente}")
+        print(f"id_registro encontrado: {id_registro}")
+        print(f"Estado asignado (id_estado): {id_estado}")
+        print("=======================================")
+
+        # --- Actualizar el estado del registro original utilizando el id_registro ---
+        sql_update = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
+        self.db.cursor.execute(sql_update, (id_estado, id_registro))
+        print(f"UPDATE ejecutado correctamente para id_registro = {id_registro}")
+        print(f"Filas afectadas: {self.db.cursor.rowcount}")
+
+        # --- Insertar el paciente en la tabla de diferidos ---
+        sql_insert = """INSERT INTO registrospacientesdiferidos (
+            nombre_paciente, identificacion_paciente, edad, rango_edad, fecha_orden, fecha_citacion, hc, ubicacion,
+            modalidad, estudios_ordenados_paciente, diagnostico, ayuno, diferido, alergia, tipo_alergia, aislamiento, tipo_aislamiento,
+            autorizacion, anestesia, estado, sede, hora_citacion, hora_realizacion, causal_retraso, comentarios_tecnologo, 
+            comentar_radiologo, comentarios_radiologo, usuario
+        ) VALUES (
+            %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s, 
+            %s, %s, %s, %s, %s, %s, %s
+        )"""
+
+        valores1 = (
+            paciente.get("nombre_paciente"),
+            paciente.get("identificacion_paciente"),
+            paciente.get("edad"),
+            paciente.get("rango_edad"),
+            paciente.get("fecha_orden"),
+            paciente.get("fecha_citacion"),
+            paciente.get("hc"),
+            paciente.get("ubicacion"),
+            paciente.get("modalidad"),
+            paciente.get("estudios_ordenados_paciente"),
+            paciente.get("diagnostico"),
+            paciente.get("ayuno"),
+            "Si",
+            paciente.get("alergia"),
+            paciente.get("tipo_alergia"),
+            paciente.get("aislamiento"),
+            paciente.get("tipo_aislamiento"),
+            paciente.get("autorizacion"),
+            paciente.get("anestesia"),
+            id_estado,
+            paciente.get("sede"),
+            paciente.get("hora_citacion"),
+            paciente.get("hora_realizacion"),
+            paciente.get("causal_retraso"),
+            paciente.get("comentarios_tecnologo"),
+            paciente.get("comentar_radiologo"),
+            paciente.get("comentarios_radiologo"),
+            UsuarioActual.id_usuario
+        )
+
+        self.db.cursor.execute(sql_insert, valores1)
         self.db.conexion.commit()
+
+        print("Paciente diferido correctamente y registrado en tabla de diferidos.")
+        print("=======================================")
         
         self.actualizar_pantalla()
 

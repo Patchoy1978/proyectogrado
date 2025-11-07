@@ -14,7 +14,7 @@ import tkinter as tk # Importa la librería estándar Tkinter para interfaces gr
 
 from usuarioactual.usuario_actual import UsuarioActual
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from tkinter import messagebox
 
@@ -168,6 +168,11 @@ class IngresarPacientes():
         # Cambiar cursor al pasar el mouse (como hipervínculo)
         self.entry_texto_est_ord.bind("<Enter>", lambda e: self.entry_texto_est_ord.configure(cursor="hand2"))
         self.entry_texto_est_ord.bind("<Leave>", lambda e: self.entry_texto_est_ord.configure(cursor="xterm"))
+        
+        """self.horas = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 5)]  # Intervalos de 5 minutos 
+        
+        self.horas = sorted(list(set(self.horas)))
+        self.horas = [str(hora) if not isinstance(hora, dict) else "" for hora in self.horas]"""
 
     # Devuelve la ventana actual
     def obtener_ventana(self):
@@ -731,7 +736,7 @@ class IngresarPacientes():
     
     def contenidosframe3modificar (self):
         
-        from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal, cerrar_ppal
+        #from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal, cerrar_ppal
         
         self.titulo = ctk.CTkLabel(self.frame_sup1, text='Realización Del Estudio', fg_color='white', font=self.fonts['title_frame'], bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=2, sticky='nsew')
@@ -740,7 +745,11 @@ class IngresarPacientes():
         self.lab_hora_citacion.grid(row = 0, column = 0, sticky='nsew')
         
         self.horas = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 5)]  # Intervalos de 5 minutos
-        self.entry_combobox_hora_citacion = ctk.CTkOptionMenu(self.frame3,
+        self.horas = sorted(list(set(self.horas)))
+        
+        self.placeholder_text = "Seleccione Una Hora"
+        
+        self.entry_combobox_hora_citacion = ctk.CTkComboBox(self.frame3,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -751,14 +760,22 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=['Seleccione Una Hora'] + self.horas
+                                                    values=self.horas
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
+        
+        # Vincular el evento de escritura
+        self.entry_combobox_hora_citacion.set(self.placeholder_text)
+
+        """# Vincular eventos
+        self.entry_combobox_hora_citacion.bind("<FocusIn>", self._clear_placeholder)
+        self.entry_combobox_hora_citacion.bind("<FocusOut>", self._restore_placeholder)
+        self.entry_combobox_hora_citacion.bind("<KeyRelease>", self.filtrar_horas)"""
         
         self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white', text_color= "#484a4b")
         self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
         
-        self.entry_combobox_hora_realizacion = ctk.CTkOptionMenu(self.frame3,
+        self.entry_combobox_hora_realizacion = ctk.CTkComboBox(self.frame3,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -769,9 +786,22 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=['Seleccione Una Hora'] + self.horas
+                                                    values=self.horas
                                                     )
         self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
+        
+        self.entry_combobox_hora_realizacion.set(self.placeholder_text)
+
+        """# Vincular eventos
+        self.entry_combobox_hora_realizacion.bind("<FocusIn>", self._clear_placeholder)
+        self.entry_combobox_hora_realizacion.bind("<FocusOut>", self._restore_placeholder)
+        self.entry_combobox_hora_realizacion.bind("<KeyRelease>", self.filtrar_horas)"""
+        
+        for cb in (self.entry_combobox_hora_citacion, self.entry_combobox_hora_realizacion):
+            # pasamos el widget explícitamente al handler mediante lambda
+            cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
+            cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
+            cb.bind("<KeyRelease>", lambda e, w=cb: self.filtrar_horas(e, w))
         
         self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white', text_color= "#484a4b")
         self.lab_causal_retraso.grid(row = 4, column = 0, sticky = 'nsew', pady=8)
@@ -1689,6 +1719,95 @@ class IngresarPacientes():
         if valor.isdigit() and len(valor) <= 3:
             return True
         return False
+
+    """def _clear_placeholder(self, event):
+        Borra el texto de placeholder cuando el usuario entra al campo.
+        if self.entry_combobox_hora_citacion.get() == self.placeholder_text:
+            self.entry_combobox_hora_citacion.set("")
+
+
+    def _restore_placeholder(self, event):
+        Restaura el placeholder si el campo está vacío al perder el foco.
+        if self.entry_combobox_hora_citacion.get().strip() == "":
+            self.entry_combobox_hora_citacion.set(self.placeholder_text)
+            # restaurar la lista completa
+            self.entry_combobox_hora_citacion.configure(values=self.horas)
+
+
+    def filtrar_horas(self, event):
+        Filtra las horas mientras el usuario escribe.
+        texto = self.entry_combobox_hora_citacion.get().strip()
+
+        if texto == "" or texto == self.placeholder_text:
+            filtradas = self.horas
+        else:
+            filtradas = [hora for hora in self.horas if texto in hora]
+
+        self.entry_combobox_hora_citacion.configure(values=filtradas)"""
+        
+    def _clear_placeholder(self, event, widget=None):
+        """Borra el placeholder; widget puede venir por parámetro o por event.widget."""
+        if widget is None:
+            widget = event.widget
+        # si el combobox tiene un entry interno, usarlo
+        entry = getattr(widget, "_entry", None)
+        try:
+            if entry is not None:
+                if entry.get() == self.placeholder_text:
+                    entry.after(10, lambda: entry.delete(0, "end"))
+            else:
+                if widget.get() == self.placeholder_text:
+                    widget.after(10, lambda: widget.set(""))
+        except Exception:
+            pass
+
+
+    def _restore_placeholder(self, event, widget=None):
+        """Restaura placeholder si el campo quedó vacío; widget por parámetro o event.widget."""
+        if widget is None:
+            widget = event.widget
+        entry = getattr(widget, "_entry", None)
+        try:
+            if entry is not None:
+                if entry.get().strip() == "":
+                    entry.delete(0, "end")
+                    entry.insert(0, self.placeholder_text)
+                    widget.configure(values=self.horas)
+            else:
+                if widget.get().strip() == "":
+                    widget.set(self.placeholder_text)
+                    widget.configure(values=self.horas)
+        except Exception:
+            pass
+
+
+    def filtrar_horas(self, event, widget=None):
+        """
+        Filtra las horas leyendo el texto REAL del entry interno si existe.
+        Recibe event (por bind) y opcionalmente widget (cuando se pasa por lambda).
+        """
+        if widget is None:
+            widget = event.widget
+
+        # Leer texto del entry interno si existe (captura lo que tecleas en tiempo real)
+        entry = getattr(widget, "_entry", None)
+        try:
+            texto = (entry.get() if entry is not None else widget.get()).strip()
+        except Exception:
+            texto = widget.get().strip()
+
+        if texto == "" or texto == self.placeholder_text:
+            filtradas = self.horas
+        else:
+            filtradas = [hora for hora in self.horas if hora.startswith(texto)]
+
+        # Actualizar solo el combobox activo
+        try:
+            widget.configure(values=filtradas)
+        except Exception:
+            pass
+    
+    
 
     # Función que se llama al perder foco
     def validar_edad_final(self, event):

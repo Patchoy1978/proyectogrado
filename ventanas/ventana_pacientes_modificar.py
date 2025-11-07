@@ -23,7 +23,8 @@ from conexion_DB.conexionDB import Conexion_DB # Importa la clase Conexion_DB de
 # Importa funciones para abrir ventanas emergentes
 from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito, 
                                                     abrir_ventana_conn_fallida,
-                                                    modificacion_realizada
+                                                    modificacion_realizada,
+                                                    cerrar_conexion
                                                     )
 
 from abrirventanas.abrir import cerrar_ppal
@@ -499,7 +500,7 @@ class PacientesModificar():
         self.lab_alergias_paciente = ctk.CTkLabel(self.frame_radios, text='Alergias', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_alergias_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
         
-        self.var_alergias = tk.IntVar(value=None)  # Valor predeterminado es 0
+        self.var_alergias = tk.IntVar(value=0)  # Valor predeterminado es 0
 
         # Botón de opción 1
         self.radio_alergias1 = ctk.CTkRadioButton(self.frame_radios,
@@ -517,7 +518,7 @@ class PacientesModificar():
         self.radio_alergias2 = ctk.CTkRadioButton(self.frame_radios,
                                         text="No",
                                         variable = self.var_alergias,
-                                        value=2,
+                                        value=0,
                                         font=self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
@@ -574,7 +575,7 @@ class PacientesModificar():
         self.lab_aislamiento_paciente = ctk.CTkLabel(self.frame_radios1, text='Aislamiento', font=self.fonts['label_title'], fg_color='white', bg_color='white', text_color= "#484a4b")
         self.lab_aislamiento_paciente.grid(row=0, column=0, columnspan=2, sticky='nsew')
         
-        self.var_aislamiento = tk.IntVar(value=None)  # Valor predeterminado es No
+        self.var_aislamiento = tk.IntVar(value=0)  # Valor predeterminado es No
 
         # Botón de opción 1
         self.radio_aislamiento1 = ctk.CTkRadioButton(self.frame_radios1,
@@ -592,7 +593,7 @@ class PacientesModificar():
         self.radio_aislamiento2 = ctk.CTkRadioButton(self.frame_radios1,
                                             text="No",
                                             variable = self.var_aislamiento,
-                                            value=2,
+                                            value=0,
                                             font=self.fonts['label'],
                                             fg_color= 'black',
                                             bg_color='white',
@@ -787,7 +788,7 @@ class PacientesModificar():
         self.radio_ayuno2 = ctk.CTkRadioButton(self.frame_radios2,
                                     text="No",
                                     variable = self.var_ayuno,
-                                    value=2,
+                                    value=0,
                                     font= self.fonts['label'],
                                     bg_color= 'white',
                                     fg_color= 'black',
@@ -817,7 +818,7 @@ class PacientesModificar():
         self.radio_diferido2 = ctk.CTkRadioButton(self.frame_radios2,
                                         text="No",
                                         variable = self.var_diferido,
-                                        value=2,
+                                        value=0,
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
@@ -847,7 +848,7 @@ class PacientesModificar():
         self.radio_autorizacion2 = ctk.CTkRadioButton(self.frame_radios2,
                                             text="No",
                                             variable = self.var_autorizacion,
-                                            value=2,
+                                            value=0,
                                             font= self.fonts['label'],
                                             bg_color= 'white',
                                             fg_color= "#bd0936",
@@ -876,7 +877,7 @@ class PacientesModificar():
         self.radio_anestesia2 = ctk.CTkRadioButton(self.frame_radios2,
                                         text="No",
                                         variable = self.var_anestesia,
-                                        value=2,
+                                        value=0,
                                         font= self.fonts['label'],
                                         bg_color= 'white',
                                         fg_color= 'black',
@@ -1000,7 +1001,7 @@ class PacientesModificar():
                                                     value=1, font=self.fonts['label'], 
                                                     bg_color= 'white',
                                                     fg_color= 'black',
-                                                    border_color= 'lightgreen'
+                                                    border_color= 'lightgray'
                                                     )
         self.radio_coment_radiologo1.grid(row=1, column=0, padx=150, pady= 10, sticky='nsew')
 
@@ -1008,10 +1009,10 @@ class PacientesModificar():
         self.radio_coment_radiologo2 = ctk.CTkRadioButton(self.frame_radios, 
                                                     text="No",
                                                     variable = self.var_coment_al_rad,
-                                                    value=2, font=self.fonts['label'],
+                                                    value=0, font=self.fonts['label'],
                                                     bg_color= 'white',
                                                     fg_color= 'black',
-                                                    border_color= 'lightgreen')
+                                                    border_color= 'lightgray')
         self.radio_coment_radiologo2.grid(row=1, column=1, pady= 10, sticky='nsew')
         
         # frame_coment_radiologo = tk.Frame(self.frame, bg= 'white')
@@ -1047,7 +1048,7 @@ class PacientesModificar():
 
         self.frame_buttons.grid_rowconfigure(0, weight=1)
         
-        self.btn_nuevo = ctk.CTkButton(self.frame_buttons,
+        self.btn_modificar = ctk.CTkButton(self.frame_buttons,
                                 text='Modificar Paciente',
                                 text_color='White',
                                 font=self.fonts['boton'],
@@ -1061,7 +1062,7 @@ class PacientesModificar():
                                 command= self.mostrar
                                 )
         
-        self.btn_nuevo.grid(row= 0, column= 0, padx= 4, pady= 70, sticky='nsew')
+        self.btn_modificar.grid(row= 0, column= 0, padx= 4, pady= 70, sticky='nsew')
         
         self.btn_atras = ctk.CTkButton(self.frame_buttons,
                                 text='Atrás',
@@ -1163,7 +1164,7 @@ class PacientesModificar():
                     widget.delete("0.0", "end")
                     if valor is not None:
                         widget.insert("0.0", str(valor))
-                    valor = self.comparar_extraer_aislamiento()  # esto llena entry_texto_alergia
+                    valor = self.comparar_extraer_aislamiento()  # esto llena entry_texto_aislamiento
                 
                 # Otros Textbox que se bloquean
                 else:
@@ -1244,10 +1245,10 @@ class PacientesModificar():
             elif isinstance(widget, tk.Variable):  # Para IntVar de radio buttons
                 if valor is not None:
                     # Convertir de 'si'/'no' a 1/2 según el caso
-                    if valor.lower() == "si":
+                    if valor.title() == "Si":
                         widget.set(1)
                     else:
-                        widget.set(2)
+                        widget.set(0)
             
             # Para DateEntry
             elif isinstance(widget, DateEntry):
@@ -1774,7 +1775,12 @@ class PacientesModificar():
 
         if fila:
             ultimo_estado = fila[0]
-            if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado')]:
+            if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado'), self.obtener_id_estado('Diferido')]:
+                
+                print("DEBUG ultimo_estado:", ultimo_estado, type(ultimo_estado))
+                print("DEBUG id Pendiente:", self.obtener_id_estado('Pendiente'))
+                print("DEBUG id Comentado:", self.obtener_id_estado('Comentado'))
+                
                 # UPDATE registrospacientes
                 sql_update = """UPDATE registrospacientes 
                                 SET nombre_paciente = %s, identificacion_paciente = %s, edad = %s,
@@ -1787,6 +1793,13 @@ class PacientesModificar():
                                     comentarios_tecnologo = %s, comentar_radiologo = %s,
                                     comentarios_radiologo = %s, usuario = %s
                                 WHERE identificacion_paciente = %s"""
+                                
+                print("\n--- DEBUG IDENTIFICACIONES ---")
+                print("Identificación ingresada en el formulario:", identificacion)
+                print("Identificación usada en WHERE:", valores1[-1])
+                print("Identificación que se actualizará en la columna:", valores1[1])
+                print("¿Coinciden las dos?:", valores1[-1] == valores1[1])
+                print("-------------------------------\n")
                 self.db.cursor.execute(sql_update, valores1)
                 print("DEBUG2 diferido IntVar:", self.var_diferido.get())
                 print("DEBUG2 valores['diferido'] (Si/No):", valores['diferido'])
@@ -1816,6 +1829,8 @@ class PacientesModificar():
             self.db.cursor.execute(sql_insert, valores_modificados)
             print("DEBUG4 diferido IntVar:", self.var_diferido.get())
             print("DEBUG4 valores['diferido'] (Si/No):", valores['diferido'])
+            
+        print("DEBUG Se ejecutó UPDATE o INSERT en registrospacientes:", "UPDATE" if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado')] else "INSERT")
 
         # Siempre insertar en registrospacientesmodificados
         sql_modificados = """INSERT INTO registrospacientesmodificados
@@ -1864,6 +1879,37 @@ class PacientesModificar():
             (identificacion,)
         )
         print("DB row after update:", self.db.cursor.fetchone())
+        
+    """def actualizar_pantalla(self):
+        
+        if self.db:
+            self.db.cerrar_conexion()
+            PacientesModificar.conexion_realizada = None
+        cerrar_conexion()
+        
+        if not PacientesModificar.conexion_realizada:
+            try:
+                PacientesModificar.db = Conexion_DB()
+                PacientesModificar.db.conectar()
+                abrir_ventana_conn_exito()
+                PacientesModificar.conexion_realizada = True
+            except Exception:
+
+                abrir_ventana_conn_fallida()
+                
+        else:
+            
+            pass
+
+        self.db = PacientesModificar.db
+        
+        self.cargar_pacientes()
+        
+        self.obtener_pacientes_filtrados()
+        
+        self.visual_principal_datos()
+        
+        self.ventana.after(600000, self.actualizar_pantalla)"""
 
     def obtener_id_estado(self, nombre_estado):
         """Obtiene el ID del estado basado en el nombre del estado."""

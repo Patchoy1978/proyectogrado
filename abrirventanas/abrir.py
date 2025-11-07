@@ -153,44 +153,46 @@ def abrir_ventana_visualizar_datos_ppal_realizados(parent_window=None):
 def abrir_ventana_visualizar_datos_ppal_cancelados(parent_window=None): 
 
     # Importa las clases necesarias para construir la interfaz
+    import tkinter as tk
     from frames.frame_base_visualizacion import FrameBaseVisualizacion
     from ventanas.visualizar_datos_cancelados import PanelPrincipalVisualizacionCancelados
+    from ventanas.ventanasprograma import VentanaPrincipal
     
-    from ventanas.ventanasprograma import VentanaPrincipal 
+    # 1️⃣ Crear ventana de diferidos dependiente de la principal
+    ventana_visualizar = tk.Toplevel(parent_window)
+    ventana_visualizar.title("Pacientes Cancelados")
 
-    # Si se pasa una ventana padre, la usamos; si no, creamos una nueva
-    if parent_window is None:
-        ventana_visualizar_datos = VentanaPrincipal()
-        ventana_visualizar = ventana_visualizar_datos.obtener_ventana()
-        # Aplica los ajustes de maximización y redimensionado
-        ventana_visualizar_datos.aplicar_ajustes_a_ventana(ventana_visualizar)
-    else:
-        # Usa la ventana padre como referencia
-        ventana_visualizar = parent_window
-
-    # Asegura que la ventana se muestre y quede en primer plano
+    # 2️⃣ Mostrar y maximizar inmediatamente
+    ventana_visualizar.update_idletasks()
     ventana_visualizar.deiconify()
     ventana_visualizar.lift()
+    ventana_visualizar.focus_force()
+    
+    try:
+        VentanaPrincipal().aplicar_ajustes_a_ventana(ventana_visualizar)
+    except Exception:
+        try:
+            ventana_visualizar.state("zoomed")
+        except Exception:
+            pass
 
-    # Hace que la ventana sea modal si hay ventana padre
-    if parent_window is not None:
-        ventana_visualizar.grab_set()
-    
-    # Asegura que la ventana se muestre y quede en primer plano
-    ventana_visualizar.deiconify()  # Asegura que la ventana sea visible
-    ventana_visualizar.lift()  # Trae la ventana al frente
-    
-    # Crea los frames principales de la interfaz
+    # 3️⃣ Hacer modal después de mostrarse
+    ventana_visualizar.after(100, lambda: ventana_visualizar.grab_set())
+
+    # 4️⃣ Construir frames y panel
     alto_pantalla_sup = 1
-    
     frames_dict = FrameBaseVisualizacion(ventana_visualizar, alto_pantalla_sup).obtener_frames()
-
-    # Crea una sola instancia pasando ambos frames al constructor
-    panel = PanelPrincipalVisualizacionCancelados(frames_dict['framesup'], frames_dict['frame1'])
     
-    # Llama métodos para llenar cada frame
-    panel.visual_principal_titulo()  # Se asume que maneja 'framesup'
-    panel.visual_principal_datos()   # Se asume que maneja 'frame1'
+    panel = PanelPrincipalVisualizacionCancelados(
+        frames_dict["framesup"], frames_dict["frame1"],
+        parent_window=parent_window
+    )
+    panel.ventana = ventana_visualizar  # ✅ asignamos explícitamente la ventana de diferidos
+
+    panel.visual_principal_titulo()
+    panel.visual_principal_datos()
+    
+    return ventana_visualizar
 
 def abrir_ventana_visualizar_datos_ppal_radiologo():
 
