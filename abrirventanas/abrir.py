@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from ventanas.ventanasprograma import VentanaPrincipal
 
+
 def abrir_ventana_ingreso_credenciales():
     
     from ventanas.ventana_inicio import VentanaInicioPrograma 

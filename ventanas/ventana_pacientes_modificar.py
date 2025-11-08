@@ -1,5 +1,7 @@
 import sys # Importa el módulo sys para manipular el path del sistema
 import os # Importa el módulo os para manejar rutas de archivos y directorios
+import json
+import re
 
 """Añade al path del sistema la ruta del directorio padre del archivo actual.
 Esto permite importar módulos desde la carpeta superior."""
@@ -14,7 +16,9 @@ import tkinter as tk # Importa la librería estándar Tkinter para interfaces gr
 
 from usuarioactual.usuario_actual import UsuarioActual
 
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from tkinter import messagebox
 
 from tkcalendar import DateEntry # Widget calendario para seleccionar fechas
 
@@ -161,6 +165,9 @@ class PacientesModificar():
         # Cambiar cursor al pasar el mouse (como hipervínculo)
         self.entry_texto_est_ord.bind("<Enter>", lambda e: self.entry_texto_est_ord.configure(cursor="hand2"))
         self.entry_texto_est_ord.bind("<Leave>", lambda e: self.entry_texto_est_ord.configure(cursor="xterm"))
+        
+        self.cargar_horas()
+        self._mensaje_mostrado = False  # atributo de la clase
 
     # Devuelve la ventana actual
     def obtener_ventana(self):
@@ -688,6 +695,8 @@ class PacientesModificar():
                                 )
         self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
+        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
+        
         self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
         
@@ -912,7 +921,11 @@ class PacientesModificar():
         self.lab_hora_citacion.grid(row = 0, column = 0, sticky='nsew')
         
         self.horas = [f"{h:02d}:{m:02d}" for h in range(24) for m in range(0, 60, 5)]  # Intervalos de 5 minutos
-        self.entry_combobox_hora_citacion = ctk.CTkOptionMenu(self.frame3,
+        self.horas = sorted(list(set(self.horas)))
+        
+        self.placeholder_text = "Seleccione Una Hora"
+        
+        self.entry_combobox_hora_citacion = ctk.CTkComboBox(self.frame3,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -927,10 +940,20 @@ class PacientesModificar():
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
+        # Vincular el evento de escritura
+        self.entry_combobox_hora_citacion.set(self.placeholder_text)
+        cb = self.entry_combobox_hora_citacion
+        cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
+        cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
+        cb.bind("<KeyRelease>", lambda e, w=cb: [self.filtrar_horas(e, w), self._validar_hora_al_abrir_dropdown(e)])
+        cb.bind("<<ComboboxSelected>>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
+        cb.bind("<Return>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))  # captura escritura + Enter
+        cb.bind("<FocusOut>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
+        
         self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white')
         self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
         
-        self.entry_combobox_hora_realizacion = ctk.CTkOptionMenu(self.frame3,
+        self.entry_combobox_hora_realizacion = ctk.CTkComboBox(self.frame3,
                                                     font=self.fonts['label'],
                                                     state="normal",
                                                     width= 285,
@@ -944,6 +967,13 @@ class PacientesModificar():
                                                     values=['Seleccione Una Hora'] + self.horas
                                                     )
         self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
+        
+        self.entry_combobox_hora_realizacion.set(self.placeholder_text)
+            
+        cb = self.entry_combobox_hora_realizacion
+        cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
+        cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
+        cb.bind("<KeyRelease>", lambda e, w=cb: self.filtrar_horas(e, w))
         
         self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white')
         self.lab_causal_retraso.grid(row = 4, column = 0, sticky = 'nsew', pady=4)
@@ -1879,38 +1909,319 @@ class PacientesModificar():
             (identificacion,)
         )
         print("DB row after update:", self.db.cursor.fetchone())
-        
-    """def actualizar_pantalla(self):
-        
-        if self.db:
-            self.db.cerrar_conexion()
-            PacientesModificar.conexion_realizada = None
-        cerrar_conexion()
-        
-        if not PacientesModificar.conexion_realizada:
-            try:
-                PacientesModificar.db = Conexion_DB()
-                PacientesModificar.db.conectar()
-                abrir_ventana_conn_exito()
-                PacientesModificar.conexion_realizada = True
-            except Exception:
-
-                abrir_ventana_conn_fallida()
-                
-        else:
+    
+    def _clear_placeholder(self, event, widget=None):
             
+        """Limpia el contenido del widget sin importar lo que tenga."""
+        if widget is None:
+            widget = event.widget
+
+        # Si el widget tiene un Entry interno (por ejemplo, un ComboBox)
+        entry = getattr(widget, "_entry", None)
+        try:
+            if entry is not None:
+                entry.after(10, lambda: entry.delete(0, "end"))
+            else:
+                widget.after(10, lambda: widget.set("") if hasattr(widget, "set") else widget.delete(0, "end"))
+        except Exception:
             pass
 
-        self.db = PacientesModificar.db
-        
-        self.cargar_pacientes()
-        
-        self.obtener_pacientes_filtrados()
-        
-        self.visual_principal_datos()
-        
-        self.ventana.after(600000, self.actualizar_pantalla)"""
+    def _restore_placeholder(self, event, widget=None):
+        """Restaura placeholder si el campo quedó vacío; widget por parámetro o event.widget."""
+        if widget is None:
+            widget = event.widget
+        entry = getattr(widget, "_entry", None)
+        try:
+            if entry is not None:
+                if entry.get().strip() == "":
+                    entry.delete(0, "end")
+                    entry.insert(0, self.placeholder_text)
+                    widget.configure(values=self.horas)
+            else:
+                if widget.get().strip() == "":
+                    widget.set(self.placeholder_text)
+                    widget.configure(values=self.horas)
+        except Exception:
+            pass
 
+    def filtrar_horas(self, event, widget=None):
+            
+        """
+        Filtra las horas en el combobox de hora de citación según el texto escrito
+        y las horas ya tomadas para la fecha seleccionada.
+        """
+        if widget is None:
+            widget = event.widget
+
+        # Leer el texto actual del combobox (entry interno si existe)
+        entry = getattr(widget, "_entry", None)
+        try:
+            texto = (entry.get() if entry is not None else widget.get()).strip()
+        except Exception:
+            texto = widget.get().strip()
+
+        # Si es el combobox de hora citación, filtrar horas ocupadas por fecha
+        if widget == self.entry_combobox_hora_citacion:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+            if texto == "" or texto == self.placeholder_text:
+                filtradas = [h for h in self.horas if h not in horas_ocupadas]
+            else:
+                filtradas = [h for h in self.horas if h.startswith(texto) and h not in horas_ocupadas]
+        else:
+            # Para hora de realización no se filtra por ocupadas, solo por texto
+            if texto == "" or texto == self.placeholder_text:
+                filtradas = self.horas
+            else:
+                filtradas = [h for h in self.horas if h.startswith(texto)]
+
+        # Actualizar solo el combobox activo
+        try:
+            widget.configure(values=filtradas)
+        except Exception:
+            pass
+    
+        # Función que se llama al perder foco
+
+    def _normalizar_hora(self, texto):
+        """Normaliza texto de hora a HH:MM si es válido. Si no tiene minutos, devuelve None."""
+        texto = texto.strip()
+        if not texto or texto == getattr(self, "placeholder_text", ""):
+            return None
+
+        # Si es un número (p.e. '7' o '08'), lo tratamos como hora entera sin minutos
+        if re.fullmatch(r"\d{1,2}", texto):
+            return f"{int(texto):02d}:00"
+
+        # Si tiene formato H:MM o HH:MM
+        m = re.fullmatch(r"(\d{1,2}):(\d{1,2})", texto)
+        if m:
+            h, mi = int(m.group(1)), int(m.group(2))
+            if 0 <= h <= 23 and 0 <= mi <= 59:
+                return f"{h:02d}:{mi:02d}"
+        return None
+        
+    def bloquear_hora_tomada(self, event, widget=None):
+        
+        """
+        Bloquea la hora seleccionada y las siguientes según la duración elegida
+        por el usuario. Si la hora ya está ocupada, muestra un mensaje con duración.
+        """
+        if widget is None:
+            widget = event.widget
+
+        if widget != self.entry_combobox_hora_citacion:
+            return  # Solo combobox de citación
+
+        raw = widget.get().strip()
+        hora_normalizada = self._normalizar_hora(raw)
+        if hora_normalizada is None:
+            return  # Usuario aún escribiendo o valor parcial
+
+        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
+
+        # ==== Si la hora ya está ocupada ====
+        if hora_normalizada in horas_tomadas_dia:
+            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
+            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
+            
+            widget.set(self.placeholder_text)
+            return
+
+        # ==== Mostrar ventana para elegir duración ====
+        duracion_minutos = self._mostrar_dialogo_duracion()
+        if duracion_minutos is None:
+            widget.set(self.placeholder_text)
+            return
+
+        # ==== Calcular rango de horas a bloquear ====
+        try:
+            hora_inicio = datetime.strptime(hora_normalizada, "%H:%M")
+            hora_fin = hora_inicio + timedelta(minutes=duracion_minutos)
+        except ValueError:
+            messagebox.showerror("Error", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
+            return
+
+        # ==== Determinar horas a bloquear dentro del rango ====
+        horas_a_bloquear = []
+        for h in self.horas:
+            try:
+                hora_actual = datetime.strptime(h, "%H:%M")
+                if hora_inicio <= hora_actual <= hora_fin:
+                    horas_a_bloquear.append(h)
+            except ValueError:
+                continue
+
+        # ==== Verificar conflictos dentro del rango ====
+        for h in horas_a_bloquear:
+            if h in horas_tomadas_dia:
+                messagebox.showwarning(
+                    "Conflicto de horario",
+                    f"No se puede bloquear {hora_normalizada}.\n"
+                    f"La hora {h} ya está ocupada para {fecha}.",
+                    parent=self.ventana
+                )
+                widget.set(self.placeholder_text)
+                return
+
+        # ==== Guardar horas bloqueadas ====
+        self.horas_tomadas.setdefault(fecha, []).extend(horas_a_bloquear)
+        # Guardar duración del estudio
+        self.horas_tomadas.setdefault("detalles", {})
+        self.horas_tomadas["detalles"][f"{fecha}_{hora_normalizada}"] = duracion_minutos
+
+        # ==== Guardar en JSON ====
+        self.guardar_horas()
+
+        # ==== Actualizar combobox ====
+        self.filtrar_horas(event, widget)
+    
+    def _calcular_duracion_estudio(self, fecha, hora_inicio):
+        """
+        Calcula la duración real del estudio desde self.horas_tomadas['detalles'].
+        Si no se encuentra, estima por continuidad de bloques.
+        """
+        detalles = self.horas_tomadas.get("detalles", {})
+        clave = f"{fecha}_{hora_inicio}"
+
+        if clave in detalles:
+            return detalles[clave]  # Duración real elegida por el usuario
+
+        # Si no hay detalle guardado, calcula por continuidad
+        if fecha not in self.horas_tomadas:
+            return 0
+
+        horas_bloqueadas = sorted(self.horas_tomadas[fecha])
+        try:
+            idx = horas_bloqueadas.index(hora_inicio)
+        except ValueError:
+            return 0
+
+        inicio = datetime.strptime(hora_inicio, "%H:%M")
+        fin = inicio
+
+        for i in range(idx + 1, len(horas_bloqueadas)):
+            actual = datetime.strptime(horas_bloqueadas[i], "%H:%M")
+            if (actual - fin) <= timedelta(minutes=5):
+                fin = actual
+            else:
+                break
+
+        return int((fin - inicio).total_seconds() / 60)
+    
+    def actualizar_horas_disponibles(self, event=None):
+        """Restaura la lista de horas disponibles al cambiar la fecha."""
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+            horas_disponibles = [h for h in self.horas if h not in horas_ocupadas]
+
+            # Actualizar ambos combobox con las horas libres
+            self.entry_combobox_hora_citacion.configure(values=horas_disponibles)
+            self.entry_combobox_hora_realizacion.configure(values=horas_disponibles)
+        except Exception as e:
+            print("Error al actualizar horas:", e)
+
+    def _validar_hora_al_abrir_dropdown(self, event):
+        if self._mensaje_mostrado:
+            return  # ya se mostró, no repetir
+
+        widget = event.widget
+        raw = widget.get().strip()
+        hora_normalizada = self._normalizar_hora(raw)
+        if not hora_normalizada:
+            return
+
+        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
+
+        if hora_normalizada in horas_tomadas_dia:
+            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
+            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
+
+            self._mensaje_mostrado = True  # activamos flag
+            messagebox.showwarning(
+                "Hora no disponible",
+                f"La hora {hora_normalizada} ya está ocupada.\n"
+                f"El estudio asignado dura {duracion} minutos.\n"
+                f"Espacio ocupado hasta las {fin_estudio}.",
+                parent=self.ventana
+            )
+    
+    def cargar_horas(self):
+        """Carga el diccionario de horas tomadas desde un archivo JSON."""
+        if os.path.exists("horas_tomadas.json"):
+            try:
+                with open("horas_tomadas.json", "r") as f:
+                    self.horas_tomadas = json.load(f)
+            except Exception as e:
+                print("Error al cargar horas tomadas:", e)
+                self.horas_tomadas = {}
+        else:
+            self.horas_tomadas = {}
+
+    def guardar_horas(self):
+        """Guarda el diccionario de horas tomadas en un archivo JSON."""
+        try:
+            with open("horas_tomadas.json", "w") as f:
+                json.dump(self.horas_tomadas, f)
+        except Exception as e:
+            print("Error al guardar horas tomadas:", e)
+    
+    # ==========================================================
+    # VENTANA EMERGENTE PERSONALIZADA
+    # ==========================================================
+    def _mostrar_dialogo_duracion(self):
+        
+        """
+        Muestra un cuadro emergente tipo messagebox con botones
+        para seleccionar la duración del estudio.
+        Devuelve los minutos seleccionados o None si se cancela.
+        """
+        dialogo = ctk.CTkToplevel(self.ventana)
+        dialogo.title("Duración del estudio")
+        dialogo.geometry("320x240")
+        dialogo.resizable(False, False)
+        dialogo.grab_set()  # Bloquea interacción con otras ventanas
+        dialogo.focus_force()
+
+        # Variable para guardar el resultado
+        resultado = {"valor": None}
+
+        # Etiqueta de texto
+        label = ctk.CTkLabel(dialogo, text="¿Cuánto dura el estudio?", font=("Verdana", 14, "bold"))
+        label.pack(pady=15)
+
+        # Frame para botones
+        frame_botones = ctk.CTkFrame(dialogo, fg_color="transparent")
+        frame_botones.pack(pady=10)
+
+        # Función auxiliar para asignar valor y cerrar
+        def seleccionar(valor):
+            resultado["valor"] = valor
+            dialogo.destroy()
+
+        # Botones de duración
+        opciones = [
+            ("30 minutos", 30),
+            ("1 hora", 60),
+            ("1 hora y 30 minutos", 90),
+            ("2 horas", 120),
+        ]
+        for texto, minutos in opciones:
+            btn = ctk.CTkButton(frame_botones, text=texto, width=200,
+                                command=lambda m=minutos: seleccionar(m))
+            btn.pack(pady=5)
+
+        # Botón de cancelar (similar a “No”)
+        btn_cancelar = ctk.CTkButton(dialogo, text="Cancelar", fg_color="gray", width=200,
+                                    command=lambda: seleccionar(None))
+        btn_cancelar.pack(pady=10)
+
+        dialogo.wait_window()  # Esperar hasta que se cierre el diálogo
+        return resultado["valor"]
+    
     def obtener_id_estado(self, nombre_estado):
         """Obtiene el ID del estado basado en el nombre del estado."""
         # solo tomamos el nombre

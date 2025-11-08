@@ -1039,78 +1039,62 @@ class PanelPrincipalVisualizacion():
         if not respuesta:  # Si el usuario eligió "No"
             return
         
-        # variables para obtener los valores de cada widget
+        # Obtener la identificación original desde el diccionario del paciente
+        id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
+
+        # --- Obtener id_registro correspondiente a la identificación del paciente ---
+        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        self.db.cursor.execute(sql_id, (id_original_paciente,))
+        resultado = self.db.cursor.fetchone()
+
+        if resultado:
+            id_registro = resultado[0]
+        else:
+            return
+
+        # --- Obtener dinámicamente el id_estado del estado 'Cancelado' ---
+        sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Cancelado'"
+        self.db.cursor.execute(sql_estado)
+        resultado_estado = self.db.cursor.fetchone()
+
+        if resultado_estado:
+            id_estado = resultado_estado[0]
+        else:
+            return
         
-        identificacion = self.entries['identificacion_paciente'].get()
-        nombre = self.entries['nombre_paciente'].get()
-        edad = self.entries['edad'].get()
-        # Convertir nombre de rango de edad a id
-        seleccion_rango = self.entries['rango_edad'].get()  # nombre
-        id_rango = self.obtener_id_rangoedad(seleccion_rango)
-        hc = self.entries['hc'].get()
-        ubicacion = self.entries['ubicacion'].get()
-        seleccion_sede = self.entries['sede'].get()
-        id_sede = self.obtener_id_sede(seleccion_sede)
-        alergia = self.entries['alergia'].get()
-        seleccion_alergia = self.textbox['tipo_alergia'].get("1.0", "end-1c")
-        aislamiento = self.entries['aislamiento'].get()
-        seleccion_aislamiento = self.textbox['tipo_aislamiento'].get("1.0", "end-1c")
-        id_estado = self.obtener_id_estado('Cancelado')
-        fecha1 = self.entries['fecha_orden'].get()
-        fecha_orden = datetime.strptime(fecha1, "%Y-%m-%d").date().isoformat()
-        fecha2 = self.entries['fecha_citacion'].get()
-        fecha_cita = datetime.strptime(fecha2, "%Y-%m-%d").date().isoformat()
-        modalidad = self.entries['modalidad'].get()
-        id_modalidad = self.obtener_id_modalidad(modalidad)
-        estud_ord = self.textbox['estudios ordenados'].get("1.0", "end-1c")
-        diagnostico = self.textbox['diagnostico'].get("1.0", "end-1c")
-        hora_cita = self.entries['hora citacion estudio'].get()
-        hora_realizacion = self.entries['hora realizacion estudio'].get()
-        causal_retraso = self.entries['causal retraso'].get()
-        id_retraso = self.obtener_id_retraso(causal_retraso)
-        coment_tecnologo = self.textbox['comentarios tecnologos'].get("1.0", "end-1c")
-        comentar_radiologo = self.entries['comentar con radiologo'].get()
-        coment_radiologo = self.textbox['comentarios del radiologo'].get("1.0", "end-1c")
-        ayuno = self.entries['ayuno'].get()
-        autorizacion = self.entries['autorizacion'].get()
-        anestesia = self.entries['anestesia'].get()
-        diferido = self.entries['diferido'].get()
+        valores1 = (paciente.get("nombre_paciente"),
+            paciente.get("identificacion_paciente"),
+            paciente.get("edad"),
+            paciente.get("rango_edad"),
+            paciente.get("fecha_orden"),
+            paciente.get("fecha_citacion"),
+            paciente.get("hc"),
+            paciente.get("ubicacion"),
+            paciente.get("modalidad"),
+            paciente.get("estudios_ordenados_paciente"),
+            paciente.get("diagnostico"),
+            paciente.get("ayuno"),
+            paciente.get("diferido"),
+            paciente.get("alergia"),
+            paciente.get("tipo_alergia"),
+            paciente.get("aislamiento"),
+            paciente.get("tipo_aislamiento"),
+            paciente.get("autorizacion"),
+            paciente.get("anestesia"),
+            id_estado,
+            paciente.get("sede"),
+            paciente.get("hora_citacion"),
+            paciente.get("hora_realizacion"),
+            paciente.get("causal_retraso"),
+            paciente.get("comentarios_tecnologo"),
+            paciente.get("comentar_radiologo"),
+            paciente.get("comentarios_radiologo"),
+            UsuarioActual.id_usuario
+        )
         
-        valores1 = (nombre, 
-                    identificacion, 
-                    edad, 
-                    id_rango, 
-                    fecha_orden,
-                    fecha_cita, 
-                    hc, 
-                    ubicacion, 
-                    id_modalidad, 
-                    estud_ord, 
-                    diagnostico, 
-                    ayuno,
-                    diferido,
-                    alergia,
-                    seleccion_alergia,
-                    aislamiento,
-                    seleccion_aislamiento,
-                    autorizacion,
-                    anestesia,
-                    id_estado,
-                    id_sede,
-                    hora_cita,
-                    hora_realizacion,
-                    id_retraso,
-                    coment_tecnologo,
-                    comentar_radiologo,
-                    coment_radiologo,
-                    UsuarioActual.id_usuario
-                    )
+        sql = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
         
-        id_estado = self.obtener_id_estado("Cancelado")
-        
-        sql = "UPDATE registrospacientes SET estado = %s WHERE identificacion_paciente = %s"
-        
-        self.db.cursor.execute(sql, (id_estado, paciente["identificacion_paciente"]))
+        self.db.cursor.execute(sql, (id_estado, id_registro))
         
         sql1 = """INSERT INTO registrospacientescancelados
             (
@@ -1160,139 +1144,6 @@ class PanelPrincipalVisualizacion():
         if not respuesta:  # Si el usuario eligió "No"
             return
         
-        """# variables para obtener los valores de cada widget
-        
-        identificacion = self.entries['identificacion_paciente'].get()
-        nombre = self.entries['nombre_paciente'].get()
-        edad = self.entries['edad'].get()
-        # Convertir nombre de rango de edad a id
-        seleccion_rango = self.entries['rango_edad'].get()  # nombre
-        id_rango = self.obtener_id_rangoedad(seleccion_rango)
-        hc = self.entries['hc'].get()
-        ubicacion = self.entries['ubicacion'].get()
-        seleccion_sede = self.entries['sede'].get()
-        id_sede = self.obtener_id_sede(seleccion_sede)
-        alergia = self.entries['alergia'].get()
-        seleccion_alergia = self.textbox['tipo_alergia'].get("1.0", "end-1c")
-        aislamiento = self.entries['aislamiento'].get()
-        seleccion_aislamiento = self.textbox['tipo_aislamiento'].get("1.0", "end-1c")
-        id_estado = self.obtener_id_estado('Diferido')
-        fecha1 = self.entries['fecha_orden'].get()
-        fecha_orden = datetime.strptime(fecha1, "%Y-%m-%d").date().isoformat()
-        fecha2 = self.entries['fecha_citacion'].get()
-        fecha_cita = datetime.strptime(fecha2, "%Y-%m-%d").date().isoformat()
-        modalidad = self.entries['modalidad'].get()
-        id_modalidad = self.obtener_id_modalidad(modalidad)
-        estud_ord = self.textbox['estudios ordenados'].get("1.0", "end-1c")
-        diagnostico = self.textbox['diagnostico'].get("1.0", "end-1c")
-        hora_cita = self.entries['hora citacion estudio'].get()
-        hora_realizacion = self.entries['hora realizacion estudio'].get()
-        causal_retraso = self.entries['causal retraso'].get()
-        id_retraso = self.obtener_id_retraso(causal_retraso)
-        coment_tecnologo = self.textbox['comentarios tecnologos'].get("1.0", "end-1c")
-        comentar_radiologo = self.entries['comentar con radiologo'].get()
-        coment_radiologo = self.textbox['comentarios del radiologo'].get("1.0", "end-1c")
-        ayuno = self.entries['ayuno'].get()
-        autorizacion = self.entries['autorizacion'].get()
-        anestesia = self.entries['anestesia'].get()
-        
-        # Asignar correctamente "Si" porque el usuario eligió diferir
-        diferido = "Si"
-        
-        id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
-
-        # --- DEPURACIÓN EXTRA ANTES DE EJECUTAR ---
-        print("=== DEPURACIÓN DE DIFERIR PACIENTE (ANTES DE SQL) ===")
-        print(f"Identificación entry: '{identificacion}'")
-        print(f"Identificación en dict paciente (original): '{id_original_paciente}'")
-        print(f"ID estado (Diferido): {id_estado}")
-        print("=====================================================")
-
-        # Protege: si id_original_paciente está vacío, aborta y registra
-        if not id_original_paciente:
-            print("ERROR: id_original_paciente vacío. Aborto para evitar actualizar registro incorrecto.")
-            return
-        
-        valores1 = (nombre, 
-                    id_original_paciente, 
-                    edad, 
-                    id_rango, 
-                    fecha_orden,
-                    fecha_cita, 
-                    hc, 
-                    ubicacion, 
-                    id_modalidad, 
-                    estud_ord, 
-                    diagnostico, 
-                    ayuno,
-                    diferido,
-                    alergia,
-                    seleccion_alergia,
-                    aislamiento,
-                    seleccion_aislamiento,
-                    autorizacion,
-                    anestesia,
-                    id_estado,
-                    id_sede,
-                    hora_cita,
-                    hora_realizacion,
-                    id_retraso,
-                    coment_tecnologo,
-                    comentar_radiologo,
-                    coment_radiologo,
-                    UsuarioActual.id_usuario
-                    )
-        
-        id_estado = self.obtener_id_estado("Diferido")
-        
-        sql = "UPDATE registrospacientes SET estado = %s WHERE identificacion_paciente = %s"
-        
-        print("=== DEPURACIÓN DE DIFERIR PACIENTE ===")
-        print(f"Identificación desde entry: {identificacion}")
-        print(f"Identificación desde diccionario paciente: {paciente['identificacion_paciente']}")
-        print(f"Estado asignado (id_estado): {id_estado}")
-        print("=======================================")
-        
-        self.db.cursor.execute(sql, (id_estado, id_original_paciente))
-        
-        sql1 = INSERT INTO registrospacientesdiferidos
-            (
-            nombre_paciente, 
-            identificacion_paciente,
-            edad,
-            rango_edad,
-            fecha_orden,
-            fecha_citacion,
-            hc,
-            ubicacion,
-            modalidad,
-            estudios_ordenados_paciente,
-            diagnostico,
-            ayuno,
-            diferido,
-            alergia,
-            tipo_alergia,
-            aislamiento,
-            tipo_aislamiento,
-            autorizacion,
-            anestesia,
-            estado,
-            sede,
-            hora_citacion,
-            hora_realizacion,
-            causal_retraso,
-            comentarios_tecnologo,
-            comentar_radiologo,
-            comentarios_radiologo,
-            usuario
-            )
-            VALUES (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) 
-                
-        self.db.cursor.execute(sql1, valores1)
-        
-        self.db.conexion.commit()"""
-        
         # Obtener la identificación original desde el diccionario del paciente
         id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
 
@@ -1303,9 +1154,7 @@ class PanelPrincipalVisualizacion():
 
         if resultado:
             id_registro = resultado[0]
-            print(f"id_registro obtenido: {id_registro}")
         else:
-            print(f"No se encontró id_registro para identificación {id_original_paciente}.")
             return
 
         # --- Obtener dinámicamente el id_estado del estado 'Diferido' ---
@@ -1315,23 +1164,14 @@ class PanelPrincipalVisualizacion():
 
         if resultado_estado:
             id_estado = resultado_estado[0]
-            print(f"id_estado (Diferido) obtenido: {id_estado}")
         else:
-            print("No se encontró el estado 'Diferido' en la tabla estados.")
             return
-
-        # --- DEPURACIÓN: Mostrar información clave ---
-        print("=== DEPURACIÓN DE DIFERIR PACIENTE ===")
-        print(f"Identificación desde diccionario paciente: {id_original_paciente}")
-        print(f"id_registro encontrado: {id_registro}")
-        print(f"Estado asignado (id_estado): {id_estado}")
-        print("=======================================")
 
         # --- Actualizar el estado del registro original utilizando el id_registro ---
         sql_update = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
         self.db.cursor.execute(sql_update, (id_estado, id_registro))
-        print(f"UPDATE ejecutado correctamente para id_registro = {id_registro}")
-        print(f"Filas afectadas: {self.db.cursor.rowcount}")
+        #print(f"UPDATE ejecutado correctamente para id_registro = {id_registro}")
+        #print(f"Filas afectadas: {self.db.cursor.rowcount}")
 
         # --- Insertar el paciente en la tabla de diferidos ---
         sql_insert = """INSERT INTO registrospacientesdiferidos (
@@ -1380,9 +1220,6 @@ class PanelPrincipalVisualizacion():
 
         self.db.cursor.execute(sql_insert, valores1)
         self.db.conexion.commit()
-
-        print("Paciente diferido correctamente y registrado en tabla de diferidos.")
-        print("=======================================")
         
         self.actualizar_pantalla()
 
@@ -1393,78 +1230,61 @@ class PanelPrincipalVisualizacion():
         if not respuesta:  # Si el usuario eligió "No"
             return
         
-        # variables para obtener los valores de cada widget
+        # Obtener la identificación original desde el diccionario del paciente
+        id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
+
+        # --- Obtener id_registro correspondiente a la identificación del paciente ---
+        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        self.db.cursor.execute(sql_id, (id_original_paciente,))
+        resultado = self.db.cursor.fetchone()
+
+        if resultado:
+            id_registro = resultado[0]
+        else:
+            return
+
+        # --- Obtener dinámicamente el id_estado del estado 'Realizado' ---
+        sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Realizado'"
+        self.db.cursor.execute(sql_estado)
+        resultado_estado = self.db.cursor.fetchone()
+
+        if resultado_estado:
+            id_estado = resultado_estado[0]
+        else:
+            return
         
-        identificacion = self.entries['identificacion_paciente'].get()
-        nombre = self.entries['nombre_paciente'].get()
-        edad = self.entries['edad'].get()
-        # Convertir nombre de rango de edad a id
-        seleccion_rango = self.entries['rango_edad'].get()  # nombre
-        id_rango = self.obtener_id_rangoedad(seleccion_rango)
-        hc = self.entries['hc'].get()
-        ubicacion = self.entries['ubicacion'].get()
-        seleccion_sede = self.entries['sede'].get()
-        id_sede = self.obtener_id_sede(seleccion_sede)
-        alergia = self.entries['alergia'].get()
-        seleccion_alergia = self.textbox['tipo_alergia'].get("1.0", "end-1c")
-        aislamiento = self.entries['aislamiento'].get()
-        seleccion_aislamiento = self.textbox['tipo_aislamiento'].get("1.0", "end-1c")
-        id_estado = self.obtener_id_estado('Realizado')
-        fecha1 = self.entries['fecha_orden'].get()
-        fecha_orden = datetime.strptime(fecha1, "%Y-%m-%d").date().isoformat()
-        fecha2 = self.entries['fecha_citacion'].get()
-        fecha_cita = datetime.strptime(fecha2, "%Y-%m-%d").date().isoformat()
-        modalidad = self.entries['modalidad'].get()
-        id_modalidad = self.obtener_id_modalidad(modalidad)
-        estud_ord = self.textbox['estudios ordenados'].get("1.0", "end-1c")
-        diagnostico = self.textbox['diagnostico'].get("1.0", "end-1c")
-        hora_cita = self.entries['hora citacion estudio'].get()
-        hora_realizacion = self.entries['hora realizacion estudio'].get()
-        causal_retraso = self.entries['causal retraso'].get()
-        id_retraso = self.obtener_id_retraso(causal_retraso)
-        coment_tecnologo = self.textbox['comentarios tecnologos'].get("1.0", "end-1c")
-        comentar_radiologo = self.entries['comentar con radiologo'].get()
-        coment_radiologo = self.textbox['comentarios del radiologo'].get("1.0", "end-1c")
-        ayuno = self.entries['ayuno'].get()
-        autorizacion = self.entries['autorizacion'].get()
-        anestesia = self.entries['anestesia'].get()
-        diferido = self.entries['diferido'].get()
+        valores1 = (paciente.get("nombre_paciente"),
+            paciente.get("identificacion_paciente"),
+            paciente.get("edad"),
+            paciente.get("rango_edad"),
+            paciente.get("fecha_orden"),
+            paciente.get("fecha_citacion"),
+            paciente.get("hc"),
+            paciente.get("ubicacion"),
+            paciente.get("modalidad"),
+            paciente.get("estudios_ordenados_paciente"),
+            paciente.get("diagnostico"),
+            paciente.get("ayuno"),
+            paciente.get("diferido"),
+            paciente.get("alergia"),
+            paciente.get("tipo_alergia"),
+            paciente.get("aislamiento"),
+            paciente.get("tipo_aislamiento"),
+            paciente.get("autorizacion"),
+            paciente.get("anestesia"),
+            id_estado,
+            paciente.get("sede"),
+            paciente.get("hora_citacion"),
+            paciente.get("hora_realizacion"),
+            paciente.get("causal_retraso"),
+            paciente.get("comentarios_tecnologo"),
+            paciente.get("comentar_radiologo"),
+            paciente.get("comentarios_radiologo"),
+            UsuarioActual.id_usuario
+        )
         
-        valores1 = (nombre, 
-                    identificacion, 
-                    edad, 
-                    id_rango, 
-                    fecha_orden,
-                    fecha_cita, 
-                    hc, 
-                    ubicacion, 
-                    id_modalidad, 
-                    estud_ord, 
-                    diagnostico, 
-                    ayuno,
-                    diferido,
-                    alergia,
-                    seleccion_alergia,
-                    aislamiento,
-                    seleccion_aislamiento,
-                    autorizacion,
-                    anestesia,
-                    id_estado,
-                    id_sede,
-                    hora_cita,
-                    hora_realizacion,
-                    id_retraso,
-                    coment_tecnologo,
-                    comentar_radiologo,
-                    coment_radiologo,
-                    UsuarioActual.id_usuario
-                    )
-        
-        id_estado = self.obtener_id_estado("Realizado")
-        
-        sql = "UPDATE registrospacientes SET estado = %s WHERE identificacion_paciente = %s"
-        
-        self.db.cursor.execute(sql, (id_estado, paciente["identificacion_paciente"]))
+        sql = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
+        self.db.cursor.execute(sql, (id_estado, id_registro))
         
         sql1 = """INSERT INTO registrospacientesrealizados
             (
@@ -1596,12 +1416,15 @@ class PanelPrincipalVisualizacion():
         def destruir_completo(widget):
             for child in widget.winfo_children():
                 destruir_completo(child)
+                
             try:
                 widget.destroy()
             except:
                 pass
             
-        destruir_completo(self.frame.winfo_toplevel())
+        destruir_completo(self.ventana)#self.frame.winfo_toplevel())
+        
+        #self.ventana.destroy()
         
         abrir_ventana_ingreso_credenciales()
         
