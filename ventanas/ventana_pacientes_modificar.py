@@ -16,7 +16,7 @@ import tkinter as tk # Importa la librería estándar Tkinter para interfaces gr
 
 from usuarioactual.usuario_actual import UsuarioActual
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 from tkinter import messagebox
 
@@ -168,6 +168,8 @@ class PacientesModificar():
         
         self.cargar_horas()
         self._mensaje_mostrado = False  # atributo de la clase
+        self._pending_bloqueo = None
+        self.archivo_json = "horas_tomadas.json"
 
     # Devuelve la ventana actual
     def obtener_ventana(self):
@@ -494,6 +496,8 @@ class PacientesModificar():
                                             )
         self.entry_sede_paciente.grid(row=11, column=0, padx= 15, pady= 4, columnspan=2, sticky='nsew')
         
+        self.entry_sede_paciente.configure(command=lambda _: self._on_cambio_sede_o_fecha(campo="sede"))
+        
         # Frame contenedor solo para los radios
         self.frame_radios = ctk.CTkFrame(self.frame1, fg_color="white",bg_color='white')
         self.frame_radios.grid(row=12, column=0, columnspan=3, sticky="nsew")
@@ -691,11 +695,13 @@ class PacientesModificar():
                                 foreground='white',
                                 date_pattern= 'dd/MM/yyyy',
                                 font= self.fonts['date'],
-                                locale = 'es'
+                                locale = 'es',
+                                command=self.actualizar_horas_disponibles
                                 )
         self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
-        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
+        #self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
+        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self._on_cambio_sede_o_fecha(campo="fecha"))
         
         self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
@@ -936,19 +942,26 @@ class PacientesModificar():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=['Seleccione Una Hora'] + self.horas
+                                                    values=self.horas,
+                                                    command=self._al_seleccionar_hora
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
         # Vincular el evento de escritura
         self.entry_combobox_hora_citacion.set(self.placeholder_text)
-        cb = self.entry_combobox_hora_citacion
+        cb = self.entry_combobox_hora_citacion        
         cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
         cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
-        cb.bind("<KeyRelease>", lambda e, w=cb: [self.filtrar_horas(e, w), self._validar_hora_al_abrir_dropdown(e)])
-        cb.bind("<<ComboboxSelected>>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
-        cb.bind("<Return>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))  # captura escritura + Enter
-        cb.bind("<FocusOut>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
+        
+        # Click: actualizar filtro
+        cb.bind("<Button-1>", lambda e, w=cb: self.filtrar_horas(e, w))
+
+        # Tecla: SOLO filtrar, nada más
+        cb.bind("<KeyRelease>", lambda e, w=cb: self.filtrar_horas(e, w))
+        cb.bind("<KeyRelease>", lambda e: self._validar_hora_al_abrir_dropdown(e))
+        
+        # Iniciar verificación periódica automática
+        self.verificar_hora_periodica()
         
         self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_title'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white')
         self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
@@ -1365,6 +1378,18 @@ class PacientesModificar():
         
         return self.estado
 
+    def obtener_id_estado(self, nombre_estado):
+        """Obtiene el ID del estado basado en el nombre del estado."""
+        # solo tomamos el nombre
+        nombre_estado = nombre_estado.split(' (')[0]
+        
+        sql = "SELECT id_estado FROM estados WHERE nombre_estado = %s"
+        self.db.cursor.execute(sql, (nombre_estado,))
+        resultado = self.db.cursor.fetchone()
+        
+        # Retornar el ID si lo encuentra, de lo contrario None
+        return resultado[0] if resultado else None
+    
     def obtener_sede(self):
         """Obtiene las sedes de la db y lo guardamos en una lista."""
         
@@ -1384,6 +1409,18 @@ class PacientesModificar():
     
         return self.sedes
 
+    def obtener_id_sede(self, nombre_sede):
+        """Obtiene el ID de sede basado en el nombre de la sede."""
+        # solo tomamos el nombre
+        nombre_sede = nombre_sede.split(' (')[0]
+        
+        sql = "SELECT id_sede FROM sedes WHERE nombre_sede = %s"
+        self.db.cursor.execute(sql, (nombre_sede,))
+        resultado = self.db.cursor.fetchone()
+        
+        # Retornar el ID si lo encuentra, de lo contrario None
+        return resultado[0] if resultado else None
+    
     def obtener_alergia(self):
         
         """Obtiene las alergias de la db y lo guardamos en una lista."""
@@ -1511,15 +1548,22 @@ class PacientesModificar():
     def llenar_combobox_modalidad(self):
         
         informacion = self.obtener_modalidades()
+    
+        # Filtrar solo las modalidades deseadas
+        modalidades_permitidas = [
+            "Resonancia Magnetica",
+            "Tomografia Axial Computarizada",
+            "Ecografia"
+        ]
         
-        # Extraer solo los nombres de rango_edad
-        opciones = [fila["nombre_modalidad"] for fila in informacion]
+        opciones = [fila["nombre_modalidad"] for fila in informacion if fila["nombre_modalidad"] in modalidades_permitidas]
 
         # Insertar la opción por defecto solo si no existe
         if "Elige una Modalidad" not in opciones:
             opciones.insert(0, "Elige una Modalidad")
             
         self.entry_modalidad.configure(values=opciones)
+        self.entry_modalidad.set(opciones[0])
 
     def llenar_combobox_sedes(self):
         
@@ -1798,8 +1842,8 @@ class PacientesModificar():
         # Consultar último estado del paciente
         sql_ultimo_estado = "SELECT estado FROM registrospacientes WHERE identificacion_paciente = %s ORDER BY id_registro DESC LIMIT 1"
         
-        print("DEBUG diferido IntVar:", self.var_diferido.get())
-        print("DEBUG valores['diferido'] (Si/No):", valores['diferido'])
+        #print("DEBUG diferido IntVar:", self.var_diferido.get())
+        #print("DEBUG valores['diferido'] (Si/No):", valores['diferido'])
         self.db.cursor.execute(sql_ultimo_estado, (identificacion,))
         fila = self.db.cursor.fetchone()
 
@@ -1807,9 +1851,9 @@ class PacientesModificar():
             ultimo_estado = fila[0]
             if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado'), self.obtener_id_estado('Diferido')]:
                 
-                print("DEBUG ultimo_estado:", ultimo_estado, type(ultimo_estado))
-                print("DEBUG id Pendiente:", self.obtener_id_estado('Pendiente'))
-                print("DEBUG id Comentado:", self.obtener_id_estado('Comentado'))
+                #print("DEBUG ultimo_estado:", ultimo_estado, type(ultimo_estado))
+                #print("DEBUG id Pendiente:", self.obtener_id_estado('Pendiente'))
+                #print("DEBUG id Comentado:", self.obtener_id_estado('Comentado'))
                 
                 # UPDATE registrospacientes
                 sql_update = """UPDATE registrospacientes 
@@ -1824,15 +1868,15 @@ class PacientesModificar():
                                     comentarios_radiologo = %s, usuario = %s
                                 WHERE identificacion_paciente = %s"""
                                 
-                print("\n--- DEBUG IDENTIFICACIONES ---")
-                print("Identificación ingresada en el formulario:", identificacion)
-                print("Identificación usada en WHERE:", valores1[-1])
-                print("Identificación que se actualizará en la columna:", valores1[1])
-                print("¿Coinciden las dos?:", valores1[-1] == valores1[1])
-                print("-------------------------------\n")
+                #print("\n--- DEBUG IDENTIFICACIONES ---")
+                #print("Identificación ingresada en el formulario:", identificacion)
+                #print("Identificación usada en WHERE:", valores1[-1])
+                #print("Identificación que se actualizará en la columna:", valores1[1])
+                #print("¿Coinciden las dos?:", valores1[-1] == valores1[1])
+                #print("-------------------------------\n")
                 self.db.cursor.execute(sql_update, valores1)
-                print("DEBUG2 diferido IntVar:", self.var_diferido.get())
-                print("DEBUG2 valores['diferido'] (Si/No):", valores['diferido'])
+                #print("DEBUG2 diferido IntVar:", self.var_diferido.get())
+                #print("DEBUG2 valores['diferido'] (Si/No):", valores['diferido'])
             else:
                 # Último estado no Pendiente/Comentado → INSERT nuevo
                 sql_insert = """INSERT INTO registrospacientes 
@@ -1844,8 +1888,8 @@ class PacientesModificar():
                                 comentarios_radiologo, usuario)
                                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
                 self.db.cursor.execute(sql_insert, valores_modificados)
-                print("DEBUG3 diferido IntVar:", self.var_diferido.get())
-                print("DEBUG3 valores['diferido'] (Si/No):", valores['diferido'])
+                #print("DEBUG3 diferido IntVar:", self.var_diferido.get())
+                #print("DEBUG3 valores['diferido'] (Si/No):", valores['diferido'])
         else:
             # No existe → INSERT
             sql_insert = """INSERT INTO registrospacientes 
@@ -1857,10 +1901,10 @@ class PacientesModificar():
                             comentarios_radiologo, usuario)
                             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
             self.db.cursor.execute(sql_insert, valores_modificados)
-            print("DEBUG4 diferido IntVar:", self.var_diferido.get())
-            print("DEBUG4 valores['diferido'] (Si/No):", valores['diferido'])
+            #print("DEBUG4 diferido IntVar:", self.var_diferido.get())
+            #print("DEBUG4 valores['diferido'] (Si/No):", valores['diferido'])
             
-        print("DEBUG Se ejecutó UPDATE o INSERT en registrospacientes:", "UPDATE" if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado')] else "INSERT")
+        #print("DEBUG Se ejecutó UPDATE o INSERT en registrospacientes:", "UPDATE" if ultimo_estado in [self.obtener_id_estado('Pendiente'), self.obtener_id_estado('Comentado')] else "INSERT")
 
         # Siempre insertar en registrospacientesmodificados
         sql_modificados = """INSERT INTO registrospacientesmodificados
@@ -1872,8 +1916,8 @@ class PacientesModificar():
                             comentarios_radiologo, usuario)
                             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
         self.db.cursor.execute(sql_modificados, valores_modificados)
-        print("DEBUG4 diferido IntVar:", self.var_diferido.get())
-        print("DEBUG4 valores['diferido'] (Si/No):", valores['diferido'])
+        #print("DEBUG4 diferido IntVar:", self.var_diferido.get())
+        #print("DEBUG4 valores['diferido'] (Si/No):", valores['diferido'])
         
         """sql_diferidos = "INSERT INTO registrospacientesdiferidos
                             (nombre_paciente, identificacion_paciente, edad, rango_edad, fecha_orden,
@@ -1898,8 +1942,8 @@ class PacientesModificar():
                             comentarios_radiologo = %s, usuario = %s
                         WHERE identificacion_paciente = %s"""
         self.db.cursor.execute(sql_diferidos, valores1)
-        print("DEBUG5 diferido IntVar:", self.var_diferido.get())
-        print("DEBUG5 valores['diferido'] (Si/No):", valores['diferido'])
+        #print("DEBUG5 diferido IntVar:", self.var_diferido.get())
+        #print("DEBUG5 valores['diferido'] (Si/No):", valores['diferido'])
 
         self.db.conexion.commit()
         
@@ -1908,21 +1952,72 @@ class PacientesModificar():
             "SELECT diferido, estado FROM registrospacientes WHERE identificacion_paciente = %s ORDER BY id_registro DESC LIMIT 1", 
             (identificacion,)
         )
-        print("DB row after update:", self.db.cursor.fetchone())
+        #print("DB row after update:", self.db.cursor.fetchone())
+        
+        messagebox.showinfo("Datos Modificados", 
+                            "Los Datos Se Han Modificado Exitosamente", parent=self.ventana
+                            )
+        
+        # ----------------------------
+        # Guardar la hora de citación en JSON de horas tomadas
+        # ----------------------------
+            
+        try:
+            if hasattr(self, "_pending_bloqueo") and self._pending_bloqueo:
+                from ventanas.ventana_pacientes_modificar import PacientesModificar
+
+                # Cargar JSON existente por si alguien más lo cambió
+                self.cargar_horas()
+                horas_tomadas = self.horas_tomadas
+
+                pb = self._pending_bloqueo
+                id_sede = pb["id_sede"]
+                fecha = pb["fecha"]
+                horas_list = pb["horas"]
+
+                # Aseguramos estructura
+                horas_tomadas.setdefault(id_sede, {})
+                horas_tomadas.setdefault("detalles", {})
+
+                # Insertar horas en lista por sede/fecha (si no existe)
+                horas_tomadas[id_sede].setdefault(fecha, [])
+                for h in horas_list:
+                    if h not in horas_tomadas[id_sede][fecha]:
+                        horas_tomadas[id_sede][fecha].append(h)
+
+                # Guardar en "detalles" solo si NO es diferido
+                if not pb.get("diferido", False):
+                    clave = f"{id_sede}_{fecha}_{(pb.get('hora_inicio') or horas_list[0])}"
+                    horas_tomadas["detalles"][clave] = horas_list
+
+                # Guardar JSON a disco (método ya existente)
+                self.guardar_horas()
+
+                # Opcional: actualizar combobox globales
+                try:
+                    PacientesModificar.actualizar_horas_disponibles()
+                except Exception:
+                    pass
+
+                # Limpiar pending
+                self._pending_bloqueo = None
+
+        except Exception as e:
+            print(e)
     
     def _clear_placeholder(self, event, widget=None):
-            
-        """Limpia el contenido del widget sin importar lo que tenga."""
+        """Borra el placeholder; widget puede venir por parámetro o por event.widget."""
         if widget is None:
             widget = event.widget
-
-        # Si el widget tiene un Entry interno (por ejemplo, un ComboBox)
+        # si el combobox tiene un entry interno, usarlo
         entry = getattr(widget, "_entry", None)
         try:
             if entry is not None:
-                entry.after(10, lambda: entry.delete(0, "end"))
+                if entry.get() == self.placeholder_text:
+                    entry.after(10, lambda: entry.delete(0, "end"))
             else:
-                widget.after(10, lambda: widget.set("") if hasattr(widget, "set") else widget.delete(0, "end"))
+                if widget.get() == self.placeholder_text:
+                    widget.after(10, lambda: widget.set(""))
         except Exception:
             pass
 
@@ -1945,10 +2040,9 @@ class PacientesModificar():
             pass
 
     def filtrar_horas(self, event, widget=None):
-            
         """
         Filtra las horas en el combobox de hora de citación según el texto escrito
-        y las horas ya tomadas para la fecha seleccionada.
+        y las horas ya tomadas para la fecha y sede seleccionadas.
         """
         if widget is None:
             widget = event.widget
@@ -1960,10 +2054,25 @@ class PacientesModificar():
         except Exception:
             texto = widget.get().strip()
 
-        # Si es el combobox de hora citación, filtrar horas ocupadas por fecha
-        if widget == self.entry_combobox_hora_citacion:
+        # Obtener fecha y sede (si podemos)
+        try:
             fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+        except Exception:
+            fecha = None
+
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
+
+        # horas ocupadas del día para la sede actual (si no existe sede, asumimos global vacío)
+        horas_ocupadas = []
+        if id_sede is not None:
+            horas_ocupadas = self.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
+
+        # Si es el combobox de hora citación, filtrar horas ocupadas por fecha y sede
+        if widget == self.entry_combobox_hora_citacion:
             if texto == "" or texto == self.placeholder_text:
                 filtradas = [h for h in self.horas if h not in horas_ocupadas]
             else:
@@ -1981,15 +2090,32 @@ class PacientesModificar():
         except Exception:
             pass
     
-        # Función que se llama al perder foco
-
+    @classmethod
     def _normalizar_hora(self, texto):
-        """Normaliza texto de hora a HH:MM si es válido. Si no tiene minutos, devuelve None."""
+        
+        """Normaliza texto o entero de hora a formato HH:MM si es válido."""
+        if texto is None:
+            return None
+
+        # Si es entero tipo 900 o 930
+        if isinstance(texto, int):
+            h = texto // 100
+            m = texto % 100
+            return f"{h:02d}:{m:02d}"
+
+        # Si es datetime.time o datetime.datetime
+        if isinstance(texto, (datetime, time)):
+            return texto.strftime("%H:%M")
+
+        # Asegurar que sea string
+        if not isinstance(texto, str):
+            texto = str(texto)
+
         texto = texto.strip()
         if not texto or texto == getattr(self, "placeholder_text", ""):
             return None
 
-        # Si es un número (p.e. '7' o '08'), lo tratamos como hora entera sin minutos
+        # Si es número como '7' o '08'
         if re.fullmatch(r"\d{1,2}", texto):
             return f"{int(texto):02d}:00"
 
@@ -1999,132 +2125,521 @@ class PacientesModificar():
             h, mi = int(m.group(1)), int(m.group(2))
             if 0 <= h <= 23 and 0 <= mi <= 59:
                 return f"{h:02d}:{mi:02d}"
+
         return None
-        
-    def bloquear_hora_tomada(self, event, widget=None):
+    
+    def bloquear_hora_tomada(self, event, widget=None, duracion_minutos=None):
         
         """
         Bloquea la hora seleccionada y las siguientes según la duración elegida
-        por el usuario. Si la hora ya está ocupada, muestra un mensaje con duración.
+        por el usuario. Si se recibe duracion_minutos, lo usa y NO muestra el diálogo.
         """
-        if widget is None:
+        
+        """if widget is None and event is not None:
             widget = event.widget
+        if widget is None:
+            return
 
+        # Solo para el combobox de hora citación
         if widget != self.entry_combobox_hora_citacion:
-            return  # Solo combobox de citación
+            return
 
+        # 1) Validar que haya identificación
+        identificacion = self.entry_identificacion_paciente.get().strip()
+        if not identificacion:
+            messagebox.showwarning(
+                "Falta identificación",
+                "Debe ingresar la identificación del paciente antes de seleccionar la hora.",
+                parent=self.ventana
+            )
+            widget.set(self.placeholder_text)
+            return
+
+        # 2) Normalizar hora parcial
         raw = widget.get().strip()
         hora_normalizada = self._normalizar_hora(raw)
-        if hora_normalizada is None:
-            return  # Usuario aún escribiendo o valor parcial
 
-        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
-
-        # ==== Si la hora ya está ocupada ====
-        if hora_normalizada in horas_tomadas_dia:
-            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
-            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
-            
-            widget.set(self.placeholder_text)
-            return
-
-        # ==== Mostrar ventana para elegir duración ====
-        duracion_minutos = self._mostrar_dialogo_duracion()
-        if duracion_minutos is None:
-            widget.set(self.placeholder_text)
-            return
-
-        # ==== Calcular rango de horas a bloquear ====
-        try:
-            hora_inicio = datetime.strptime(hora_normalizada, "%H:%M")
-            hora_fin = hora_inicio + timedelta(minutes=duracion_minutos)
-        except ValueError:
-            messagebox.showerror("Error", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
-            return
-
-        # ==== Determinar horas a bloquear dentro del rango ====
-        horas_a_bloquear = []
-        for h in self.horas:
+        # 2a) Validaciones inmediatas (aunque sea parcial)
+        if len(raw) >= 1:  # para que salga aviso al empezar a escribir
             try:
-                hora_actual = datetime.strptime(h, "%H:%M")
-                if hora_inicio <= hora_actual <= hora_fin:
-                    horas_a_bloquear.append(h)
-            except ValueError:
-                continue
+                sql_union = 
+                    SELECT id_registro, estado, 'r' as tabla
+                    FROM registrospacientes
+                    WHERE identificacion_paciente = %s
+                    UNION ALL
+                    SELECT id_registro, estado, 'd' as tabla
+                    FROM registrospacientesdiferidos
+                    WHERE identificacion_paciente = %s
+                    ORDER BY id_registro DESC
+                    LIMIT 1
+                
+                self.db.cursor.execute(sql_union, (identificacion, identificacion))
+                fila = self.db.cursor.fetchone()
 
-        # ==== Verificar conflictos dentro del rango ====
-        for h in horas_a_bloquear:
-            if h in horas_tomadas_dia:
-                messagebox.showwarning(
-                    "Conflicto de horario",
-                    f"No se puede bloquear {hora_normalizada}.\n"
-                    f"La hora {h} ya está ocupada para {fecha}.",
-                    parent=self.ventana
-                )
+                ultimo_estado_nombre = None
+                if fila:
+                    estado_id = fila[1]
+                    sql_est = "SELECT nombre_estado FROM estados WHERE id_estado = %s"
+                    self.db.cursor.execute(sql_est, (estado_id,))
+                    fila_est = self.db.cursor.fetchone()
+                    if fila_est:
+                        ultimo_estado_nombre = fila_est[0]
+
+                if ultimo_estado_nombre and ultimo_estado_nombre in ("Pendiente", "Comentado", "Diferido"):
+                    messagebox.showwarning(
+                        "Paciente con registro activo",
+                        f"El paciente con identificación {identificacion} tiene un registro activo en estado: {ultimo_estado_nombre}.\nNo se puede asignar una nueva citación mientras exista un registro activo.",
+                        parent=self.ventana
+                    )
+                    widget.set(self.placeholder_text)
+                    return
+
+            except Exception as e:
+                print("[DEBUG] Error al consultar último estado del paciente:", e)
+                messagebox.showerror("Error BD", "No se pudo verificar estado del paciente en la base de datos.", parent=self.ventana)
                 widget.set(self.placeholder_text)
                 return
 
-        # ==== Guardar horas bloqueadas ====
-        self.horas_tomadas.setdefault(fecha, []).extend(horas_a_bloquear)
-        # Guardar duración del estudio
-        self.horas_tomadas.setdefault("detalles", {})
-        self.horas_tomadas["detalles"][f"{fecha}_{hora_normalizada}"] = duracion_minutos
+        # 2b) Solo continuar si la hora es COMPLETA y existe en la lista
+        if hora_normalizada is None or hora_normalizada not in self.horas:
+            return  # todavía escribiendo, no hacer nada
 
-        # ==== Guardar en JSON ====
-        self.guardar_horas()
-
-        # ==== Actualizar combobox ====
-        self.filtrar_horas(event, widget)
-    
-    def _calcular_duracion_estudio(self, fecha, hora_inicio):
-        """
-        Calcula la duración real del estudio desde self.horas_tomadas['detalles'].
-        Si no se encuentra, estima por continuidad de bloques.
-        """
-        detalles = self.horas_tomadas.get("detalles", {})
-        clave = f"{fecha}_{hora_inicio}"
-
-        if clave in detalles:
-            return detalles[clave]  # Duración real elegida por el usuario
-
-        # Si no hay detalle guardado, calcula por continuidad
-        if fecha not in self.horas_tomadas:
-            return 0
-
-        horas_bloqueadas = sorted(self.horas_tomadas[fecha])
-        try:
-            idx = horas_bloqueadas.index(hora_inicio)
-        except ValueError:
-            return 0
-
-        inicio = datetime.strptime(hora_inicio, "%H:%M")
-        fin = inicio
-
-        for i in range(idx + 1, len(horas_bloqueadas)):
-            actual = datetime.strptime(horas_bloqueadas[i], "%H:%M")
-            if (actual - fin) <= timedelta(minutes=5):
-                fin = actual
-            else:
-                break
-
-        return int((fin - inicio).total_seconds() / 60)
-    
-    def actualizar_horas_disponibles(self, event=None):
-        """Restaura la lista de horas disponibles al cambiar la fecha."""
+        # 3) Preparar pending_bloqueo
         try:
             fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+        except Exception:
+            messagebox.showerror("Fecha inválida", "No se pudo obtener la fecha de citación.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        nombre_sede = self.entry_sede_paciente.get().strip()
+        id_sede = self.obtener_id_sede(nombre_sede)
+        if id_sede is None:
+            messagebox.showwarning("Sede inválida", "No se pudo determinar la sede seleccionada.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+        id_sede_str = str(id_sede)
+
+        # --- SI ES DIFERIDO ---
+        if getattr(self, "var_diferido", None) and self.var_diferido.get() == 1:
+            self._pending_bloqueo = {
+                "id_sede": id_sede_str,
+                "fecha": fecha,
+                "horas": [hora_normalizada],
+                "diferido": True
+            }
+            print(f"[DEBUG] Pending bloqueo (diferido): {self._pending_bloqueo}")
+            return
+
+        # --- SI NO ES DIFERIDO: PEDIR DURACIÓN SOLO AQUÍ ---
+        if duracion_minutos is None:
+            duracion_minutos = self._mostrar_dialogo_duracion()
+            if duracion_minutos is None:
+                widget.set(self.placeholder_text)
+                return
+
+        # Calcular rango de horas a bloquear
+        try:
+            inicio_dt = datetime.strptime(hora_normalizada, "%H:%M")
+            fin_dt = inicio_dt + timedelta(minutes=duracion_minutos)
+        except Exception:
+            messagebox.showerror("Hora inválida", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        horas_a_bloquear = []
+        for h in self.horas:
+            try:
+                h_dt = datetime.strptime(h, "%H:%M")
+                if inicio_dt <= h_dt <= fin_dt:
+                    horas_a_bloquear.append(h)
+            except Exception:
+                continue
+
+        # Guardar pending para no tocar JSON todavía
+        self._pending_bloqueo = {
+            "id_sede": id_sede_str,
+            "fecha": fecha,
+            "horas": horas_a_bloquear,
+            "diferido": False,
+            "duracion_minutos": duracion_minutos,
+            "hora_inicio": hora_normalizada
+        }
+        print(f"[DEBUG] Pending bloqueo: {self._pending_bloqueo}")"""
+        
+        """if widget is None and event is not None:
+            widget = event.widget
+        if widget is None or widget != self.entry_combobox_hora_citacion:
+            return
+
+        # Validar identificación
+        identificacion = self.entry_identificacion_paciente.get().strip()
+        if not identificacion:
+            messagebox.showwarning(
+                "Falta identificación",
+                "Debe ingresar la identificación del paciente antes de seleccionar la hora.",
+                parent=self.ventana
+            )
+            widget.set(self.placeholder_text)
+            return
+
+        # Normalizar hora
+        raw = widget.get().strip()
+        hora_normalizada = self._normalizar_hora(raw)
+        if hora_normalizada is None or hora_normalizada not in self.horas:
+            return  # todavía escribiendo
+
+        # Obtener fecha y sede actuales
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except:
+            messagebox.showerror("Fecha inválida", "No se pudo obtener la fecha de citación.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        nombre_sede = self.entry_sede_paciente.get().strip()
+        id_sede = self.obtener_id_sede(nombre_sede)
+        if id_sede is None:
+            messagebox.showwarning("Sede inválida", "No se pudo determinar la sede seleccionada.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+        id_sede_str = str(id_sede)
+
+        # Detectar cambios respecto a los valores originales
+        sede_original = str(self.paciente_modificar.get("sede"))
+        fecha_original = self.paciente_modificar.get("fecha_citacion")
+        hora_original = self.paciente_modificar.get("hora_citacion")
+
+        try:
+            fecha_original = datetime.strptime(fecha_original, "%Y-%m-%d").strftime("%d/%m/%Y")
+        except:
+            pass
+        try:
+            hora_original = hora_original[:5]
+        except:
+            pass
+
+        hubo_cambio = not (
+            sede_original == id_sede_str and
+            fecha_original == fecha and
+            hora_original == hora_normalizada
+        )
+
+        # Si no hubo cambio, no hacer nada
+        if not hubo_cambio:
+            print("[DEBUG] No hubo cambio de sede/fecha/hora → No bloquear ni validar.")
+            self._pending_bloqueo = None
+            return
+
+        # --- Si es diferido ---
+        if getattr(self, "var_diferido", None) and self.var_diferido.get() == 1:
+            self._pending_bloqueo = {
+                "id_sede": id_sede_str,
+                "fecha": fecha,
+                "horas": [hora_normalizada],
+                "diferido": True
+            }
+            print(f"[DEBUG] Pending bloqueo (diferido): {self._pending_bloqueo}")
+            return
+
+        # Pedir duración si no se recibió
+        if duracion_minutos is None:
+            duracion_minutos = self._mostrar_dialogo_duracion()
+            if duracion_minutos is None:
+                widget.set(self.placeholder_text)
+                return
+
+        # Calcular rango de horas a bloquear
+        try:
+            inicio_dt = datetime.strptime(hora_normalizada, "%H:%M")
+            fin_dt = inicio_dt + timedelta(minutes=duracion_minutos)
+        except:
+            messagebox.showerror("Hora inválida", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        horas_a_bloquear = [h for h in self.horas if inicio_dt <= datetime.strptime(h, "%H:%M") <= fin_dt]
+
+        # Guardar en pending
+        self._pending_bloqueo = {
+            "id_sede": id_sede_str,
+            "fecha": fecha,
+            "horas": horas_a_bloquear,
+            "diferido": False,
+            "duracion_minutos": duracion_minutos,
+            "hora_inicio": hora_normalizada,
+            "hubo_cambio": True
+        }
+
+        print(f"[DEBUG] Pending bloqueo (CAMBIO REAL): {self._pending_bloqueo}")"""
+        
+        if widget is None and event is not None:
+            widget = event.widget
+        if widget is None or widget != self.entry_combobox_hora_citacion:
+            return
+
+        # Validar identificación
+        identificacion = self.entry_identificacion_paciente.get().strip()
+        if not identificacion:
+            messagebox.showwarning(
+                "Falta identificación",
+                "Debe ingresar la identificación del paciente antes de seleccionar la hora.",
+                parent=self.ventana
+            )
+            widget.set(self.placeholder_text)
+            return
+
+        # Normalizar hora
+        raw = widget.get().strip()
+        hora_normalizada = self._normalizar_hora(raw)
+        if hora_normalizada is None or hora_normalizada not in self.horas:
+            return  # todavía escribiendo
+
+        # Obtener fecha y sede actuales
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except:
+            messagebox.showerror("Fecha inválida", "No se pudo obtener la fecha de citación.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        nombre_sede = self.entry_sede_paciente.get().strip()
+        id_sede = self.obtener_id_sede(nombre_sede)
+        if id_sede is None:
+            messagebox.showwarning("Sede inválida", "No se pudo determinar la sede seleccionada.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+        id_sede_str = str(id_sede)
+
+        # Detectar cambios respecto a los valores originales
+        sede_original = str(self.paciente_modificar.get("sede"))
+        fecha_original = self.paciente_modificar.get("fecha_citacion")
+        hora_original = self.paciente_modificar.get("hora_citacion")
+
+        try:
+            fecha_original = datetime.strptime(fecha_original, "%Y-%m-%d").strftime("%d/%m/%Y")
+        except:
+            try:
+                fecha_original = datetime.strptime(fecha_original, "%d/%m/%Y").strftime("%d/%m/%Y")
+            except:
+                pass
+        try:
+            hora_original = str(hora_original)[:5]
+        except:
+            pass
+
+        hubo_cambio = not (
+            sede_original == id_sede_str and
+            fecha_original == fecha and
+            hora_original == hora_normalizada
+        )
+
+        # Si no hubo cambio, no hacer nada
+        if not hubo_cambio:
+            print("[DEBUG] No hubo cambio de sede/fecha/hora → No bloquear ni validar.")
+            self._pending_bloqueo = None
+            return
+
+        # --- Si es diferido ---
+        if getattr(self, "var_diferido", None) and self.var_diferido.get() == 1:
+            self._pending_bloqueo = {
+                "id_sede": id_sede_str,
+                "fecha": fecha,
+                "horas": [hora_normalizada],
+                "diferido": True,
+                "hora_inicio": hora_normalizada,
+                "hubo_cambio": True
+            }
+            print(f"[DEBUG] Pending bloqueo (diferido): {self._pending_bloqueo}")
+            return
+
+        # Pedir duración si no se recibió
+        if duracion_minutos is None:
+            duracion_minutos = self._mostrar_dialogo_duracion()
+            if duracion_minutos is None:
+                widget.set(self.placeholder_text)
+                return
+
+        # Calcular rango de horas a bloquear
+        try:
+            inicio_dt = datetime.strptime(hora_normalizada, "%H:%M")
+            fin_dt = inicio_dt + timedelta(minutes=duracion_minutos)
+        except:
+            messagebox.showerror("Hora inválida", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        horas_a_bloquear = [h for h in self.horas if inicio_dt <= datetime.strptime(h, "%H:%M") <= fin_dt]
+
+        # Guardar en pending solo la clave y horas (para guardar detalles)
+        self._pending_bloqueo = {
+            "id_sede": id_sede_str,
+            "fecha": fecha,
+            "horas": horas_a_bloquear,
+            "diferido": False,
+            "duracion_minutos": duracion_minutos,
+            "hora_inicio": hora_normalizada,
+            "hubo_cambio": True
+        }
+
+        print(f"[DEBUG] Pending bloqueo (CAMBIO REAL): {self._pending_bloqueo}")
+        
+    def _al_seleccionar_hora(self, valor):
+        
+        """
+        Se ejecuta automáticamente cuando se selecciona una hora en el CTkComboBox.
+        """        
+        hora_texto = valor.strip()
+        hora_normalizada = self._normalizar_hora(hora_texto)
+        if not hora_normalizada:
+            return
+
+        # Mostrar diálogo de duración (solo aquí)
+        duracion = self._mostrar_dialogo_duracion()
+        if duracion is None:
+            # Canceló
+            self.entry_combobox_hora_citacion.set(self.placeholder_text)
+            return
+
+        # Guardar duración seleccionada temporalmente (opcional)
+        self.duracion_seleccionada = duracion
+
+        # Llamar a bloquear pasando la duración para evitar abrir el diálogo otra vez
+        # notar: bloqueamos llamando con el widget correspondiente
+        self.bloquear_hora_tomada(None, self.entry_combobox_hora_citacion, duracion)
+    
+    # -------------------------------
+    # Método que se llama al cambiar sede o fecha
+    # -------------------------------
+    def _on_cambio_sede_o_fecha(self, campo):
+        """
+        Limpiar combobox de hora y mostrar aviso solo si sede o fecha cambiaron.
+        """
+        """# Valores actuales
+        if campo == "sede":
+            valor_actual = self.entry_sede_paciente.get().strip()
+            valor_original = str(self.paciente_modificar.get("sede"))
+        elif campo == "fecha":
+            try:
+                valor_actual = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+            except:
+                return
+            valor_original = self.paciente_modificar.get("fecha_citacion")
+            try:
+                valor_original = datetime.strptime(valor_original, "%Y-%m-%d").strftime("%d/%m/%Y")
+            except:
+                pass
+        else:
+            return
+
+        # Si hay cambio, mostrar aviso y limpiar combobox
+        if valor_actual != valor_original:
+            messagebox.showinfo(
+                "Hora requerida",
+                f"Ha cambiado la {campo}. Por favor, seleccione una nueva hora para actualizar correctamente la franja.",
+                parent=self.ventana
+            )
+            self.entry_combobox_hora_citacion.set(self.placeholder_text)
+            # Limpiar _pending_bloqueo previo, si existía
+            if hasattr(self, "_pending_bloqueo"):
+                self._pending_bloqueo = None"""
+                
+        try:
+            if campo == "sede":
+                valor_actual = self.entry_sede_paciente.get().strip()
+                valor_original = str(self.paciente_modificar.get("sede"))
+            elif campo == "fecha":
+                try:
+                    valor_actual = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+                except Exception:
+                    return
+                valor_original = self.paciente_modificar.get("fecha_citacion")
+                try:
+                    valor_original = datetime.strptime(valor_original, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except:
+                    pass
+            else:
+                return
+
+            # Usar atributo para controlar que mensaje solo salga una vez por valor cambiado
+            attr_last_value = f"_last_{campo}_value"
+            ultimo_valor = getattr(self, attr_last_value, None)
+
+            if valor_actual != valor_original and valor_actual != ultimo_valor:
+                # Guardamos el valor actual para que no vuelva a salir hasta que cambie otra vez
+                setattr(self, attr_last_value, valor_actual)
+
+                # Resetear combobox de hora si existe
+                if hasattr(self, "entry_combobox_hora_citacion"):
+                    self.entry_combobox_hora_citacion.set(self.placeholder_text)
+                    self.entry_combobox_hora_realizacion.set(self.placeholder_text)
+
+                # Crear pending de bloqueo vacío para obligar nueva hora
+                self._pending_bloqueo = None
+
+                messagebox.showinfo(
+                    "Hora requerida",
+                    f"Ha cambiado la {campo}. Por favor, seleccione una nueva hora para actualizar correctamente la franja.",
+                    parent=self.ventana
+                )
+
+            elif valor_actual == valor_original:
+                # Si el valor vuelve al original, borramos el atributo
+                if hasattr(self, attr_last_value):
+                    delattr(self, attr_last_value)
+
+        except Exception as e:
+            print("[DEBUG] Error en _on_cambio_sede_o_fecha:", e)
+
+    # -------------------------------
+    # Método que se llama cuando el usuario selecciona una nueva hora
+    # -------------------------------
+    def _al_seleccionar_hora(self, hora):
+        # Aquí ya se seleccionó correctamente la hora
+        #self._aviso_hora_cambiada = False
+        # Llamar a la función original que bloquea hora
+        self.bloquear_hora_tomada(None, widget=self.entry_combobox_hora_citacion)
+    
+    @classmethod
+    def actualizar_json_horas(cls):
+        """Actualiza únicamente el JSON de horas (sin tocar widgets)."""
+        try:
+            cls.cargar_horas()
+            cls.guardar_horas()
+        except Exception as e:
+            print(e)
+
+    def actualizar_horas_disponibles(self, event=None):
+            
+        """Restaura la lista de horas disponibles al cambiar la fecha o la sede."""
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+            id_sede_str = str(id_sede) if id_sede is not None else None
+
+            if id_sede_str and id_sede_str in self.horas_tomadas:
+                # Normalizamos todas las horas a 'HH:MM' strings
+                horas_ocupadas_raw = self.horas_tomadas[id_sede_str].get(fecha, [])
+                horas_ocupadas = [
+                    self._normalizar_hora(h) if isinstance(h, str) else f"{int(h)//100:02d}:{int(h)%100:02d}"
+                    for h in horas_ocupadas_raw
+                ]
+            else:
+                horas_ocupadas = []
+
             horas_disponibles = [h for h in self.horas if h not in horas_ocupadas]
 
             # Actualizar ambos combobox con las horas libres
             self.entry_combobox_hora_citacion.configure(values=horas_disponibles)
             self.entry_combobox_hora_realizacion.configure(values=horas_disponibles)
+
         except Exception as e:
-            print("Error al actualizar horas:", e)
+            print(e)
 
     def _validar_hora_al_abrir_dropdown(self, event):
-        if self._mensaje_mostrado:
+        
+        """if getattr(self, "_mensaje_mostrado", False):
             return  # ya se mostró, no repetir
 
         widget = event.widget
@@ -2133,41 +2648,569 @@ class PacientesModificar():
         if not hora_normalizada:
             return
 
-        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except Exception:
+            return
 
-        if hora_normalizada in horas_tomadas_dia:
-            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
-            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
 
-            self._mensaje_mostrado = True  # activamos flag
-            messagebox.showwarning(
-                "Hora no disponible",
-                f"La hora {hora_normalizada} ya está ocupada.\n"
-                f"El estudio asignado dura {duracion} minutos.\n"
-                f"Espacio ocupado hasta las {fin_estudio}.",
-                parent=self.ventana
-            )
+        detalles = self.horas_tomadas.get("detalles", {})
+        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
+
+        for clave, horas_lista in detalles.items():
+            if not clave.startswith(prefijo):
+                continue
+            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
+                continue
+
+            # 🔹 Normalizar todas las horas a strings HH:MM
+            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+            if not horas_lista:
+                continue
+
+            hora_busq = hora_normalizada.split(":")[0]
+            if any(h.split(":")[0] == hora_busq for h in horas_lista):
+                inicio = min(horas_lista)
+                fin = max(horas_lista)
+                duracion_min = (len(horas_lista) - 1) * 5
+                self._mensaje_mostrado = True
+                return
+
+        if id_sede is not None:
+            horas_tomadas_dia = self.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
+            if hora_normalizada in horas_tomadas_dia:
+                clave_busq = f"{id_sede}_{fecha}_{hora_normalizada}"
+                horas_lista = detalles.get(clave_busq)
+                if isinstance(horas_lista, list) and horas_lista:
+                    horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+                    inicio = min(horas_lista)
+                    fin = max(horas_lista)
+                    duracion_min = (len(horas_lista) - 1) * 5
+                else:
+                    duracion_min = self._calcular_duracion_estudio(fecha, hora_normalizada)
+                    fin = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion_min)).strftime("%H:%M")
+
+                self._mensaje_mostrado = True
+                messagebox.showwarning(
+                    "Hora no disponible",
+                    f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
+                    f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
+                    parent=self.ventana
+                )"""
+                
+        # Resetear mensaje si el usuario borra la hora
+        cb = self.entry_combobox_hora_citacion
+        widget = event.widget
+        raw = widget.get().strip()
+        if not raw:
+            self._mensaje_mostrado = False
+            return
+
+        # 🔹 Normalizar hora
+        hora_normalizada = self._normalizar_hora(raw)
+        if not hora_normalizada:
+            return
+
+        # 🔹 Obtener fecha
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except Exception:
+            return
+
+        # 🔹 Obtener sede
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
+
+        # 🔹 Preparar detalles y prefijo para búsqueda
+        detalles = self.horas_tomadas.get("detalles", {})
+        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
+
+        # 🔹 Validar solapamiento
+        for clave, horas_lista in detalles.items():
+            if not clave.startswith(prefijo):
+                continue
+            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
+                continue
+
+            # Normalizar todas las horas a HH:MM
+            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+            if not horas_lista:
+                continue
+
+            # Convertir a set para validar solapamiento exacto
+            horas_set = set(horas_lista)
+            if hora_normalizada in horas_set:
+                inicio = min(horas_lista)
+                fin = max(horas_lista)
+                duracion_min = (len(horas_lista) - 1) * 5
+
+                # 🔹 Mostrar mensaje solo si no se ha mostrado antes
+                if not getattr(self, "_mensaje_mostrado", False):
+                    self._mensaje_mostrado = True
+                    messagebox.showwarning(
+                        "Hora no disponible",
+                        f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
+                        f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
+                        parent=self.ventana
+                    )
+                    cb.set(self.placeholder_text)
+
+                # 🔹 Limpiar inmediatamente el combo
+                widget.set('')
+                return
+
+        # 🔹 Si no hay solapamiento, permitir la selección
+        self._mensaje_mostrado = False
+    
     
     def cargar_horas(self):
         """Carga el diccionario de horas tomadas desde un archivo JSON."""
-        if os.path.exists("horas_tomadas.json"):
+        """if os.path.exists("horas_tomadas.json"):
             try:
                 with open("horas_tomadas.json", "r") as f:
-                    self.horas_tomadas = json.load(f)
+                    PacientesModificar.horas_tomadas = json.load(f)
             except Exception as e:
                 print("Error al cargar horas tomadas:", e)
-                self.horas_tomadas = {}
+                PacientesModificar.horas_tomadas = {}
         else:
-            self.horas_tomadas = {}
-
+            PacientesModificar.horas_tomadas = {}"""
+            
+        if os.path.exists("horas_tomadas.json"):
+            try:
+                with open("horas_tomadas.json", "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    # Guardamos solo detalles, asegurándonos que exista la clave
+                    self.horas_tomadas = {"detalles": data.get("detalles", {})}
+            except Exception as e:
+                print("[DEBUG] Error al cargar horas tomadas:", e)
+                self.horas_tomadas = {"detalles": {}}
+        else:
+            self.horas_tomadas = {"detalles": {}}
+    
+    
     def guardar_horas(self):
-        """Guarda el diccionario de horas tomadas en un archivo JSON."""
-        try:
-            with open("horas_tomadas.json", "w") as f:
-                json.dump(self.horas_tomadas, f)
+            
+        """
+        Guarda o actualiza las horas tomadas de un paciente en horas_tomadas.json.
+        Si hubo un cambio en sede, fecha o hora, reemplaza la clave vieja por la nueva.
+        """
+            
+        """try:
+            # Verificaciones básicas
+            if not hasattr(self, "_pending_bloqueo") or not self._pending_bloqueo:
+                print("[DEBUG] No hay _pending_bloqueo para guardar.")
+                return
+
+            pb = self._pending_bloqueo
+            print("[DEBUG] _pending_bloqueo recibido:", pb)
+
+            # Datos nuevos (lo que queremos guardar)
+            id_sede_new = str(pb.get("id_sede"))
+            fecha_new = pb.get("fecha")
+            horas_list_new = pb.get("horas", [])
+            hora_inicio_new = pb.get("hora_inicio") or (horas_list_new[0] if horas_list_new else None)
+            clave_nueva = f"{id_sede_new}_{fecha_new}_{hora_inicio_new}" if hora_inicio_new else f"{id_sede_new}_{fecha_new}"
+
+            # Asegurar estructura en memoria
+            if not hasattr(self, "horas_tomadas") or not isinstance(self.horas_tomadas, dict):
+                self.horas_tomadas = {"detalles": {}}
+            self.horas_tomadas.setdefault("detalles", {})
+            detalles = self.horas_tomadas["detalles"]
+
+            # Obtener id_registro del paciente (solo para comparaciones en memoria/debug)
+            id_registro = None
+            try:
+                id_registro = self.paciente_modificar.get("id_registro")
+            except Exception:
+                id_registro = None
+            print(f"[DEBUG] id_registro (memoria): {id_registro!r}")
+
+            # Determinar clave_vieja (preferimos la que venga en pending si existe)
+            clave_vieja = pb.get("clave_vieja")
+            if clave_vieja:
+                print(f"[DEBUG] clave_vieja proporcionada en pending: {clave_vieja}")
+            else:
+                # Construimos clave_old_base a partir de los datos originales cargados en pantalla
+                sede_orig = str(self.paciente_modificar.get("sede"))
+                fecha_orig_raw = self.paciente_modificar.get("fecha_citacion")
+                hora_orig_raw = self.paciente_modificar.get("hora_citacion")
+                # Normalizar fecha original a dd/MM/YYYY (varios intentos)
+                try:
+                    fecha_orig_n = datetime.strptime(str(fecha_orig_raw), "%Y-%m-%d").strftime("%d/%m/%Y")
+                except Exception:
+                    try:
+                        fecha_orig_n = datetime.strptime(str(fecha_orig_raw), "%d/%m/%Y").strftime("%d/%m/%Y")
+                    except Exception:
+                        fecha_orig_n = str(fecha_orig_raw)
+                # Normalizar hora original a HH:MM
+                try:
+                    if isinstance(hora_orig_raw, timedelta):
+                        total_seconds = int(hora_orig_raw.total_seconds())
+                        hh = total_seconds // 3600
+                        mm = (total_seconds % 3600) // 60
+                        hora_orig_n = f"{hh:02d}:{mm:02d}"
+                    else:
+                        hora_orig_n = str(hora_orig_raw)[:5]
+                except Exception:
+                    hora_orig_n = str(hora_orig_raw)
+
+                clave_old_base = f"{sede_orig}_{fecha_orig_n}_{hora_orig_n}"
+                print(f"[DEBUG] clave_old_base (desde paciente_modificar): {clave_old_base}")
+
+                # Buscar en detalles la clave que coincide con la base antigua EXACTA
+                claves_posibles = [k for k in detalles.keys() if k.startswith(clave_old_base)]
+                if claves_posibles:
+                    # Si hay varias posibles, elegimos la que coincide exactamente con la base
+                    # (esto es más seguro que usar startswith genérico)
+                    clave_vieja = None
+                    for k in claves_posibles:
+                        if k == clave_old_base:
+                            clave_vieja = k
+                            break
+                    if clave_vieja is None:
+                        # fallback: tomar la primera coincidencia encontrada
+                        clave_vieja = claves_posibles[0]
+                    print(f"[DEBUG] claves_posibles encontradas para base antigua: {claves_posibles}")
+                else:
+                    print("[DEBUG] No se encontró clave vieja en JSON basada en clave_old_base.")
+                    clave_vieja = None
+
+            # Construir representaciones con id para debug (NO se guardan en JSON)
+            clave_vieja_id = f"{clave_vieja}_{id_registro}" if clave_vieja and id_registro is not None else None
+            clave_nueva_id = f"{clave_nueva}_{id_registro}" if id_registro is not None else None
+            print(f"[DEBUG] clave_vieja (a usar): {clave_vieja}")
+            print(f"[DEBUG] clave_vieja_id (memoria, NO guardada): {clave_vieja_id}")
+            print(f"[DEBUG] clave_nueva (a guardar): {clave_nueva}")
+            print(f"[DEBUG] clave_nueva_id (memoria, NO guardada): {clave_nueva_id}")
+
+            # Funcion interna: intenta borrar la clave_vieja del JSON (si existe) y devuelve (True/False, motivo)
+            def borrado_json(clave):
+                try:
+                    if clave in detalles:
+                        del detalles[clave]
+                        print(f"[DEBUG borrado_json] Eliminada clave del JSON: {clave}")
+                        return True, "borrado_ok"
+                    else:
+                        print(f"[DEBUG borrado_json] La clave no existe en JSON: {clave}")
+                        return False, "no_existia"
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    print(f"[ERROR borrado_json] Error borrando clave {clave}: {e}\n{tb}")
+                    return False, f"error:{e}"
+
+            # --- Lógica de decisión clara ---
+            accion = None
+            try:
+                # Caso 1: si clave_vieja existe y es distinta a la nueva -> borrar vieja y agregar nueva
+                if clave_vieja and clave_vieja != clave_nueva:
+                    print(f"[DEBUG] clave_vieja encontrada y distinta a clave_nueva -> proceder a borrar y reemplazar.")
+                    ok, motivo = borrado_json(clave_vieja)
+                    if not ok:
+                        # Si no pudimos borrar por alguna razón, mostramos error y SALIMOS sin guardar cambios
+                        print(f"[ERROR guardar_horas] No se pudo borrar la clave vieja ({clave_vieja}) antes de guardar. Motivo: {motivo}")
+                        return
+                    # Después de borrar, si la nueva ya existe y tiene exactamente las mismas horas, no hacemos nada.
+                    if clave_nueva in detalles and detalles[clave_nueva] == horas_list_new:
+                        print("[DEBUG] Después de borrar la vieja, la clave nueva ya existe y tiene las mismas horas -> no se modifica JSON.")
+                        accion = "no_hacer_nada_ya_existia"
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "reemplazar_por_nueva"
+                        print(f"[DEBUG] Clave nueva guardada (reemplazo): {clave_nueva} -> {horas_list_new}")
+
+                # Caso 2: no hay clave_vieja encontrada (nuevo caso) -> insertar nueva solamente
+                elif not clave_vieja:
+                    print("[DEBUG] No se detectó clave_vieja -> insertar clave nueva (si corresponde).")
+                    if clave_nueva in detalles:
+                        if detalles[clave_nueva] == horas_list_new:
+                            print("[DEBUG] La clave nueva ya existe con los mismos valores de horas -> no se hace nada.")
+                            accion = "no_hacer_nada_ya_existia"
+                        else:
+                            detalles[clave_nueva] = horas_list_new
+                            accion = "actualizar_horas_existente"
+                            print(f"[DEBUG] Actualizadas horas de clave existente: {clave_nueva} -> {horas_list_new}")
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "insertar_nueva"
+                        print(f"[DEBUG] Clave nueva insertada: {clave_nueva} -> {horas_list_new}")
+
+                # Caso 3: clave_vieja == clave_nueva -> posible edición interna de horas
+                else:  # clave_vieja == clave_nueva
+                    print("[DEBUG] clave_vieja igual a clave_nueva -> revisar horas.")
+                    if detalles.get(clave_nueva) == horas_list_new:
+                        print("[DEBUG] Horas idénticas -> no se hace nada.")
+                        accion = "no_hacer_nada_igual"
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "actualizar_mismaclave"
+                        print(f"[DEBUG] Horas de la misma clave actualizadas: {clave_nueva} -> {horas_list_new}")
+
+            except Exception as e:
+                print("[ERROR guardar_horas] Error durante la lógica de reemplazo:", e)
+                import traceback as _tb
+                print(_tb.format_exc())
+                return
+
+            # --- Escribir JSON (solo la sección detalles) ---
+            try:
+                json_a_guardar = {"detalles": detalles}
+                with open("horas_tomadas.json", "w", encoding="utf-8") as f:
+                    json.dump(json_a_guardar, f, indent=2, ensure_ascii=False)
+                print("[DEBUG guardar_horas] Guardado final en JSON (solo 'detalles'):", list(detalles.keys()))
+                print(f"[DEBUG guardar_horas] Acción tomada: {accion}")
+            except Exception as e:
+                print("[ERROR guardar_horas] Error escribiendo JSON:", e)
+                import traceback as _tb
+                print(_tb.format_exc())
+                return
+            finally:
+                # Limpiar pending_bloqueo en memoria
+                try:
+                    self._pending_bloqueo = None
+                except Exception:
+                    pass
+
         except Exception as e:
-            print("Error al guardar horas tomadas:", e)
+            print("[ERROR guardar_horas] Error general:", e)
+            import traceback
+            traceback.print_exc()"""
+        
+        try:
+            # Verificaciones básicas
+            if not hasattr(self, "_pending_bloqueo") or not self._pending_bloqueo:
+                print("[DEBUG] No hay _pending_bloqueo para guardar.")
+                return
+
+            pb = self._pending_bloqueo
+            print("[DEBUG] _pending_bloqueo recibido:", pb)
+
+            # Datos nuevos (lo que queremos guardar)
+            id_sede_new = str(pb.get("id_sede"))
+            fecha_new = pb.get("fecha")
+            horas_list_new = pb.get("horas", [])
+            hora_inicio_new = pb.get("hora_inicio") or (horas_list_new[0] if horas_list_new else None)
+            clave_nueva = f"{id_sede_new}_{fecha_new}_{hora_inicio_new}" if hora_inicio_new else f"{id_sede_new}_{fecha_new}"
+
+            # Asegurar estructura en memoria
+            if not hasattr(self, "horas_tomadas") or not isinstance(self.horas_tomadas, dict):
+                self.horas_tomadas = {"detalles": {}}
+            self.horas_tomadas.setdefault("detalles", {})
+            detalles = self.horas_tomadas["detalles"]
+
+            # Obtener id_registro del paciente (solo para debug, no se usa en la lógica)
+            id_registro = None
+            try:
+                id_registro = self.paciente_modificar.get("id_registro")
+            except Exception:
+                id_registro = None
+            print(f"[DEBUG] id_registro (memoria): {id_registro!r}")
+
+            # Determinar clave_vieja (preferimos la que venga en pending si existe)
+            clave_vieja = pb.get("clave_vieja")
+            if clave_vieja:
+                print(f"[DEBUG] clave_vieja proporcionada en pending: {clave_vieja}")
+            else:
+                # Construimos clave_old_base a partir de los datos originales cargados en pantalla
+                sede_orig = str(self.paciente_modificar.get("sede"))
+                fecha_orig_raw = self.paciente_modificar.get("fecha_citacion")
+                hora_orig_raw = self.paciente_modificar.get("hora_citacion")
+                try:
+                    fecha_orig_n = datetime.strptime(str(fecha_orig_raw), "%Y-%m-%d").strftime("%d/%m/%Y")
+                except Exception:
+                    try:
+                        fecha_orig_n = datetime.strptime(str(fecha_orig_raw), "%d/%m/%Y").strftime("%d/%m/%Y")
+                    except Exception:
+                        fecha_orig_n = str(fecha_orig_raw)
+                try:
+                    if isinstance(hora_orig_raw, timedelta):
+                        total_seconds = int(hora_orig_raw.total_seconds())
+                        hh = total_seconds // 3600
+                        mm = (total_seconds % 3600) // 60
+                        hora_orig_n = f"{hh:02d}:{mm:02d}"
+                    else:
+                        hora_orig_n = str(hora_orig_raw)[:5]
+                except Exception:
+                    hora_orig_n = str(hora_orig_raw)
+
+                clave_old_base = f"{sede_orig}_{fecha_orig_n}_{hora_orig_n}"
+                claves_posibles = [k for k in detalles.keys() if k.startswith(clave_old_base)]
+                if claves_posibles:
+                    # priorizamos coincidencia exacta
+                    clave_vieja = clave_old_base if clave_old_base in claves_posibles else claves_posibles[0]
+                    print(f"[DEBUG] claves_posibles encontradas para base antigua: {claves_posibles}")
+                    print(f"[DEBUG] clave_vieja detectada automaticamente: {clave_vieja}")
+                else:
+                    print("[DEBUG] No se encontró clave vieja en JSON basada en clave_old_base.")
+                    clave_vieja = None
+
+            print(f"[DEBUG] clave_vieja (a usar): {clave_vieja}")
+            print(f"[DEBUG] clave_nueva (a guardar): {clave_nueva}")
+            print(f"[DEBUG] horas_list_new: {horas_list_new}")
+
+            # -------- VALIDACIÓN DE SOLAPAMIENTOS --------
+            try:
+                # Recolectar todas las horas existentes para la misma sede+fecha EXCLUYENDO clave_vieja
+                base_nueva = f"{id_sede_new}_{fecha_new}_"
+                horas_existentes = []
+                claves_conflictivas = []
+                for k, v in detalles.items():
+                    if not k.startswith(base_nueva):
+                        continue
+                    # ignorar la clave vieja si corresponde (porque la vamos a reemplazar)
+                    if clave_vieja and k == clave_vieja:
+                        print(f"[DEBUG] Ignorando clave_vieja en chequeo de solapamiento: {k}")
+                        continue
+                    # v debería ser lista de horas
+                    if isinstance(v, list):
+                        horas_existentes.extend(v)
+                        claves_conflictivas.append(k)
+
+                # Normalizar y comparar sets (evita duplicados y orden)
+                set_nuevo = set(horas_list_new)
+                set_existente = set(horas_existentes)
+
+                print(f"[DEBUG] horas existentes (excluyendo clave_vieja): {claves_conflictivas} -> {sorted(list(set_existente))}")
+
+                # Intersección detecta solapamiento directo
+                interseccion = set_nuevo.intersection(set_existente)
+                if interseccion:
+                    # Si hay intersección => conflicto, no guardar
+                    print(f"[DEBUG] Conflicto detectado, intersección horas: {sorted(list(interseccion))}")
+                    try:
+                        messagebox.showwarning(
+                            "Hora no disponible",
+                            f"Las horas seleccionadas se solapan con horarios ya bloqueados para la sede {id_sede_new} en {fecha_new}.\n"
+                            f"Horas en conflicto: {', '.join(sorted(list(interseccion)))}",
+                            parent=self.ventana
+                        )
+                    except Exception:
+                        # Si falla messagebox por algún motivo, al menos imprimimos
+                        print("[DEBUG] No se pudo mostrar messagebox de advertencia (widget/ventana).")
+
+                    # Resetear combobox de hora al placeholder
+                    try:
+                        self.entry_combobox_hora_citacion.set(self.placeholder_text)
+                    except Exception:
+                        try:
+                            self.entry_combobox_hora_citacion.delete(0, "end")
+                            self.entry_combobox_hora_citacion.insert(0, self.placeholder_text)
+                        except Exception:
+                            pass
+
+                    # No seguimos con guardado
+                    return
+                else:
+                    print("[DEBUG] No se detectaron solapamientos con otras claves (ok).")
+
+            except Exception as e:
+                print("[ERROR guardar_horas] Error durante validación de solapamientos:", e)
+                import traceback as _tb
+                print(_tb.format_exc())
+                # En caso de error de validación, no proceder
+                return
+
+            # -------- LÓGICA ORIGINAL DE BORRADO/REEMPLAZO (se ejecuta solo si no hay solapamiento) --------
+            def borrado_json(clave):
+                try:
+                    if clave in detalles:
+                        del detalles[clave]
+                        print(f"[DEBUG borrado_json] Eliminada clave del JSON: {clave}")
+                        return True, "borrado_ok"
+                    else:
+                        print(f"[DEBUG borrado_json] La clave no existe en JSON: {clave}")
+                        return False, "no_existia"
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    print(f"[ERROR borrado_json] Error borrando clave {clave}: {e}\n{tb}")
+                    return False, f"error:{e}"
+
+            accion = None
+            try:
+                # Caso 1: si clave_vieja existe y es distinta a la nueva -> borrar vieja y agregar nueva
+                if clave_vieja and clave_vieja != clave_nueva:
+                    print(f"[DEBUG] clave_vieja encontrada y distinta a clave_nueva -> proceder a borrar y reemplazar.")
+                    ok, motivo = borrado_json(clave_vieja)
+                    if not ok:
+                        print(f"[ERROR guardar_horas] No se pudo borrar la clave vieja ({clave_vieja}) antes de guardar. Motivo: {motivo}")
+                        return
+                    if clave_nueva in detalles and detalles[clave_nueva] == horas_list_new:
+                        print("[DEBUG] Después de borrar la vieja, la clave nueva ya existe y tiene las mismas horas -> no se modifica JSON.")
+                        accion = "no_hacer_nada_ya_existia"
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "reemplazar_por_nueva"
+                        print(f"[DEBUG] Clave nueva guardada (reemplazo): {clave_nueva} -> {horas_list_new}")
+
+                # Caso 2: no hay clave_vieja encontrada -> insertar nueva solamente
+                elif not clave_vieja:
+                    print("[DEBUG] No se detectó clave_vieja -> insertar clave nueva (si corresponde).")
+                    if clave_nueva in detalles:
+                        if detalles[clave_nueva] == horas_list_new:
+                            print("[DEBUG] La clave nueva ya existe con los mismos valores de horas -> no se hace nada.")
+                            accion = "no_hacer_nada_ya_existia"
+                        else:
+                            detalles[clave_nueva] = horas_list_new
+                            accion = "actualizar_horas_existente"
+                            print(f"[DEBUG] Actualizadas horas de clave existente: {clave_nueva} -> {horas_list_new}")
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "insertar_nueva"
+                        print(f"[DEBUG] Clave nueva insertada: {clave_nueva} -> {horas_list_new}")
+
+                # Caso 3: clave_vieja == clave_nueva -> posible edición interna de horas
+                else:  # clave_vieja == clave_nueva
+                    print("[DEBUG] clave_vieja igual a clave_nueva -> revisar horas.")
+                    if detalles.get(clave_nueva) == horas_list_new:
+                        print("[DEBUG] Horas idénticas -> no se hace nada.")
+                        accion = "no_hacer_nada_igual"
+                    else:
+                        detalles[clave_nueva] = horas_list_new
+                        accion = "actualizar_mismaclave"
+                        print(f"[DEBUG] Horas de la misma clave actualizadas: {clave_nueva} -> {horas_list_new}")
+
+            except Exception as e:
+                print("[ERROR guardar_horas] Error durante la lógica de reemplazo:", e)
+                import traceback as _tb
+                print(_tb.format_exc())
+                return
+
+            # --- Escribir JSON (solo la sección detalles) ---
+            try:
+                json_a_guardar = {"detalles": detalles}
+                with open("horas_tomadas.json", "w", encoding="utf-8") as f:
+                    json.dump(json_a_guardar, f, indent=2, ensure_ascii=False)
+                print("[DEBUG guardar_horas] Guardado final en JSON (solo 'detalles'):", list(detalles.keys()))
+                print(f"[DEBUG guardar_horas] Acción tomada: {accion}")
+            except Exception as e:
+                print("[ERROR guardar_horas] Error escribiendo JSON:", e)
+                import traceback as _tb
+                print(_tb.format_exc())
+                return
+            finally:
+                # Limpiar pending_bloqueo en memoria
+                try:
+                    self._pending_bloqueo = None
+                except Exception:
+                    pass
+
+        except Exception as e:
+            print("[ERROR guardar_horas] Error general:", e)
+            import traceback
+            traceback.print_exc()
+        
+        
+        
+        
+        
+        
     
     # ==========================================================
     # VENTANA EMERGENTE PERSONALIZADA
@@ -2181,7 +3224,7 @@ class PacientesModificar():
         """
         dialogo = ctk.CTkToplevel(self.ventana)
         dialogo.title("Duración del estudio")
-        dialogo.geometry("320x240")
+        dialogo.geometry("320x320")
         dialogo.resizable(False, False)
         dialogo.grab_set()  # Bloquea interacción con otras ventanas
         dialogo.focus_force()
@@ -2208,32 +3251,142 @@ class PacientesModificar():
             ("1 hora", 60),
             ("1 hora y 30 minutos", 90),
             ("2 horas", 120),
+            ("2 horas y 30 minutos", 150),
         ]
         for texto, minutos in opciones:
-            btn = ctk.CTkButton(frame_botones, text=texto, width=200,
+            btn = ctk.CTkButton(frame_botones, 
+                                text=texto, 
+                                text_color='white',
+                                width=200,
+                                corner_radius=20,
+                                fg_color='#00155C',
+                                bg_color= 'white',
                                 command=lambda m=minutos: seleccionar(m))
             btn.pack(pady=5)
 
         # Botón de cancelar (similar a “No”)
-        btn_cancelar = ctk.CTkButton(dialogo, text="Cancelar", fg_color="gray", width=200,
+        btn_cancelar = ctk.CTkButton(dialogo, 
+                                    text="Cancelar",
+                                    text_color='white',
+                                    corner_radius=20,
+                                    fg_color='#00155C',
+                                    bg_color= 'white',
+                                    width=200,
                                     command=lambda: seleccionar(None))
         btn_cancelar.pack(pady=10)
 
         dialogo.wait_window()  # Esperar hasta que se cierre el diálogo
         return resultado["valor"]
     
-    def obtener_id_estado(self, nombre_estado):
-        """Obtiene el ID del estado basado en el nombre del estado."""
-        # solo tomamos el nombre
-        nombre_estado = nombre_estado.split(' (')[0]
+    def verificar_hora_periodica(self):
         
-        sql = "SELECT id_estado FROM estados WHERE nombre_estado = %s"
-        self.db.cursor.execute(sql, (nombre_estado,))
-        resultado = self.db.cursor.fetchone()
-        
-        # Retornar el ID si lo encuentra, de lo contrario None
-        return resultado[0] if resultado else None
+        """cb = self.entry_combobox_hora_citacion
+        valor_actual = cb.get().strip()
 
+        if valor_actual and valor_actual != self.placeholder_text:
+            digitos = ''.join(c for c in valor_actual if c.isdigit())
+            if len(digitos) >= 2:
+                try:
+                    fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+                except Exception:
+                    fecha = None
+
+                nombre_sede = self.entry_sede_paciente.get().strip()
+                id_sede = self.obtener_id_sede(nombre_sede)
+
+                if fecha and id_sede:
+                    id_sede = str(id_sede)
+                    detalles = PacientesModificar.horas_tomadas.get("detalles", {})
+
+                    for clave_detalle in detalles.keys():
+                        if clave_detalle.startswith(f"{id_sede}_{fecha}_{valor_actual}"):
+                            if getattr(self, "_ultima_hora_mostrada", None) == clave_detalle:
+                                break
+
+                            self._ultima_hora_mostrada = clave_detalle
+
+                            horas_lista = detalles[clave_detalle]
+                            if isinstance(horas_lista, list):
+                                # 🔹 Normalizamos todas las horas antes de min/max
+                                horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+
+                            inicio = min(horas_lista)
+                            fin = max(horas_lista)
+                            duracion_calc = (len(horas_lista) - 1) * 5 if horas_lista else 0
+
+                            print(f"[DEBUG verificar_hora_periodica] Mostrando mensaje para: {clave_detalle}")
+                            messagebox.showwarning(
+                                "Hora no disponible",
+                                f"Ya existe un estudio en la sede {nombre_sede} para {fecha}.\n"
+                                f"Comienza a las {inicio}, finaliza a las {fin}.\n"
+                                f"Duración: {duracion_calc} minutos.",
+                                parent=self.ventana
+                            )
+                            cb.set(self.placeholder_text)
+                            break
+                    else:
+                        self._ultima_hora_mostrada = None
+
+        cb.after(400, self.verificar_hora_periodica)"""
+        
+        cb = self.entry_combobox_hora_citacion
+        valor_actual = cb.get().strip()
+
+        if valor_actual and valor_actual != self.placeholder_text:
+            # Validamos que haya al menos 2 dígitos
+            digitos = ''.join(c for c in valor_actual if c.isdigit())
+            if len(digitos) >= 2:
+                try:
+                    fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+                except Exception:
+                    fecha = None
+
+                nombre_sede = self.entry_sede_paciente.get().strip()
+                id_sede = self.obtener_id_sede(nombre_sede)
+
+                if fecha and id_sede:
+                    id_sede_str = str(id_sede)
+                    detalles = PacientesModificar.horas_tomadas.get("detalles", {})
+
+                    # Recorremos todas las claves de detalles
+                    for clave_detalle, horas_lista in detalles.items():
+                        # Ignoramos temporalmente las claves en el set de supresión
+                        if getattr(self, "_suppress_detalle_keys", None) and clave_detalle in self._suppress_detalle_keys:
+                            continue
+
+                        # Revisamos si la clave pertenece a la sede/fecha/hora actual
+                        if not clave_detalle.startswith(f"{id_sede_str}_{fecha}_{valor_actual}"):
+                            continue
+
+                        # Evitamos mostrar repetidamente el mismo warning
+                        if getattr(self, "_ultima_hora_mostrada", None) == clave_detalle:
+                            break
+
+                        self._ultima_hora_mostrada = clave_detalle
+
+                        if isinstance(horas_lista, list):
+                            # Normalizamos todas las horas
+                            horas_lista_norm = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+                            if horas_lista_norm:
+                                inicio = min(horas_lista_norm)
+                                fin = max(horas_lista_norm)
+                                duracion_calc = (len(horas_lista_norm) - 1) * 5  # asumiendo intervalos de 5 min
+                            else:
+                                inicio = fin = duracion_calc = "desconocido"
+
+                            print(f"[DEBUG verificar_hora_periodica] Mostrando mensaje para: {clave_detalle}")
+                            messagebox.showwarning(
+                                "Hora no disponible",
+                                f"Ya existe un estudio en la sede {nombre_sede} para {fecha}.\n"
+                                f"Comienza a las {inicio}, finaliza a las {fin}.\n"
+                                f"Duración: {duracion_calc} minutos.",
+                                parent=self.ventana
+                            )
+                            cb.set(self.placeholder_text)
+                            break
+                    else:
+                        self._ultima_hora_mostrada = None
+    
     def mostrar(self):
         
         self.modificar_datos()

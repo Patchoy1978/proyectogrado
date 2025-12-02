@@ -158,7 +158,6 @@ class PanelPrincipalVisualizacionDiferidos():
             {"label": "Fecha", "valor": None, "ancho": 70, "tipo": "fecha"},
             {"label": "Todos", "color": "#00155c", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
-            {"label": "Realizados", "color": "#00155c", "tipo": "boton", "ancho": 26, "alto":30, "command": self.ver_pacientes_realizados, 'image' : None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
 
         ]
@@ -861,14 +860,14 @@ class PanelPrincipalVisualizacionDiferidos():
         
         self.boton_modificar_presionado(paciente) 
     
-    def ver_pacientes_realizados(self):
+    """def ver_pacientes_realizados(self):
         
         if self.db:
             self.db.cerrar_conexion()
             PanelPrincipalVisualizacionDiferidos.conexion_realizada = None
         cerrar_conexion()
 
-        """# Cancelar cualquier after pendiente de este frame
+        # Cancelar cualquier after pendiente de este frame
         try:
             for after_id in self.frame.tk.eval('after info').split():
                 try:
@@ -876,7 +875,7 @@ class PanelPrincipalVisualizacionDiferidos():
                 except:
                     pass
         except:
-            pass"""
+            pass
         
         self.ventana.destroy()
     
@@ -884,7 +883,7 @@ class PanelPrincipalVisualizacionDiferidos():
             self.parent_window.deiconify()
             self.parent_window.lift()
         
-        abrir_ventana_visualizar_datos_ppal_realizados(parent_window=self.parent_window)
+        abrir_ventana_visualizar_datos_ppal_realizados(parent_window=self.parent_window)"""
     
     def actualizar_pantalla(self):
         

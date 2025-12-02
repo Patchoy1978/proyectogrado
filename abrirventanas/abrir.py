@@ -1,5 +1,6 @@
 import sys
 import os
+import tkinter as tk
 
 # Agrega el directorio raíz del proyecto al PATH para poder importar módulos internos
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -16,15 +17,40 @@ def abrir_ventana_ingreso_credenciales():
     
     ventana_mostrar.mainloop()
 
-def abrir_ventana_ingreso():
+def abrir_ventana_ingreso(parent_window=None):
     
     # Importa las clases necesarias para construir la interfaz
-    from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+    """from ventanas.ventana_ingreso_pacientes import IngresarPacientes
     
     # Crea la ventana principal del programa
     ventana = IngresarPacientes()
     mostrar_ventana = ventana.obtener_ventana()
-    mostrar_ventana.mainloop()
+    mostrar_ventana.mainloop()"""
+    
+    # Importa las clases necesarias para construir la interfaz 
+    from ventanas.ventana_ingreso_pacientes import IngresarPacientes 
+    
+    ventana_ingreso = tk.Toplevel(parent_window) 
+    ventana_ingreso.title("Ingresar Pacientes") 
+    
+    # 🔹 Aplicar ajustes de tamaño o maximizar 
+    try: 
+        VentanaPrincipal().aplicar_ajustes_a_ventana(ventana_ingreso) 
+    except Exception: 
+        try: ventana_ingreso.state("zoomed") 
+        except: pass 
+        
+    # 🔹 Hacer modal 
+    ventana_ingreso.grab_set() 
+    # 🔹 Crear la instancia de IngresarPacientes 
+    ingreso = IngresarPacientes(ventana_ingreso, parent_window=parent_window) 
+    
+    # 🔹 Esperar a que la ventana se cierre antes de continuar 
+    ventana_ingreso.wait_window() 
+    
+    # 🔹 Devuelve la instancia por si quieres usarla después 
+    
+    return ingreso
     
 def abrir_ventana_modificar(paciente):
     

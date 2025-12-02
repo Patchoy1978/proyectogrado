@@ -7,6 +7,19 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
+from tkinter import messagebox
+
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    campos_requeridos,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    selecionar_datos,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta_2,
+                                                    identificacion_no_esta
+                                                    )
+
 class IngresoUsuariosAdmon():
     
     def __init__(self, parent_window=None):
@@ -62,28 +75,31 @@ class IngresoUsuariosAdmon():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
-        
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar()
+            abrir_ventana_conn_exito()
+            
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
         self.entries = {}
         self.combobox = {}
         self.acciones = {
-                        'identificacion': self.buscar_usuario,
                         'nombreusuario': self.actualizar_a_title,
                         'contrasena': self.actualizar_a_title,
                         'email': self.actualizar_a_title,
                         'telefono': self.actualizar_a_title,
                         'extension': self.actualizar_a_title
                     }
-       
+
         self.usuario_id_seleccionado = None
         
         self.buscando = False
-        
-        #self.root.bind_all("<Return>",)
         
         self.ingreso_datos()
         
@@ -146,6 +162,11 @@ class IngresoUsuariosAdmon():
                     placeholder=campo1['placeholder'],
                     textvariable=self.vars[campo1['clave']]
                 )
+                
+                # pero solo si la clave es 'identificacion'
+                if campo1['clave'] == 'identificacion':
+                    # Opción 1: Ejecutar al presionar Enter (más común y limpio)
+                    self.entries['identificacion'].bind('<Return>', self.buscar_usuario)
             
             elif campo1['tipo'] == 'combobox':
                 # Crear una variable de control
@@ -201,7 +222,7 @@ class IngresoUsuariosAdmon():
         cargo = self.combobox['cargo'].get().strip()  # Esto devuelve solo nombre del cargo
 
         if not nombreusuario or not identificacion or not contrasena or not email or not telefono or not extension or not modalidad or not cargo:
-            print("Debe seleccionar un Usuario para eliminar.")
+            selecionar_datos()
             return
         
         # Obtener los IDs de modalidad y cargo usando las funciones creadas
@@ -210,7 +231,13 @@ class IngresoUsuariosAdmon():
         
         # Verificar si los IDs son válidos
         if not id_modalidad or not id_cargo:
-            print("Modalidad o Cargo no válidos.")
+            id_no_esta_2()
+            return
+        
+        respuesta = messagebox.askyesno("Registro para Eliminar", "Estas Seguro De Eliminar Este Usuario?.")
+        
+        if not respuesta:
+            
             return
         
         # Consulta para eliminar el usuario usando los IDs de modalidad y cargo
@@ -229,6 +256,7 @@ class IngresoUsuariosAdmon():
         # Ejecutar la consulta pasando los valores adecuados
         self.db.cursor.execute(sql_delete, (nombreusuario, identificacion, contrasena, email, telefono, extension, id_modalidad, id_cargo))
         self.db.conexion.commit()
+        eliminacion_realizada()
         
         # Limpiar las variables después de eliminar el usuario
         self.vars['nombreusuario'].set("")
@@ -243,7 +271,7 @@ class IngresoUsuariosAdmon():
     def buscar_usuario(self, *args):
         
         user_identification = self.vars['identificacion'].get().strip()
-
+        
         if not user_identification:
             self.limpiar_campos()
             return  # Si no hay identificación, no buscar
@@ -252,15 +280,15 @@ class IngresoUsuariosAdmon():
         self.usuario_id_seleccionado = self.obtener_id_usuario_seleccionado(user_identification)
         
         if self.usuario_id_seleccionado is None:
-            # print("No se encontró el usuario con esa identificación.")
+            identificacion_no_esta()
             return
 
         sql_buscar_usuario = """
             SELECT nombre_usuario, identificacion, contrasena, email, telefono, ext, modalidad, cargo 
             FROM usuarios 
-            WHERE identificacion LIKE %s
+            WHERE identificacion = %s
         """
-        self.db.cursor.execute(sql_buscar_usuario, (f"{user_identification}",))
+        self.db.cursor.execute(sql_buscar_usuario, (user_identification,))
         resultado = self.db.cursor.fetchone()  # Obtener solo un resultado
         
         #Si hay resultados
@@ -301,12 +329,12 @@ class IngresoUsuariosAdmon():
         modalidad_nombre = self.vars['modalidad'].get()
         cargo_nombre = self.vars['cargo'].get()
         
-        if not self.usuario_id_seleccionado:
-            # print("No se ha seleccionado un usuario para modificar.")
-            return
+        """if not self.usuario_id_seleccionado:
+            selecionar_datos()
+            return"""
 
         if not nombreusuario.get().strip() or not identificacion.get().strip() or not contrasena.get().strip() or not email.get().strip() or not telefono.get().strip() or not extension.get().strip() or not modalidad_nombre.strip() or not cargo_nombre.strip():
-            print("Debe ingresar todos los datos.")
+            selecionar_datos()
             return
 
         # Obtener los ID correspondientes de modalidad y cargo
@@ -314,7 +342,7 @@ class IngresoUsuariosAdmon():
         cargo_id = self.obtener_id_cargo(cargo_nombre)
 
         if not modalidad_id or not cargo_id:
-            # print("Modalidad o cargo no válidos.")
+            id_no_esta_2()
             return
 
         sql_modificar_usuario = """
@@ -336,6 +364,7 @@ class IngresoUsuariosAdmon():
         ))
         
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar campos y restablecer la bandera de búsqueda
         self.buscando = False
@@ -574,7 +603,3 @@ class IngresoUsuariosAdmon():
         self.vars['extension'].set("")
         self.vars['modalidad'].set("")
         self.vars['cargo'].set("")
-
-# a= IngresoUsuariosAdmon()
-# g= a.obtener_ventana()
-# g.mainloop()

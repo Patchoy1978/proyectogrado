@@ -18,7 +18,7 @@ from ventanas.visualizar_datos_ppal import PanelPrincipalVisualizacion
 
 from usuarioactual.usuario_actual import UsuarioActual
 
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 
 from tkinter import messagebox
 
@@ -36,18 +36,18 @@ from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     cerrar_conexion
                                                     )
 
-from abrirventanas.abrir import abrir_ventana_visualizar_datos_ppal
-
 # Clase para la ventana de modificación de pacientes
 class IngresarPacientes():
     
+    horas_tomadas = {}
     conexion_realizada = False # Variable de clase para indicar si ya se realizó la conexión a la base de datos
     db = None # Variable de clase para almacenar la conexión a la base de datos
     
     # Constructor de la clase que recibe la ventana y el paciente a modificar
-    def __init__(self, ventana):
-
-        self.ventana = ventana  # Guarda la referencia a la ventana en un atributo
+    def __init__(self, ventana, parent_window=None):
+        
+        self.parent_window = parent_window  # ← esta es la ventana principal real
+        self.ventana = ventana
         
         self.ventana.protocol("WM_DELETE_WINDOW", self.salir)
 
@@ -107,22 +107,16 @@ class IngresarPacientes():
         
         self.frame3.grid_rowconfigure(0, weight=1) # configura la fila interna
         self.frame3.grid_columnconfigure(0, weight=1) # configura la columna interna
-
-        if not IngresarPacientes.conexion_realizada: # Si no se ha hecho la conexión a la BD
+        
+        if IngresarPacientes.db is None or IngresarPacientes.db.cursor is None:
             try:
-                IngresarPacientes.db = Conexion_DB() # Crea una instancia de la conexión
-                IngresarPacientes.db.conectar() # Establece la conexión
-                abrir_ventana_conn_exito() # Muestra ventana de conexión exitosa
-                IngresarPacientes.conexion_realizada = True # Marca la conexión como realizada
-                
+                IngresarPacientes.db = Conexion_DB()
+                IngresarPacientes.db.conectar()
+                abrir_ventana_conn_exito()
             except:
-                
-                abrir_ventana_conn_fallida() # Si no se establece la conexión, muestra ventana de fallo
-        else:
+                abrir_ventana_conn_fallida()
 
-            pass
-            
-        self.db = IngresarPacientes.db # Guarda la referencia de la conexión en el objeto actual
+        self.db = IngresarPacientes.db
         
         # Diccionario con estilos de fuente para los textos
         self.fonts = {
@@ -153,10 +147,10 @@ class IngresarPacientes():
         self.horas_extraidas = self.obtener_hora_citacion_realizacion()
 
         # se crean los contenidos de visualización para el usuario
-        self.contenidotituloppalmodificar()
-        self.contenidosframe1modificar()
-        self.contenidosframe2modificar()
-        self.contenidosframe3modificar()
+        self.contenidotituloppal()
+        self.contenidosframe1()
+        self.contenidosframe2()
+        self.contenidosframe3()
         
         # Registrar validación mientras escribe
         vcmd = self.entry_edad_paciente.register(self.validar_edad_key)
@@ -173,7 +167,6 @@ class IngresarPacientes():
         self.entry_texto_est_ord.bind("<Enter>", lambda e: self.entry_texto_est_ord.configure(cursor="hand2"))
         self.entry_texto_est_ord.bind("<Leave>", lambda e: self.entry_texto_est_ord.configure(cursor="xterm"))
         
-        #self.horas_tomadas = {}
         self.cargar_horas()
         self._mensaje_mostrado = False  # atributo de la clase
 
@@ -184,12 +177,12 @@ class IngresarPacientes():
     
     # parte de la visualizacion de la información
     
-    def contenidotituloppalmodificar(self):
+    def contenidotituloppal(self):
         
         self.titulo = ctk.CTkLabel(self.frame_sup, text='Ingresar Datos Del Paciente', font=self.fonts['title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=0, columnspan=3, pady = 5, sticky="nsew") 
     
-    def contenidosframe1modificar(self):
+    def contenidosframe1(self):
 
         self.titulo_frame = ctk.CTkLabel(self.frame_sup1, text='Datos Del Paciente', font=self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo_frame.grid(row=0, column=0, pady = 5, padx = 10, sticky='nsew')
@@ -486,7 +479,7 @@ class IngresarPacientes():
         
         self.llenar_combobox_estados()
     
-    def contenidosframe2modificar (self):
+    def contenidosframe2 (self):
         
         self.titulo = ctk.CTkLabel(self.frame_sup1, text='Datos Del Estudio', font= self.fonts['title_frame'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=1, sticky='nsew')
@@ -521,7 +514,6 @@ class IngresarPacientes():
         self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
         self.entry_fecha_cita.set_date(hoy)
-        #self.entry_fecha_cita.bind("<<DateEntrySelected>>", self.actualizar_horas_disponibles)
         self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
         
         self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
@@ -739,7 +731,7 @@ class IngresarPacientes():
                                         )
         self.entry_texto_diagnostico.grid(row=14, column=0, columnspan= 4, pady=10, padx= 15, sticky='nsew')
     
-    def contenidosframe3modificar (self):
+    def contenidosframe3 (self):
         
         self.titulo = ctk.CTkLabel(self.frame_sup1, text='Realización Del Estudio', fg_color='white', font=self.fonts['title_frame'], bg_color= 'white', text_color= "#484a4b")
         self.titulo.grid(row=0, column=2, sticky='nsew')
@@ -763,19 +755,26 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=self.horas
+                                                    values=self.horas,
+                                                    command=self._al_seleccionar_hora
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
         # Vincular el evento de escritura
         self.entry_combobox_hora_citacion.set(self.placeholder_text)
-        cb = self.entry_combobox_hora_citacion
+        cb = self.entry_combobox_hora_citacion        
         cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
         cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
-        cb.bind("<KeyRelease>", lambda e, w=cb: [self.filtrar_horas(e, w), self._validar_hora_al_abrir_dropdown(e)])
-        cb.bind("<<ComboboxSelected>>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
-        cb.bind("<Return>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))  # captura escritura + Enter
-        cb.bind("<FocusOut>", lambda e, w=cb: self.bloquear_hora_tomada(e, w))
+        
+        # Click: actualizar filtro
+        cb.bind("<Button-1>", lambda e, w=cb: self.filtrar_horas(e, w))
+
+        # Tecla: SOLO filtrar, nada más
+        cb.bind("<KeyRelease>", lambda e, w=cb: self.filtrar_horas(e, w))
+        cb.bind("<KeyRelease>", lambda e: self._validar_hora_al_abrir_dropdown(e))
+        
+        # Iniciar verificación periódica automática
+        self.verificar_hora_periodica()
         
         self.lab_hora_realizacion = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Hora Realización Estudio', bg_color= 'white', text_color= "#484a4b")
         self.lab_hora_realizacion.grid(row = 2, column = 0, sticky='nsew', pady=4)
@@ -1048,6 +1047,18 @@ class IngresarPacientes():
     
         return self.sedes
 
+    def obtener_id_sede(self, nombre_sede):
+        """Obtiene el ID de sede basado en el nombre de la sede."""
+        # solo tomamos el nombre
+        nombre_sede = nombre_sede.split(' (')[0]
+        
+        sql = "SELECT id_sede FROM sedes WHERE nombre_sede = %s"
+        self.db.cursor.execute(sql, (nombre_sede,))
+        resultado = self.db.cursor.fetchone()
+        
+        # Retornar el ID si lo encuentra, de lo contrario None
+        return resultado[0] if resultado else None
+    
     def obtener_alergia(self):
         
         """Obtiene las alergias de la db y lo guardamos en una lista."""
@@ -1161,10 +1172,17 @@ class IngresarPacientes():
 
     def llenar_combobox_modalidad(self):
         
+        """Llena el ComboBox solo con las modalidades permitidas."""
         informacion = self.obtener_modalidades()
+    
+        # Filtrar solo las modalidades deseadas
+        modalidades_permitidas = [
+            "Resonancia Magnetica",
+            "Tomografia Axial Computarizada",
+            "Ecografia"
+        ]
         
-        # Extraer solo los nombres de rango_edad
-        opciones = [fila["nombre_modalidad"] for fila in informacion]
+        opciones = [fila["nombre_modalidad"] for fila in informacion if fila["nombre_modalidad"] in modalidades_permitidas]
 
         # Insertar la opción por defecto solo si no existe
         if "Elige una Modalidad" not in opciones:
@@ -1712,25 +1730,51 @@ class IngresarPacientes():
         # ----------------------------
         # Guardar la hora de citación en JSON de horas tomadas
         # ----------------------------
-        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        hora_cita = self.entry_combobox_hora_citacion.get().strip()
+            
+        try:
+            if hasattr(self, "_pending_bloqueo") and self._pending_bloqueo:
+                from ventanas.ventana_ingreso_pacientes import IngresarPacientes
 
-        if hora_cita and hora_cita != self.placeholder_text:
-            # Primero cargar el JSON existente para no perder datos
-            self.cargar_horas()  # tu función que lee el JSON y llena self.horas_tomadas
+                # Cargar JSON existente por si alguien más lo cambió
+                IngresarPacientes.cargar_horas()
+                horas_tomadas = IngresarPacientes.horas_tomadas
 
-            # Crear la lista de horas si la fecha no existe
-            if fecha not in self.horas_tomadas:
-                self.horas_tomadas[fecha] = []
+                pb = self._pending_bloqueo
+                id_sede = pb["id_sede"]
+                fecha = pb["fecha"]
+                horas_list = pb["horas"]
 
-            # Agregar hora si no existe para esa fecha
-            if hora_cita not in self.horas_tomadas[fecha]:
-                self.horas_tomadas[fecha].append(hora_cita)
+                # Aseguramos estructura
+                horas_tomadas.setdefault(id_sede, {})
+                horas_tomadas.setdefault("detalles", {})
 
-            # Guardar de nuevo el JSON actualizado
-            self.guardar_horas()  # tu función que escribe self.horas_tomadas en el JSON
-        
-        self.limpiar_campos()        
+                # Insertar horas en lista por sede/fecha (si no existe)
+                horas_tomadas[id_sede].setdefault(fecha, [])
+                for h in horas_list:
+                    if h not in horas_tomadas[id_sede][fecha]:
+                        horas_tomadas[id_sede][fecha].append(h)
+
+                # Guardar en "detalles" solo si NO es diferido
+                if not pb.get("diferido", False):
+                    clave = f"{id_sede}_{fecha}_{(pb.get('hora_inicio') or horas_list[0])}"
+                    horas_tomadas["detalles"][clave] = horas_list
+
+                # Guardar JSON a disco (método ya existente)
+                IngresarPacientes.guardar_horas()
+
+                # Opcional: actualizar combobox globales
+                try:
+                    IngresarPacientes.actualizar_horas_disponibles()
+                except Exception:
+                    pass
+
+                # Limpiar pending
+                self._pending_bloqueo = None
+
+        except Exception as e:
+            print(e)
+
+        self.limpiar_campos()
 
     def obtener_id_estado(self, nombre_estado):
         """Obtiene el ID del estado basado en el nombre del estado."""
@@ -1786,10 +1830,9 @@ class IngresarPacientes():
             pass
 
     def filtrar_horas(self, event, widget=None):
-            
         """
         Filtra las horas en el combobox de hora de citación según el texto escrito
-        y las horas ya tomadas para la fecha seleccionada.
+        y las horas ya tomadas para la fecha y sede seleccionadas.
         """
         if widget is None:
             widget = event.widget
@@ -1801,10 +1844,25 @@ class IngresarPacientes():
         except Exception:
             texto = widget.get().strip()
 
-        # Si es el combobox de hora citación, filtrar horas ocupadas por fecha
-        if widget == self.entry_combobox_hora_citacion:
+        # Obtener fecha y sede (si podemos)
+        try:
             fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+        except Exception:
+            fecha = None
+
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
+
+        # horas ocupadas del día para la sede actual (si no existe sede, asumimos global vacío)
+        horas_ocupadas = []
+        if id_sede is not None:
+            horas_ocupadas = IngresarPacientes.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
+
+        # Si es el combobox de hora citación, filtrar horas ocupadas por fecha y sede
+        if widget == self.entry_combobox_hora_citacion:
             if texto == "" or texto == self.placeholder_text:
                 filtradas = [h for h in self.horas if h not in horas_ocupadas]
             else:
@@ -1822,15 +1880,32 @@ class IngresarPacientes():
         except Exception:
             pass
     
-        # Función que se llama al perder foco
-
+    @classmethod
     def _normalizar_hora(self, texto):
-        """Normaliza texto de hora a HH:MM si es válido. Si no tiene minutos, devuelve None."""
+        
+        """Normaliza texto o entero de hora a formato HH:MM si es válido."""
+        if texto is None:
+            return None
+
+        # Si es entero tipo 900 o 930
+        if isinstance(texto, int):
+            h = texto // 100
+            m = texto % 100
+            return f"{h:02d}:{m:02d}"
+
+        # Si es datetime.time o datetime.datetime
+        if isinstance(texto, (datetime, time)):
+            return texto.strftime("%H:%M")
+
+        # Asegurar que sea string
+        if not isinstance(texto, str):
+            texto = str(texto)
+
         texto = texto.strip()
         if not texto or texto == getattr(self, "placeholder_text", ""):
             return None
 
-        # Si es un número (p.e. '7' o '08'), lo tratamos como hora entera sin minutos
+        # Si es número como '7' o '08'
         if re.fullmatch(r"\d{1,2}", texto):
             return f"{int(texto):02d}:00"
 
@@ -1840,134 +1915,213 @@ class IngresarPacientes():
             h, mi = int(m.group(1)), int(m.group(2))
             if 0 <= h <= 23 and 0 <= mi <= 59:
                 return f"{h:02d}:{mi:02d}"
+
         return None
     
-    def bloquear_hora_tomada(self, event, widget=None):
+    def bloquear_hora_tomada(self, event, widget=None, duracion_minutos=None):
         
         """
         Bloquea la hora seleccionada y las siguientes según la duración elegida
-        por el usuario. Si la hora ya está ocupada, muestra un mensaje con duración.
+        por el usuario. Si se recibe duracion_minutos, lo usa y NO muestra el diálogo.
         """
-        if widget is None:
+        
+        if widget is None and event is not None:
             widget = event.widget
+        if widget is None:
+            return
 
+        # Solo para el combobox de hora citación
         if widget != self.entry_combobox_hora_citacion:
-            return  # Solo combobox de citación
+            return
 
+        # 1) Validar que haya identificación
+        identificacion = self.entry_identificacion_paciente.get().strip()
+        if not identificacion:
+            messagebox.showwarning(
+                "Falta identificación",
+                "Debe ingresar la identificación del paciente antes de seleccionar la hora.",
+                parent=self.ventana
+            )
+            widget.set(self.placeholder_text)
+            return
+
+        # 2) Normalizar hora parcial
         raw = widget.get().strip()
         hora_normalizada = self._normalizar_hora(raw)
-        if hora_normalizada is None:
-            return  # Usuario aún escribiendo o valor parcial
 
-        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
-
-        # ==== Si la hora ya está ocupada ====
-        if hora_normalizada in horas_tomadas_dia:
-            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
-            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
-
-            widget.set(self.placeholder_text)
-            return
-
-        # ==== Mostrar ventana para elegir duración ====
-        duracion_minutos = self._mostrar_dialogo_duracion()
-        if duracion_minutos is None:
-            widget.set(self.placeholder_text)
-            return
-
-        # ==== Calcular rango de horas a bloquear ====
-        try:
-            hora_inicio = datetime.strptime(hora_normalizada, "%H:%M")
-            hora_fin = hora_inicio + timedelta(minutes=duracion_minutos)
-        except ValueError:
-            messagebox.showerror("Error", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
-            return
-
-        # ==== Determinar horas a bloquear dentro del rango ====
-        horas_a_bloquear = []
-        for h in self.horas:
+        # 2a) Validaciones inmediatas (aunque sea parcial)
+        if len(raw) >= 1:  # para que salga aviso al empezar a escribir
             try:
-                hora_actual = datetime.strptime(h, "%H:%M")
-                if hora_inicio <= hora_actual <= hora_fin:
-                    horas_a_bloquear.append(h)
-            except ValueError:
-                continue
+                sql_union = """
+                    SELECT id_registro, estado, 'r' as tabla
+                    FROM registrospacientes
+                    WHERE identificacion_paciente = %s
+                    UNION ALL
+                    SELECT id_registro, estado, 'd' as tabla
+                    FROM registrospacientesdiferidos
+                    WHERE identificacion_paciente = %s
+                    ORDER BY id_registro DESC
+                    LIMIT 1
+                """
+                self.db.cursor.execute(sql_union, (identificacion, identificacion))
+                fila = self.db.cursor.fetchone()
 
-        # ==== Verificar conflictos dentro del rango ====
-        for h in horas_a_bloquear:
-            if h in horas_tomadas_dia:
-                messagebox.showwarning(
-                    "Conflicto de horario",
-                    f"No se puede bloquear {hora_normalizada}.\n"
-                    f"La hora {h} ya está ocupada para {fecha}.",
-                    parent=self.ventana
-                )
+                ultimo_estado_nombre = None
+                if fila:
+                    estado_id = fila[1]
+                    sql_est = "SELECT nombre_estado FROM estados WHERE id_estado = %s"
+                    self.db.cursor.execute(sql_est, (estado_id,))
+                    fila_est = self.db.cursor.fetchone()
+                    if fila_est:
+                        ultimo_estado_nombre = fila_est[0]
+
+                if ultimo_estado_nombre and ultimo_estado_nombre in ("Pendiente", "Comentado", "Diferido"):
+                    messagebox.showwarning(
+                        "Paciente con registro activo",
+                        f"El paciente con identificación {identificacion} tiene un registro activo en estado: {ultimo_estado_nombre}.\nNo se puede asignar una nueva citación mientras exista un registro activo.",
+                        parent=self.ventana
+                    )
+                    widget.set(self.placeholder_text)
+                    return
+
+            except Exception as e:
+                print("[DEBUG] Error al consultar último estado del paciente:", e)
+                messagebox.showerror("Error BD", "No se pudo verificar estado del paciente en la base de datos.", parent=self.ventana)
                 widget.set(self.placeholder_text)
                 return
 
-        # ==== Guardar horas bloqueadas ====
-        self.horas_tomadas.setdefault(fecha, []).extend(horas_a_bloquear)
-        # Guardar duración del estudio
-        self.horas_tomadas.setdefault("detalles", {})
-        self.horas_tomadas["detalles"][f"{fecha}_{hora_normalizada}"] = duracion_minutos
+        # 2b) Solo continuar si la hora es COMPLETA y existe en la lista
+        if hora_normalizada is None or hora_normalizada not in self.horas:
+            return  # todavía escribiendo, no hacer nada
 
-        # ==== Guardar en JSON ====
-        self.guardar_horas()
-
-        # ==== Actualizar combobox ====
-        self.filtrar_horas(event, widget)
-
-        print(f"Horas bloqueadas para {fecha}: {horas_a_bloquear} (duración {duracion_minutos} min)")
-        
-    def _calcular_duracion_estudio(self, fecha, hora_inicio):
-        """
-        Calcula la duración real del estudio desde self.horas_tomadas['detalles'].
-        Si no se encuentra, estima por continuidad de bloques.
-        """
-        detalles = self.horas_tomadas.get("detalles", {})
-        clave = f"{fecha}_{hora_inicio}"
-
-        if clave in detalles:
-            return detalles[clave]  # Duración real elegida por el usuario
-
-        # Si no hay detalle guardado, calcula por continuidad
-        if fecha not in self.horas_tomadas:
-            return 0
-
-        horas_bloqueadas = sorted(self.horas_tomadas[fecha])
-        try:
-            idx = horas_bloqueadas.index(hora_inicio)
-        except ValueError:
-            return 0
-
-        inicio = datetime.strptime(hora_inicio, "%H:%M")
-        fin = inicio
-
-        for i in range(idx + 1, len(horas_bloqueadas)):
-            actual = datetime.strptime(horas_bloqueadas[i], "%H:%M")
-            if (actual - fin) <= timedelta(minutes=5):
-                fin = actual
-            else:
-                break
-
-        return int((fin - inicio).total_seconds() / 60)
-    
-    def actualizar_horas_disponibles(self, event=None):
-        """Restaura la lista de horas disponibles al cambiar la fecha."""
+        # 3) Preparar pending_bloqueo
         try:
             fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-            horas_ocupadas = self.horas_tomadas.get(fecha, [])
+        except Exception:
+            messagebox.showerror("Fecha inválida", "No se pudo obtener la fecha de citación.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        nombre_sede = self.entry_sede_paciente.get().strip()
+        id_sede = self.obtener_id_sede(nombre_sede)
+        if id_sede is None:
+            messagebox.showwarning("Sede inválida", "No se pudo determinar la sede seleccionada.", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+        id_sede_str = str(id_sede)
+
+        # --- SI ES DIFERIDO ---
+        if getattr(self, "var_diferido", None) and self.var_diferido.get() == 1:
+            self._pending_bloqueo = {
+                "id_sede": id_sede_str,
+                "fecha": fecha,
+                "horas": [hora_normalizada],
+                "diferido": True
+            }
+            print(f"[DEBUG] Pending bloqueo (diferido): {self._pending_bloqueo}")
+            return
+
+        # --- SI NO ES DIFERIDO: PEDIR DURACIÓN SOLO AQUÍ ---
+        if duracion_minutos is None:
+            duracion_minutos = self._mostrar_dialogo_duracion()
+            if duracion_minutos is None:
+                widget.set(self.placeholder_text)
+                return
+
+        # Calcular rango de horas a bloquear
+        try:
+            inicio_dt = datetime.strptime(hora_normalizada, "%H:%M")
+            fin_dt = inicio_dt + timedelta(minutes=duracion_minutos)
+        except Exception:
+            messagebox.showerror("Hora inválida", f"Formato de hora inválido: {hora_normalizada}", parent=self.ventana)
+            widget.set(self.placeholder_text)
+            return
+
+        horas_a_bloquear = []
+        for h in self.horas:
+            try:
+                h_dt = datetime.strptime(h, "%H:%M")
+                if inicio_dt <= h_dt <= fin_dt:
+                    horas_a_bloquear.append(h)
+            except Exception:
+                continue
+
+        # Guardar pending para no tocar JSON todavía
+        self._pending_bloqueo = {
+            "id_sede": id_sede_str,
+            "fecha": fecha,
+            "horas": horas_a_bloquear,
+            "diferido": False,
+            "duracion_minutos": duracion_minutos,
+            "hora_inicio": hora_normalizada
+        }
+        print(f"[DEBUG] Pending bloqueo: {self._pending_bloqueo}")
+    
+    def _al_seleccionar_hora(self, valor):
+        
+        """
+        Se ejecuta automáticamente cuando se selecciona una hora en el CTkComboBox.
+        """        
+        hora_texto = valor.strip()
+        hora_normalizada = self._normalizar_hora(hora_texto)
+        if not hora_normalizada:
+            return
+
+        # Mostrar diálogo de duración (solo aquí)
+        duracion = self._mostrar_dialogo_duracion()
+        if duracion is None:
+            # Canceló
+            self.entry_combobox_hora_citacion.set(self.placeholder_text)
+            return
+
+        # Guardar duración seleccionada temporalmente (opcional)
+        self.duracion_seleccionada = duracion
+
+        # Llamar a bloquear pasando la duración para evitar abrir el diálogo otra vez
+        # notar: bloqueamos llamando con el widget correspondiente
+        self.bloquear_hora_tomada(None, self.entry_combobox_hora_citacion, duracion)
+    
+    @classmethod
+    def actualizar_json_horas(cls):
+        """Actualiza únicamente el JSON de horas (sin tocar widgets)."""
+        try:
+            cls.cargar_horas()
+            cls.guardar_horas()
+        except Exception as e:
+            print(e)
+    
+    #@classmethod
+    def actualizar_horas_disponibles(self, event=None):
+            
+        """Restaura la lista de horas disponibles al cambiar la fecha o la sede."""
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+            id_sede_str = str(id_sede) if id_sede is not None else None
+
+            if id_sede_str and id_sede_str in IngresarPacientes.horas_tomadas:
+                # Normalizamos todas las horas a 'HH:MM' strings
+                horas_ocupadas_raw = IngresarPacientes.horas_tomadas[id_sede_str].get(fecha, [])
+                horas_ocupadas = [
+                    self._normalizar_hora(h) if isinstance(h, str) else f"{int(h)//100:02d}:{int(h)%100:02d}"
+                    for h in horas_ocupadas_raw
+                ]
+            else:
+                horas_ocupadas = []
+
             horas_disponibles = [h for h in self.horas if h not in horas_ocupadas]
 
             # Actualizar ambos combobox con las horas libres
             self.entry_combobox_hora_citacion.configure(values=horas_disponibles)
             self.entry_combobox_hora_realizacion.configure(values=horas_disponibles)
+
         except Exception as e:
-            print("Error al actualizar horas:", e)
+            print(e)
 
     def _validar_hora_al_abrir_dropdown(self, event):
-        if self._mensaje_mostrado:
+        
+        """if getattr(self, "_mensaje_mostrado", False):
             return  # ya se mostró, no repetir
 
         widget = event.widget
@@ -1976,41 +2130,211 @@ class IngresarPacientes():
         if not hora_normalizada:
             return
 
-        fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        horas_tomadas_dia = self.horas_tomadas.get(fecha, [])
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except Exception:
+            return
 
-        if hora_normalizada in horas_tomadas_dia:
-            duracion = self._calcular_duracion_estudio(fecha, hora_normalizada)
-            fin_estudio = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion)).strftime("%H:%M")
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
 
-            self._mensaje_mostrado = True  # activamos flag
-            messagebox.showwarning(
-                "Hora no disponible",
-                f"La hora {hora_normalizada} ya está ocupada.\n"
-                f"El estudio asignado dura {duracion} minutos.\n"
-                f"Espacio ocupado hasta las {fin_estudio}.",
-                parent=self.ventana
-            )
+        detalles = IngresarPacientes.horas_tomadas.get("detalles", {})
+        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
+
+        for clave, horas_lista in detalles.items():
+            if not clave.startswith(prefijo):
+                continue
+            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
+                continue
+
+            # 🔹 Normalizar todas las horas a strings HH:MM
+            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+            if not horas_lista:
+                continue
+
+            hora_busq = hora_normalizada.split(":")[0]
+            if any(h.split(":")[0] == hora_busq for h in horas_lista):
+                inicio = min(horas_lista)
+                fin = max(horas_lista)
+                duracion_min = (len(horas_lista) - 1) * 5
+                self._mensaje_mostrado = True
+                return
+
+        if id_sede is not None:
+            horas_tomadas_dia = IngresarPacientes.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
+            if hora_normalizada in horas_tomadas_dia:
+                clave_busq = f"{id_sede}_{fecha}_{hora_normalizada}"
+                horas_lista = detalles.get(clave_busq)
+                if isinstance(horas_lista, list) and horas_lista:
+                    horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+                    inicio = min(horas_lista)
+                    fin = max(horas_lista)
+                    duracion_min = (len(horas_lista) - 1) * 5
+                else:
+                    duracion_min = self._calcular_duracion_estudio(fecha, hora_normalizada)
+                    fin = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion_min)).strftime("%H:%M")
+
+                self._mensaje_mostrado = True
+                messagebox.showwarning(
+                    "Hora no disponible",
+                    f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
+                    f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
+                    parent=self.ventana
+                )"""
+                
+        # Resetear mensaje si el usuario borra la hora
+        cb = self.entry_combobox_hora_citacion
+        widget = event.widget
+        raw = widget.get().strip()
+        if not raw:
+            self._mensaje_mostrado = False
+            return
+
+        # 🔹 Normalizar hora
+        hora_normalizada = self._normalizar_hora(raw)
+        if not hora_normalizada:
+            return
+
+        # 🔹 Obtener fecha
+        try:
+            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+        except Exception:
+            return
+
+        # 🔹 Obtener sede
+        try:
+            nombre_sede = self.entry_sede_paciente.get().strip()
+            id_sede = self.obtener_id_sede(nombre_sede)
+        except Exception:
+            id_sede = None
+
+        # 🔹 Preparar detalles y prefijo para búsqueda
+        detalles = self.horas_tomadas.get("detalles", {})
+        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
+
+        # 🔹 Validar solapamiento
+        for clave, horas_lista in detalles.items():
+            if not clave.startswith(prefijo):
+                continue
+            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
+                continue
+
+            # Normalizar todas las horas a HH:MM
+            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+            if not horas_lista:
+                continue
+
+            # Convertir a set para validar solapamiento exacto
+            horas_set = set(horas_lista)
+            if hora_normalizada in horas_set:
+                inicio = min(horas_lista)
+                fin = max(horas_lista)
+                duracion_min = (len(horas_lista) - 1) * 5
+
+                # 🔹 Mostrar mensaje solo si no se ha mostrado antes
+                if not getattr(self, "_mensaje_mostrado", False):
+                    self._mensaje_mostrado = True
+                    messagebox.showwarning(
+                        "Hora no disponible",
+                        f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
+                        f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
+                        parent=self.ventana
+                    )
+                    cb.set(self.placeholder_text)
+
+                # 🔹 Limpiar inmediatamente el combo
+                widget.set('')
+                return
+
+        # 🔹 Si no hay solapamiento, permitir la selección
+        self._mensaje_mostrado = False
     
+    """@classmethod
     def cargar_horas(self):
-        """Carga el diccionario de horas tomadas desde un archivo JSON."""
+        Carga el diccionario de horas tomadas desde un archivo JSON.
         if os.path.exists("horas_tomadas.json"):
             try:
                 with open("horas_tomadas.json", "r") as f:
-                    self.horas_tomadas = json.load(f)
+                    IngresarPacientes.horas_tomadas = json.load(f)
             except Exception as e:
                 print("Error al cargar horas tomadas:", e)
-                self.horas_tomadas = {}
+                IngresarPacientes.horas_tomadas = {}
         else:
-            self.horas_tomadas = {}
+            IngresarPacientes.horas_tomadas = {}
     
+    @classmethod
     def guardar_horas(self):
-        """Guarda el diccionario de horas tomadas en un archivo JSON."""
+            
+        Guarda el diccionario de horas tomadas en un archivo JSON.
         try:
-            with open("horas_tomadas.json", "w") as f:
-                json.dump(self.horas_tomadas, f)
+            horas = IngresarPacientes.horas_tomadas
+            print(type(horas))
+
+            if not isinstance(horas, dict):
+                print("[ERROR] horas_tomadas no es un diccionario:", horas)
+                return
+
+            # Revisión detallada del contenido
+            for k, v in horas.items():
+                #print(f"[DEBUG] Clave principal: {k} ({type(v)})")
+                if isinstance(v, dict):
+                    for subk, subv in v.items():
+                        print(f"   ├─ {subk}: {type(subv)} → {subv}")
+                else:
+                    print(f"   └─ Valor: {v}")
+
+            # Serialización segura
+            with open("horas_tomadas.json", "w", encoding="utf-8") as f:
+                json.dump(horas, f, indent=2, default=str)
+
         except Exception as e:
-            print("Error al guardar horas tomadas:", e)
+            print(e)
+            import traceback
+            traceback.print_exc()
+    """
+    
+    @classmethod
+    def cargar_horas(cls):
+        """Carga el diccionario de horas tomadas desde un archivo JSON (solo 'detalles')."""
+        if os.path.exists("horas_tomadas.json"):
+            try:
+                with open("horas_tomadas.json", "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    # Asegurar que exista la clave 'detalles'
+                    cls.horas_tomadas = {"detalles": data.get("detalles", {}) if isinstance(data, dict) else {}}
+            except Exception as e:
+                print("Error al cargar horas tomadas:", e)
+                cls.horas_tomadas = {"detalles": {}}
+        else:
+            cls.horas_tomadas = {"detalles": {}}
+
+
+    @classmethod
+    def guardar_horas(cls):
+        """Guarda únicamente la sección 'detalles' del diccionario de horas tomadas en un archivo JSON."""
+        try:
+            horas = cls.horas_tomadas
+            if not isinstance(horas, dict):
+                print("[ERROR] horas_tomadas no es un diccionario:", horas)
+                return
+
+            # Solo guardamos 'detalles'
+            detalles = horas.get("detalles", {})
+
+            # Serialización segura
+            with open("horas_tomadas.json", "w", encoding="utf-8") as f:
+                json.dump({"detalles": detalles}, f, indent=2, ensure_ascii=False)
+
+            # DEBUG: opcional
+            print(f"[DEBUG guardar_horas] Guardadas {len(detalles)} entradas en 'detalles'")
+
+        except Exception as e:
+            print(e)
+            import traceback
+            traceback.print_exc()
     
     # ==========================================================
     # VENTANA EMERGENTE PERSONALIZADA
@@ -2024,7 +2348,7 @@ class IngresarPacientes():
         """
         dialogo = ctk.CTkToplevel(self.ventana)
         dialogo.title("Duración del estudio")
-        dialogo.geometry("320x240")
+        dialogo.geometry("320x320")
         dialogo.resizable(False, False)
         dialogo.grab_set()  # Bloquea interacción con otras ventanas
         dialogo.focus_force()
@@ -2051,20 +2375,84 @@ class IngresarPacientes():
             ("1 hora", 60),
             ("1 hora y 30 minutos", 90),
             ("2 horas", 120),
+            ("2 horas y 30 minutos", 150),
         ]
         for texto, minutos in opciones:
-            btn = ctk.CTkButton(frame_botones, text=texto, width=200,
+            btn = ctk.CTkButton(frame_botones, 
+                                text=texto, 
+                                text_color='white',
+                                width=200,
+                                corner_radius=20,
+                                fg_color='#00155C',
+                                bg_color= 'white',
                                 command=lambda m=minutos: seleccionar(m))
             btn.pack(pady=5)
 
         # Botón de cancelar (similar a “No”)
-        btn_cancelar = ctk.CTkButton(dialogo, text="Cancelar", fg_color="gray", width=200,
+        btn_cancelar = ctk.CTkButton(dialogo, 
+                                    text="Cancelar",
+                                    text_color='white',
+                                    corner_radius=20,
+                                    fg_color='#00155C',
+                                    bg_color= 'white',
+                                    width=200,
                                     command=lambda: seleccionar(None))
         btn_cancelar.pack(pady=10)
 
         dialogo.wait_window()  # Esperar hasta que se cierre el diálogo
         return resultado["valor"]
+    
+    def verificar_hora_periodica(self):
         
+        cb = self.entry_combobox_hora_citacion
+        valor_actual = cb.get().strip()
+
+        if valor_actual and valor_actual != self.placeholder_text:
+            digitos = ''.join(c for c in valor_actual if c.isdigit())
+            if len(digitos) >= 2:
+                try:
+                    fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
+                except Exception:
+                    fecha = None
+
+                nombre_sede = self.entry_sede_paciente.get().strip()
+                id_sede = self.obtener_id_sede(nombre_sede)
+
+                if fecha and id_sede:
+                    id_sede = str(id_sede)
+                    detalles = IngresarPacientes.horas_tomadas.get("detalles", {})
+
+                    for clave_detalle in detalles.keys():
+                        if clave_detalle.startswith(f"{id_sede}_{fecha}_{valor_actual}"):
+                            if getattr(self, "_ultima_hora_mostrada", None) == clave_detalle:
+                                break
+
+                            self._ultima_hora_mostrada = clave_detalle
+
+                            horas_lista = detalles[clave_detalle]
+                            if isinstance(horas_lista, list):
+                                # 🔹 Normalizamos todas las horas antes de min/max
+                                horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
+
+                            inicio = min(horas_lista)
+                            fin = max(horas_lista)
+                            duracion_calc = (len(horas_lista) - 1) * 5 if horas_lista else 0
+
+                            print(f"[DEBUG verificar_hora_periodica] Mostrando mensaje para: {clave_detalle}")
+                            messagebox.showwarning(
+                                "Hora no disponible",
+                                f"Ya existe un estudio en la sede {nombre_sede} para {fecha}.\n"
+                                f"y finaliza a las {fin}.\n"
+                                f"Duración: {duracion_calc} minutos.",
+                                parent=self.ventana
+                            )
+                            cb.set(self.placeholder_text)
+                            break
+                    else:
+                        self._ultima_hora_mostrada = None
+
+        cb.after(400, self.verificar_hora_periodica)
+            
     def validar_edad_final(self, event):
         valor = self.entry_edad_paciente.get()
         parent = self.ventana.winfo_toplevel()
@@ -2083,28 +2471,54 @@ class IngresarPacientes():
             self.entry_edad_paciente.focus_set()
         
     def salir(self):
-        """Método personalizado para el botón Salir.
-        """
-        
-        if self.db:
+            
+        if getattr(self, 'db', None):
             self.db.cerrar_conexion()
-            IngresarPacientes.conexion_realizada = None
-        cerrar_conexion()
-        
-        # Destruir todos los widgets hijos del frame principal, incluyendo scrollable frames
-        def destruir_completo(widget):
-            for child in widget.winfo_children():
-                destruir_completo(child)
-            try:
-                widget.destroy()
-            except:
-                pass
+            self.db = None  # 🔹 Limpiar la referencia de esta instancia
+            # 🔹 Limpiar la variable de clase para que la próxima vez se cree nueva conexión
+            IngresarPacientes.db = None
+            IngresarPacientes.conexion_realizada = False
 
-        destruir_completo(self.frame3.winfo_toplevel())
-        destruir_completo(self.frame1.winfo_toplevel())
-        destruir_completo(self.frame2.winfo_toplevel())
-        
-        #self.frame3.winfo_toplevel().destroy()
-        
-        abrir_ventana_visualizar_datos_ppal()
-        
+        cerrar_conexion()
+
+        # 2️⃣ Cancelar cualquier after pendiente de esta ventana
+        if hasattr(self, "after_id_aviso") and self.after_id_aviso:
+            self.ventana.after_cancel(self.after_id_aviso)
+            self.after_id_aviso = None
+
+        # 3️⃣ Destruir los frames propios de esta ventana
+        for frame in ['frame1', 'frame2', 'frame3', 'frame_sup', 'frame_sup1', 'frame_ppal']:
+            f = getattr(self, frame, None)
+            if f and f.winfo_exists():
+                try:
+                    f.destroy()
+                except:
+                    pass
+
+        # 4️⃣ Cerrar la ventana Toplevel
+        try:
+            if isinstance(self.ventana, self.ventana.__class__):
+                self.ventana.grab_release()
+                self.ventana.destroy()
+                print("✅ Ventana de ingreso cerrada correctamente.")
+        except Exception as e:
+            print(f"⚠️ No se pudo cerrar la ventana de ingreso: {e}")
+
+        # 5️⃣ Restaurar ventana principal solo si existe
+        if self.parent_window and self.parent_window.winfo_exists():
+            def restaurar_principal():
+                try:
+                    self.parent_window.deiconify()
+                    self.parent_window.lift()
+                    self.parent_window.focus_force()
+                    self.parent_window.state("normal")
+                    self.parent_window.update()
+                    self.parent_window.state("zoomed")
+                    print("✅ Ventana principal restaurada correctamente.")
+                except Exception as e:
+                    print(f"⚠️ No se pudo restaurar la ventana principal: {e}")
+
+            self.parent_window.after(100, restaurar_principal)
+        else:
+            print("⚠️ No se encontró ventana principal para restaurar.")
+            

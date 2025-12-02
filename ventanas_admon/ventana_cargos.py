@@ -7,7 +7,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    abrir_ventana_conn_fallida,
+                                                    abrir_ventana_conn_exito,
+                                                    datos_existen,
+                                                    campos_requeridos,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    id_no_esta,
+                                                    selecionar_datos
+                                                    )
 
 class IngresoCargos():
     
@@ -64,9 +73,15 @@ class IngresoCargos():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
-        
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar() 
+            abrir_ventana_conn_exito()
+            
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Crear la variable de control para el Entry
         self.cargo_var = ctk.StringVar()
@@ -172,7 +187,7 @@ class IngresoCargos():
         cargo = self.entry_cargo.get().strip()
         
         if not cargo:
-            print("Debe ingresar un Cargo.")
+            campos_requeridos()
             return
         
         # 🔹 Consultar si el cargo ya existe en la base de datos
@@ -183,7 +198,7 @@ class IngresoCargos():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            print(f"El cargo '{cargo}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
         # try:
@@ -192,21 +207,19 @@ class IngresoCargos():
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
         datos_ingresados()
         self.cargo_var.set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_cargo(self):
         
         cargo = self.entry_cargo.get()
         
         if not cargo:
-            
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM cargos WHERE nombre_cargo = %s"
         self.db.cursor.execute(sql_delete, (cargo,))
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        eliminacion_realizada()
         self.cargo_var.set("")
     
     def buscar_cargo(self, *args):
@@ -247,20 +260,21 @@ class IngresoCargos():
         
         # Verificar si el valor está vacío
         if not cargo_nuevo:
-            # Si está vacío, muestra un mensaje o realiza alguna acción
+            selecionar_datos()
             return
         
         # Usar el ID de la alergia seleccionada previamente
         cargo_id = self.cargo_id_seleccionado if hasattr(self, 'cargo_id_seleccionado') else None
 
         if not cargo_id:
-            print("No se ha seleccionado un cargo para modificar.")
+            id_no_esta()
             return
         
         # Realizar la actualización en la base de datos
         sql_modificar_alergia = "UPDATE cargos SET nombre_cargo = %s WHERE id_cargo = %s"
         self.db.cursor.execute(sql_modificar_alergia, (cargo_nuevo, cargo_id))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar el Textbox y actualizarlo con el nuevo valor
         self.textbox_resultados.configure(state="normal")
@@ -375,6 +389,7 @@ class IngresoCargos():
         return entry_textbox
 
     def salir(self):
+        
             """Método personalizado para el botón Salir.
             Cierra la ventana de cargos y restablece la ventana de administración."""
             
@@ -388,7 +403,3 @@ class IngresoCargos():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# a= IngresoCargos()
-# g= a.obtener_ventana()
-# g.mainloop()

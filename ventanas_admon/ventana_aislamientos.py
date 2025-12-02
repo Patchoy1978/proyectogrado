@@ -5,8 +5,16 @@ import customtkinter as ctk
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from abrirventanasemergentes.abrir_ventanas import ingresar_aislamiento, aislamiento_existe, datos_ingresados
-
+from abrirventanasemergentes.abrir_ventanas import (campos_requeridos, 
+                                                    datos_existen, 
+                                                    datos_ingresados,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta,
+                                                    selecionar_datos
+)
 from conexion_DB.conexionDB import Conexion_DB
 
 class IngresoAislamientos():
@@ -62,9 +70,15 @@ class IngresoAislamientos():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar() 
+            abrir_ventana_conn_exito()
         
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Crear la variable de control para el Entry
         self.aislamiento_var = ctk.StringVar()
@@ -151,6 +165,7 @@ class IngresoAislamientos():
         self.sql_statement = """insert into aislamientos (nombre_aislamiento) values (%s)"""
     
     def actualizar_a_title(self, *args):
+        
         """
         Callback que actualiza el contenido de la variable a formato Title.
         """
@@ -170,7 +185,7 @@ class IngresoAislamientos():
         aislamiento = self.entry_aislamiento.get().strip()
         
         if not aislamiento:
-            ingresar_aislamiento()
+            campos_requeridos()
             return
         
         # 🔹 Consultar si la alergia ya existe en la base de datos
@@ -181,7 +196,7 @@ class IngresoAislamientos():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            aislamiento_existe()
+            datos_existen()
             return  # No inserta si ya existe
 
         # try:
@@ -192,21 +207,19 @@ class IngresoAislamientos():
         datos_ingresados()
         
         self.aislamiento_var.set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_aislamiento(self):
         
         aislamiento= self.entry_aislamiento.get()
         
         if not aislamiento:
-            
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM aislamientos WHERE nombre_aislamiento = %s"
         self.db.cursor.execute(sql_delete, (aislamiento,))
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        eliminacion_realizada()
         self.aislamiento_var.set("")
     
     def buscar_aislamiento(self, *args):
@@ -247,20 +260,21 @@ class IngresoAislamientos():
         
         # Verificar si el valor está vacío
         if not aislamiento_nuevo:
-            # Si está vacío, muestra un mensaje o realiza alguna acción
+            selecionar_datos()
             return
         
         # Usar el ID del aislamiento seleccionado previamente
         aislamiento_id = self.aislamiento_id_seleccionado if hasattr(self, 'aislamiento_id_seleccionado') else None
 
         if not aislamiento_id:
-            print("No se ha seleccionado un aislamiento para modificar.")
+            id_no_esta()
             return
         
         # Realizar la actualización en la base de datos
         sql_modificar_aislamiento = "UPDATE aislamientos SET nombre_aislamiento = %s WHERE id_aislamiento = %s"
         self.db.cursor.execute(sql_modificar_aislamiento, (aislamiento_nuevo, aislamiento_id))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar el Textbox y actualizarlo con el nuevo valor
         self.textbox_resultados.configure(state="normal")
@@ -386,6 +400,4 @@ class IngresoAislamientos():
             #print("Restaurando ventana de Admon")
             self.parent_window.deiconify()
             self.parent_window.lift()
-                
-# a=IngresoAislamientos()
-# f=a.obtener_ventana()
+    

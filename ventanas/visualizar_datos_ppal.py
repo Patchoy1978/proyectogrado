@@ -1,8 +1,10 @@
 import sys
 import os
-from datetime import datetime, date
+from datetime import datetime, date, time, timedelta
 from tkinter import TclError,messagebox
 import pygame
+import subprocess
+import json
 
 """Añade al path del sistema la ruta del directorio padre del archivo actual.
 Esto permite importar módulos desde la carpeta superior."""
@@ -10,11 +12,14 @@ Esto permite importar módulos desde la carpeta superior."""
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+ruta_document = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
 ruta_base_sound = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sound'))
 
 # Importación de librerías necesarias para la interfaz
 
 import customtkinter as ctk # Versión personalizada de Tkinter con mejor apariencia
+
+#from ventanas.ventana_ingreso_pacientes import IngresarPacientes
 
 from PIL import Image, ImageTk
 
@@ -92,6 +97,7 @@ class PanelPrincipalVisualizacion():
         self.frame_ppal_visual_datos.grid_columnconfigure(list(range(16)), weight=1)
         
         self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((30, 30)), size=(30, 30))
+        self.ayuda = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ayuda.png")).resize((30, 30)), size=(30, 30))
 
         # Fuentes usadas
         self.fonts = {
@@ -185,6 +191,7 @@ class PanelPrincipalVisualizacion():
             {"label": "Cancelados", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": lambda: (self.ver_pacientes_cancelados(), self.ventana.iconify()), 'image' : None},
             {"label": "Ingresar Paciente", "color": "#00155C", "tipo": "boton", "ancho": 26, "alto":30, "command": self.boton_ingresar_presionado, 'image' : None},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
+            {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.abrir_manual_usuario, 'image' : self.ayuda}
         ]
         
         # Agrega el título principal al primer frame
@@ -725,7 +732,7 @@ class PanelPrincipalVisualizacion():
     
     def boton_ingresar_presionado(self):
 
-        from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+        """from ventanas.ventana_ingreso_pacientes import IngresarPacientes
         
         if self.db:
             self.db.cerrar_conexion()
@@ -747,7 +754,36 @@ class PanelPrincipalVisualizacion():
 
         IngresarPacientes(ventana)  # Le pasas directamente el paciente
 
-        ventana.mainloop()
+        ventana.mainloop()"""
+        
+        from abrirventanas.abrir import abrir_ventana_ingreso
+
+        if self.db:
+            self.db.cerrar_conexion()
+            PanelPrincipalVisualizacion.conexion_realizada = False
+        cerrar_conexion()
+        
+        """if not PanelPrincipalVisualizacion.conexion_realizada:
+            try:
+                PanelPrincipalVisualizacion.db = Conexion_DB()
+                PanelPrincipalVisualizacion.db.conectar()
+                abrir_ventana_conn_exito()
+                PanelPrincipalVisualizacion.conexion_realizada = True
+            except Exception:
+
+                abrir_ventana_conn_fallida()
+                
+        else:
+            
+            pass
+
+        self.db = PanelPrincipalVisualizacion.db"""
+
+        # 🔹 Ocultar la ventana principal
+        self.ventana.withdraw()
+
+        # 🔹 Abrir la ventana de ingreso pasándole la principal
+        abrir_ventana_ingreso(parent_window=self.ventana)
     
     # obtener datos de la db
     
@@ -929,7 +965,7 @@ class PanelPrincipalVisualizacion():
         if not PanelPrincipalVisualizacion.conexion_realizada:
             try:
                 PanelPrincipalVisualizacion.db = Conexion_DB()
-                PanelPrincipalVisualizacion.db.conectar()
+                PanelPrincipalVisualizacion.db.conectar() 
                 abrir_ventana_conn_exito()
                 PanelPrincipalVisualizacion.conexion_realizada = True
             except Exception:
@@ -1000,19 +1036,6 @@ class PanelPrincipalVisualizacion():
     
     def ver_pacientes_cancelados(self):
         
-        """if self.db:
-            self.db.cerrar_conexion()
-            PanelPrincipalVisualizacion.conexion_realizada = None
-        cerrar_conexion()
-        
-        self.ventana.destroy()
-    
-        if self.parent_window:
-            self.parent_window.deiconify()
-            self.parent_window.lift()
-        
-        abrir_ventana_visualizar_datos_ppal_cancelados(parent_window=self.parent_window)"""
-        
         if self.db:
             self.db.cerrar_conexion()
             PanelPrincipalVisualizacion.conexion_realizada = None
@@ -1030,39 +1053,87 @@ class PanelPrincipalVisualizacion():
         except Exception as e:
             print(f"Error al abrir la ventana de realizados: {e}")
     
+    def _normalizar_hora_citacion(self, hora):
+        """
+        Convierte la hora de paciente a formato 'HH:MM' string.
+        Acepta str 'HH:MM' o 'H:M', int (p.ej. 910) o datetime.time.
+        """
+        if hora is None:
+            return None
+        if isinstance(hora, str):
+            return hora[:5]  # 'HH:MM'
+        if isinstance(hora, int):
+            h = hora // 100
+            m = hora % 100
+            return f"{h:02d}:{m:02d}"
+        if isinstance(hora, datetime):
+            return hora.strftime("%H:%M")
+        if isinstance(hora, time):
+            return hora.strftime("%H:%M")
+        return None
+    
     # crud
     
     def cancelar_paciente(self, paciente):
         
+        """
+        Cancela un paciente, actualiza su estado en la DB y libera sus horas
+        bloqueadas en self.horas_tomadas, guardando el JSON y actualizando
+        el combobox de horas disponibles.
+        """        
+        from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+
+        # Confirmar cancelación
         respuesta = paciente_cancelado()
-        
-        if not respuesta:  # Si el usuario eligió "No"
+        if not respuesta:
             return
-        
-        # Obtener la identificación original desde el diccionario del paciente
+
         id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
 
-        # --- Obtener id_registro correspondiente a la identificación del paciente ---
-        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        # ==============================
+        # Obtener id_registro del último paciente activo (Pendiente o Comentado)
+        # ==============================
+        sql_id = """
+        SELECT id_registro 
+        FROM registrospacientes 
+        WHERE identificacion_paciente = %s 
+        AND estado IN (
+            SELECT id_estado FROM estados WHERE nombre_estado IN ('Pendiente', 'Comentado')
+        )
+        ORDER BY id_registro DESC 
+        LIMIT 1
+        """
         self.db.cursor.execute(sql_id, (id_original_paciente,))
         resultado = self.db.cursor.fetchone()
-
         if resultado:
             id_registro = resultado[0]
         else:
+            print(f"[DEBUG] No se encontró id_registro activo para paciente {id_original_paciente}")
             return
 
-        # --- Obtener dinámicamente el id_estado del estado 'Cancelado' ---
+        # ==============================
+        # Obtener id_estado Cancelado
+        # ==============================
         sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Cancelado'"
         self.db.cursor.execute(sql_estado)
         resultado_estado = self.db.cursor.fetchone()
-
         if resultado_estado:
             id_estado = resultado_estado[0]
         else:
+            print("[DEBUG] No se encontró id_estado 'Cancelado'")
             return
-        
-        valores1 = (paciente.get("nombre_paciente"),
+
+        # ==============================
+        # Actualizar estado en la DB
+        # ==============================
+        sql = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
+        self.db.cursor.execute(sql, (id_estado, id_registro))
+
+        # ==============================
+        # Insertar en tabla de cancelados
+        # ==============================
+        valores1 = (
+            paciente.get("nombre_paciente"),
             paciente.get("identificacion_paciente"),
             paciente.get("edad"),
             paciente.get("rango_edad"),
@@ -1091,100 +1162,139 @@ class PanelPrincipalVisualizacion():
             paciente.get("comentarios_radiologo"),
             UsuarioActual.id_usuario
         )
-        
-        sql = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
-        
-        self.db.cursor.execute(sql, (id_estado, id_registro))
-        
         sql1 = """INSERT INTO registrospacientescancelados
-            (
-            nombre_paciente, 
-            identificacion_paciente,
-            edad,
-            rango_edad,
-            fecha_orden,
-            fecha_citacion,
-            hc,
-            ubicacion,
-            modalidad,
-            estudios_ordenados_paciente,
-            diagnostico,
-            ayuno,
-            diferido,
-            alergia,
-            tipo_alergia,
-            aislamiento,
-            tipo_aislamiento,
-            autorizacion,
-            anestesia,
-            estado,
-            sede,
-            hora_citacion,
-            hora_realizacion,
-            causal_retraso,
-            comentarios_tecnologo,
-            comentar_radiologo,
-            comentarios_radiologo,
-            usuario
-            )
-            VALUES (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
-                
+            (nombre_paciente, identificacion_paciente, edad, rango_edad, fecha_orden, fecha_citacion,
+            hc, ubicacion, modalidad, estudios_ordenados_paciente, diagnostico, ayuno, diferido,
+            alergia, tipo_alergia, aislamiento, tipo_aislamiento, autorizacion, anestesia,
+            estado, sede, hora_citacion, hora_realizacion, causal_retraso,
+            comentarios_tecnologo, comentar_radiologo, comentarios_radiologo, usuario)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
         self.db.cursor.execute(sql1, valores1)
-        
         self.db.conexion.commit()
+
+        # ==============================
+        # Liberar horas del paciente cancelado
+        # ==============================
         
+        self._liberar_horas(paciente)
+        
+        """try:
+            IngresarPacientes.cargar_horas()
+            horas_tomadas = IngresarPacientes.horas_tomadas
+
+            fecha_citacion = paciente.get("fecha_citacion")
+            if isinstance(fecha_citacion, (datetime, date)):
+                fecha_citacion_str = fecha_citacion.strftime("%d/%m/%Y")
+            else:
+                fecha_citacion_str = str(fecha_citacion)
+
+            id_sede_str = str(paciente.get("sede")) if paciente.get("sede") is not None else None
+
+            hora_citacion = paciente.get("hora_citacion")
+            hora_citacion_str = None
+            if isinstance(hora_citacion, timedelta):
+                total_segundos = hora_citacion.total_seconds()
+                horas = int(total_segundos // 3600)
+                minutos = int((total_segundos % 3600) // 60)
+                hora_citacion_str = f"{horas:02d}:{minutos:02d}"
+            elif isinstance(hora_citacion, (datetime, datetime.time)):
+                hora_citacion_str = hora_citacion.strftime("%H:%M")
+            elif hora_citacion is not None:
+                hora_citacion_str = str(hora_citacion)
+
+            hora_citacion_norm = IngresarPacientes._normalizar_hora(hora_citacion_str) if hora_citacion_str else None
+
+            if id_sede_str and fecha_citacion_str and hora_citacion_norm:
+                detalles = horas_tomadas.get("detalles", {})
+                claves_para_borrar = [
+                    k for k in detalles if k.startswith(f"{id_sede_str}_{fecha_citacion_str}_{hora_citacion_norm}")
+                ]
+                for clave in claves_para_borrar:
+                    horas_bloque = [IngresarPacientes._normalizar_hora(str(h)) or str(h) for h in detalles.get(clave, [])]
+                    if id_sede_str in horas_tomadas and fecha_citacion_str in horas_tomadas[id_sede_str]:
+                        horas_tomadas[id_sede_str][fecha_citacion_str] = [
+                            h for h in horas_tomadas[id_sede_str][fecha_citacion_str] if h not in horas_bloque
+                        ]
+                        if not horas_tomadas[id_sede_str][fecha_citacion_str]:
+                            del horas_tomadas[id_sede_str][fecha_citacion_str]
+                    detalles.pop(clave, None)
+
+                IngresarPacientes.guardar_horas()
+                IngresarPacientes.actualizar_json_horas()
+            else:
+                print("[DEBUG] Datos insuficientes para liberar horas")
+
+        except Exception as e:
+            print("[DEBUG] Error al liberar horas:", e)"""
+
         self.actualizar_pantalla()
 
     def diferir_paciente(self, paciente):
         
-        # Preguntar primero
-        respuesta = paciente_diferido()
+        """
+        Diferir un paciente, actualizar su estado en la DB y liberar sus horas
+        bloqueadas en self.horas_tomadas, guardando el JSON y actualizando
+        el combobox de horas disponibles.
+        """
+        from ventanas.ventana_ingreso_pacientes import IngresarPacientes
 
-        if not respuesta:  # Si el usuario eligió "No"
+        # Confirmar diferido
+        respuesta = paciente_diferido()
+        if not respuesta:
             return
-        
-        # Obtener la identificación original desde el diccionario del paciente
+
         id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
 
-        # --- Obtener id_registro correspondiente a la identificación del paciente ---
-        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        # ==============================
+        # Obtener id_registro del último paciente activo (Pendiente o Comentado)
+        # ==============================
+        sql_id = """
+        SELECT id_registro 
+        FROM registrospacientes 
+        WHERE identificacion_paciente = %s 
+        AND estado IN (
+            SELECT id_estado FROM estados WHERE nombre_estado IN ('Pendiente', 'Comentado')
+        )
+        ORDER BY id_registro DESC 
+        LIMIT 1
+        """
         self.db.cursor.execute(sql_id, (id_original_paciente,))
         resultado = self.db.cursor.fetchone()
-
         if resultado:
             id_registro = resultado[0]
         else:
+            print(f"[DEBUG] No se encontró id_registro activo para paciente {id_original_paciente}")
             return
 
-        # --- Obtener dinámicamente el id_estado del estado 'Diferido' ---
+        # ==============================
+        # Obtener id_estado Diferido
+        # ==============================
         sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Diferido'"
         self.db.cursor.execute(sql_estado)
         resultado_estado = self.db.cursor.fetchone()
-
         if resultado_estado:
             id_estado = resultado_estado[0]
         else:
             return
 
-        # --- Actualizar el estado del registro original utilizando el id_registro ---
+        # ==============================
+        # Actualizar estado en la DB
+        # ==============================
         sql_update = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
         self.db.cursor.execute(sql_update, (id_estado, id_registro))
-        #print(f"UPDATE ejecutado correctamente para id_registro = {id_registro}")
-        #print(f"Filas afectadas: {self.db.cursor.rowcount}")
 
-        # --- Insertar el paciente en la tabla de diferidos ---
+        # ==============================
+        # Insertar en tabla de diferidos
+        # ==============================
         sql_insert = """INSERT INTO registrospacientesdiferidos (
             nombre_paciente, identificacion_paciente, edad, rango_edad, fecha_orden, fecha_citacion, hc, ubicacion,
-            modalidad, estudios_ordenados_paciente, diagnostico, ayuno, diferido, alergia, tipo_alergia, aislamiento, tipo_aislamiento,
-            autorizacion, anestesia, estado, sede, hora_citacion, hora_realizacion, causal_retraso, comentarios_tecnologo, 
-            comentar_radiologo, comentarios_radiologo, usuario
+            modalidad, estudios_ordenados_paciente, diagnostico, ayuno, diferido, alergia, tipo_alergia, aislamiento, 
+            tipo_aislamiento, autorizacion, anestesia, estado, sede, hora_citacion, hora_realizacion, causal_retraso, 
+            comentarios_tecnologo, comentar_radiologo, comentarios_radiologo, usuario
         ) VALUES (
-            %s, %s, %s, %s, 
-            %s, %s, %s, %s, %s, 
-            %s, %s, %s, %s, %s, 
-            %s, %s, %s, %s, %s, %s, %s, 
-            %s, %s, %s, %s, %s, %s, %s
+            %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s, %s, %s, %s
         )"""
 
         valores1 = (
@@ -1220,40 +1330,108 @@ class PanelPrincipalVisualizacion():
 
         self.db.cursor.execute(sql_insert, valores1)
         self.db.conexion.commit()
+
+        # ==============================
+        # Liberar horas del paciente diferido
+        # ==============================
         
+        self._liberar_horas(paciente)
+        
+        """try:
+            from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+            IngresarPacientes.cargar_horas()
+            horas_tomadas = IngresarPacientes.horas_tomadas
+
+            fecha_citacion = paciente.get("fecha_citacion")
+            if isinstance(fecha_citacion, (datetime, date)):
+                fecha_citacion_str = fecha_citacion.strftime("%d/%m/%Y")
+            else:
+                fecha_citacion_str = str(fecha_citacion)
+
+            id_sede_str = str(paciente.get("sede")) if paciente.get("sede") is not None else None
+            hora_citacion_norm = IngresarPacientes._normalizar_hora(paciente.get("hora_citacion"))
+
+            if id_sede_str and fecha_citacion_str and hora_citacion_norm:
+                detalles = horas_tomadas.get("detalles", {})
+                claves_para_borrar = [k for k in detalles if k.startswith(f"{id_sede_str}_{fecha_citacion_str}_{hora_citacion_norm}")]
+                for clave in claves_para_borrar:
+                    horas_bloque = [IngresarPacientes._normalizar_hora(str(h)) or str(h) for h in detalles.get(clave, [])]
+                    if id_sede_str in horas_tomadas and fecha_citacion_str in horas_tomadas[id_sede_str]:
+                        horas_tomadas[id_sede_str][fecha_citacion_str] = [
+                            h for h in horas_tomadas[id_sede_str][fecha_citacion_str] if h not in horas_bloque
+                        ]
+                        if not horas_tomadas[id_sede_str][fecha_citacion_str]:
+                            del horas_tomadas[id_sede_str][fecha_citacion_str]
+                    detalles.pop(clave, None)
+
+                IngresarPacientes.guardar_horas()
+                IngresarPacientes.actualizar_json_horas()
+            else:
+                print("[DEBUG DIFERIR] Datos insuficientes para liberar horas")
+        except Exception as e:
+            print("[DEBUG DIFERIR] Error al liberar horas:", e)"""
+
         self.actualizar_pantalla()
 
     def realizado_paciente(self, paciente):
         
+        """
+        Marca un paciente como realizado, actualiza su estado en la DB y libera
+        sus horas bloqueadas en self.horas_tomadas, guardando el JSON y actualizando
+        el combobox de horas disponibles.
+        """
+        from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+
+        # Confirmar realizado
         respuesta = paciente_realizado()
-        
-        if not respuesta:  # Si el usuario eligió "No"
+        if not respuesta:
             return
-        
-        # Obtener la identificación original desde el diccionario del paciente
+
         id_original_paciente = str(paciente.get("identificacion_paciente", "")).strip()
 
-        # --- Obtener id_registro correspondiente a la identificación del paciente ---
-        sql_id = "SELECT id_registro FROM registrospacientes WHERE identificacion_paciente = %s"
+        # ==============================
+        # Obtener id_registro del último paciente activo (Pendiente o Comentado)
+        # ==============================
+        sql_id = """
+        SELECT id_registro 
+        FROM registrospacientes 
+        WHERE identificacion_paciente = %s 
+        AND estado IN (
+            SELECT id_estado FROM estados WHERE nombre_estado IN ('Pendiente', 'Comentado')
+        )
+        ORDER BY id_registro DESC 
+        LIMIT 1
+        """
         self.db.cursor.execute(sql_id, (id_original_paciente,))
         resultado = self.db.cursor.fetchone()
-
         if resultado:
             id_registro = resultado[0]
         else:
+            print(f"[DEBUG] No se encontró id_registro activo para paciente {id_original_paciente}")
             return
 
-        # --- Obtener dinámicamente el id_estado del estado 'Realizado' ---
+        # ==============================
+        # Obtener id_estado Realizado
+        # ==============================
         sql_estado = "SELECT id_estado FROM estados WHERE nombre_estado = 'Realizado'"
         self.db.cursor.execute(sql_estado)
         resultado_estado = self.db.cursor.fetchone()
-
         if resultado_estado:
             id_estado = resultado_estado[0]
         else:
             return
-        
-        valores1 = (paciente.get("nombre_paciente"),
+
+        # ==============================
+        # Actualizar estado en la DB
+        # ==============================
+        sql_update = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
+        self.db.cursor.execute(sql_update, (id_estado, id_registro))
+
+        # ==============================
+        # Insertar en tabla de realizados
+        # ==============================
+        valores1 = (
+            paciente.get("nombre_paciente"),
             paciente.get("identificacion_paciente"),
             paciente.get("edad"),
             paciente.get("rango_edad"),
@@ -1282,49 +1460,134 @@ class PanelPrincipalVisualizacion():
             paciente.get("comentarios_radiologo"),
             UsuarioActual.id_usuario
         )
-        
-        sql = "UPDATE registrospacientes SET estado = %s WHERE id_registro = %s"
-        self.db.cursor.execute(sql, (id_estado, id_registro))
-        
-        sql1 = """INSERT INTO registrospacientesrealizados
-            (
-            nombre_paciente, 
-            identificacion_paciente,
-            edad,
-            rango_edad,
-            fecha_orden,
-            fecha_citacion,
-            hc,
-            ubicacion,
-            modalidad,
-            estudios_ordenados_paciente,
-            diagnostico,
-            ayuno,
-            diferido,
-            alergia,
-            tipo_alergia,
-            aislamiento,
-            tipo_aislamiento,
-            autorizacion,
-            anestesia,
-            estado,
-            sede,
-            hora_citacion,
-            hora_realizacion,
-            causal_retraso,
-            comentarios_tecnologo,
-            comentar_radiologo,
-            comentarios_radiologo,
-            usuario
-            )
-            VALUES (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) """
-                
-        self.db.cursor.execute(sql1, valores1)
-        
+
+        sql_insert = """INSERT INTO registrospacientesrealizados
+            (nombre_paciente, identificacion_paciente, edad, rango_edad, fecha_orden, fecha_citacion,
+            hc, ubicacion, modalidad, estudios_ordenados_paciente, diagnostico, ayuno, diferido,
+            alergia, tipo_alergia, aislamiento, tipo_aislamiento, autorizacion, anestesia,
+            estado, sede, hora_citacion, hora_realizacion, causal_retraso,
+            comentarios_tecnologo, comentar_radiologo, comentarios_radiologo, usuario)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        self.db.cursor.execute(sql_insert, valores1)
         self.db.conexion.commit()
+
+        # ==============================
+        # Liberar horas del paciente realizado
+        # ==============================
         
+        self._liberar_horas(paciente)
+        
+        """try:
+            from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+            IngresarPacientes.cargar_horas()
+            horas_tomadas = IngresarPacientes.horas_tomadas
+
+            fecha_citacion = paciente.get("fecha_citacion")
+            if isinstance(fecha_citacion, (datetime, date)):
+                fecha_citacion_str = fecha_citacion.strftime("%d/%m/%Y")
+            else:
+                fecha_citacion_str = str(fecha_citacion)
+
+            id_sede_str = str(paciente.get("sede")) if paciente.get("sede") is not None else None
+            hora_citacion_norm = IngresarPacientes._normalizar_hora(paciente.get("hora_citacion"))
+
+            if id_sede_str and fecha_citacion_str and hora_citacion_norm:
+                detalles = horas_tomadas.get("detalles", {})
+                claves_para_borrar = [k for k in detalles if k.startswith(f"{id_sede_str}_{fecha_citacion_str}_{hora_citacion_norm}")]
+                for clave in claves_para_borrar:
+                    horas_bloque = [IngresarPacientes._normalizar_hora(str(h)) or str(h) for h in detalles.get(clave, [])]
+                    if id_sede_str in horas_tomadas and fecha_citacion_str in horas_tomadas[id_sede_str]:
+                        horas_tomadas[id_sede_str][fecha_citacion_str] = [
+                            h for h in horas_tomadas[id_sede_str][fecha_citacion_str] if h not in horas_bloque
+                        ]
+                        if not horas_tomadas[id_sede_str][fecha_citacion_str]:
+                            del horas_tomadas[id_sede_str][fecha_citacion_str]
+                    detalles.pop(clave, None)
+
+                IngresarPacientes.guardar_horas()
+                IngresarPacientes.actualizar_json_horas()
+            else:
+                print("[DEBUG REALIZADO] Datos insuficientes para liberar horas")
+        except Exception as e:
+            print("[DEBUG REALIZADO] Error al liberar horas:", e)"""
+
         self.actualizar_pantalla()
+
+    def _liberar_horas(self, paciente):
+        """
+        Libera las horas ocupadas por un paciente en IngresarPacientes.horas_tomadas
+        y actualiza el JSON correspondiente.
+        """
+        try:
+            from ventanas.ventana_ingreso_pacientes import IngresarPacientes
+            # Cargar JSON de horas tomadas
+            IngresarPacientes.cargar_horas()
+            horas_tomadas = IngresarPacientes.horas_tomadas
+
+            # ======== Normalizar fecha ========
+            fecha_citacion = paciente.get("fecha_citacion")
+            if isinstance(fecha_citacion, (datetime, date)):
+                fecha_citacion_str = fecha_citacion.strftime("%d/%m/%Y")
+            else:
+                fecha_citacion_str = str(fecha_citacion)
+
+            # ======== Normalizar sede ========
+            id_sede = paciente.get("sede")
+            id_sede_str = str(id_sede) if id_sede is not None else None
+
+            # ======== Normalizar hora ========
+            hora_citacion = paciente.get("hora_citacion")
+            hora_citacion_str = None
+
+            if isinstance(hora_citacion, timedelta):
+                total_segundos = hora_citacion.total_seconds()
+                horas = int(total_segundos // 3600)
+                minutos = int((total_segundos % 3600) // 60)
+                hora_citacion_str = f"{horas:02d}:{minutos:02d}"
+            elif isinstance(hora_citacion, (datetime, datetime.time)):
+                hora_citacion_str = hora_citacion.strftime("%H:%M")
+            elif hora_citacion is not None:
+                hora_citacion_str = str(hora_citacion)
+
+            # Normalizar usando la función de IngresarPacientes
+            hora_citacion_norm = IngresarPacientes._normalizar_hora(hora_citacion_str) if hora_citacion_str else None
+
+            print("[DEBUG LIBERAR HORAS] Datos normalizados:")
+            print(f"   fecha: {fecha_citacion_str}")
+            print(f"   id_sede_str: {id_sede_str}")
+            print(f"   hora: {hora_citacion_norm}")
+
+            if not id_sede_str or not fecha_citacion_str or not hora_citacion_norm:
+                print("[DEBUG LIBERAR HORAS] Datos insuficientes para liberar horas")
+                return
+
+            # ======== Liberar horas del JSON ========
+            detalles = horas_tomadas.get("detalles", {})
+            claves_para_borrar = [
+                k for k in detalles if k.startswith(f"{id_sede_str}_{fecha_citacion_str}_{hora_citacion_norm}")
+            ]
+
+            for clave in claves_para_borrar:
+                horas_bloque = [
+                    IngresarPacientes._normalizar_hora(str(h)) or str(h)
+                    for h in detalles.get(clave, [])
+                ]
+
+                if id_sede_str in horas_tomadas and fecha_citacion_str in horas_tomadas[id_sede_str]:
+                    horas_tomadas[id_sede_str][fecha_citacion_str] = [
+                        h for h in horas_tomadas[id_sede_str][fecha_citacion_str] if h not in horas_bloque
+                    ]
+                    if not horas_tomadas[id_sede_str][fecha_citacion_str]:
+                        del horas_tomadas[id_sede_str][fecha_citacion_str]
+
+                detalles.pop(clave, None)
+
+            # Guardar cambios y actualizar combobox
+            IngresarPacientes.guardar_horas()
+            IngresarPacientes.actualizar_json_horas()
+
+        except Exception as e:
+            print("[DEBUG LIBERAR HORAS] Error al liberar horas:", e)
 
     def aviso_tecnologo(self):
         
@@ -1385,7 +1648,36 @@ class PanelPrincipalVisualizacion():
         
         # Volver a mostrar pacientes filtrados solo por sede
         self.visual_principal_datos()
-            
+    
+    def abrir_manual_usuario(self):
+        """
+        Busca y abre el archivo 'Manual del usuario.pdf' ubicado
+        en la ruta definida por 'ruta_document' usando el visor predeterminado del sistema.
+        """
+        nombre_archivo = "Manual del usuario.pdf"
+        ruta_completa_pdf = os.path.join(ruta_document, nombre_archivo)
+        
+        # Verificar si el archivo existe
+        if os.path.exists(ruta_completa_pdf):
+            try:
+                # Usar el comando adecuado según el sistema operativo
+                if sys.platform.startswith('darwin'):  # macOS
+                    subprocess.call(('open', ruta_completa_pdf))
+                elif sys.platform.startswith('win32'):  # Windows
+                    # El comando 'os.startfile' es a menudo el más simple en Windows
+                    os.startfile(ruta_completa_pdf)
+                else:  # Linux (puede que necesite 'xdg-open' o un comando similar)
+                    subprocess.call(('xdg-open', ruta_completa_pdf))
+                    
+                print(f"Abriendo el archivo: {ruta_completa_pdf}")
+                
+            except Exception as e:
+                # Mostrar un error si no se pudo abrir el archivo
+                messagebox.showerror("Error al Abrir PDF", f"No se pudo abrir el archivo PDF.\nError: {e}")
+        else:
+            # Mostrar un error si el archivo no se encuentra
+            messagebox.showerror("Archivo No Encontrado", f"El archivo '{nombre_archivo}' no se encontró en la ruta:\n{ruta_document}")
+    
     def salir(self):
         """Método personalizado para el botón Salir.
         """

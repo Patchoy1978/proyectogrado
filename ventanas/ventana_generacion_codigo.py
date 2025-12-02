@@ -123,7 +123,7 @@ class EnvioRecuperacionContrasena():
         # Campo para mostrar un mensaje de título
         campos = [
             
-            {'label': 'Envió del Código\nPara Recuperar Contraseña', 'tipo': 'label'},
+            {'label': 'Solicitar\nCódigo de Recuperación', 'tipo': 'label'},
         ]
         
         # Campos para ingresar el email

@@ -7,7 +7,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    campos_requeridos,
+                                                    datos_existen,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    selecionar_datos,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta
+                                                    )
 
 class IngresoEstudiosOrdenados():
     
@@ -62,26 +71,21 @@ class IngresoEstudiosOrdenados():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar() 
+            abrir_ventana_conn_exito()
         
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         self.estudio_id_seleccionado = None
         
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
         self.entries = {}
-        
-        # # Crear la variable de control para el Entry
-        # self.vars['estudio'] = ctk.StringVar()
-        # # Asociar el trace para que cada vez que cambie se actualice en formato title
-        # self.vars['estudio'].trace_add("write", self.actualizar_a_title)
-        
-        # # Crear la variable de control para el Entry
-        # self.vars['abreviacion'] = ctk.StringVar()
-        # # Asociar el trace para que cada vez que cambie se actualice en formato title
-        # self.vars['abreviacion'].trace_add("write", self.actualizar_a_title)
-        
         
         self.alergia_id_seleccionada = None
         
@@ -203,7 +207,7 @@ class IngresoEstudiosOrdenados():
         abreviacion = self.entries['abreviacion'].get().strip()
         
         if not estudio or not abreviacion:
-            print("Debe ingresar tanto el Estudio como la Abreviación.")
+            campos_requeridos()
             return
         
         # Consultar si el estudio ya existe en la base de datos (ajusta la consulta según corresponda)
@@ -212,10 +216,9 @@ class IngresoEstudiosOrdenados():
         resultado = self.db.cursor.fetchone()  # Usamos fetchone para un solo resultado
 
         if resultado[0] > 0:
-            print(f"El Estudio '{estudio}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
-        # try:
         sql_insert = "INSERT INTO listaestudios (nombre_estudio, abreviacion) VALUES (%s, %s)"
         self.db.cursor.execute(sql_insert, (estudio, abreviacion))
         self.db.conexion.commit()
@@ -223,9 +226,6 @@ class IngresoEstudiosOrdenados():
         # Limpiar los entries luego de la inserción
         self.vars['estudio'].set("")
         self.vars['abreviacion'].set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_estudio(self):
         
@@ -233,12 +233,13 @@ class IngresoEstudiosOrdenados():
         abreviacion = self.entries['abreviacion'].get().strip()
         
         if not estudio or not abreviacion:
-            print("Debe seleccionar un estudio y su abreviación para eliminar.")
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM listaestudios WHERE nombre_estudio = %s AND abreviacion = %s"
         self.db.cursor.execute(sql_delete, (estudio, abreviacion))
         self.db.conexion.commit()
+        eliminacion_realizada()
         self.vars['estudio'].set("")
         self.vars['abreviacion'].set("")
     
@@ -274,17 +275,18 @@ class IngresoEstudiosOrdenados():
         abreviacion_nueva = self.entries['abreviacion'].get().strip()
 
         if not estudio_nuevo or not abreviacion_nueva:
-            print("Debe ingresar los datos para modificar.")
+            selecionar_datos()
             return
 
         # Verificar si se ha seleccionado una modalidad
         if not self.estudio_id_seleccionado:
-            print("No se ha seleccionado una modalidad para modificar.")
+            id_no_esta()
             return
 
         sql_modificar_estudio = "UPDATE listaestudios SET nombre_estudio = %s, abreviacion = %s WHERE id_estudio = %s"
         self.db.cursor.execute(sql_modificar_estudio, (estudio_nuevo, abreviacion_nueva, self.estudio_id_seleccionado))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar los campos
         self.textbox_resultados.configure(state="normal")
@@ -415,6 +417,3 @@ class IngresoEstudiosOrdenados():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# a= IngresoAlergias()
-# g= a.obtener_ventana()

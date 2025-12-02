@@ -9,7 +9,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
 
 from conexion_DB.conexionDB import Conexion_DB
-from abrirventanasemergentes.abrir_ventanas import abrir_ventana_conn_exito, abrir_ventana_conn_fallida, datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito, 
+                                                    abrir_ventana_conn_fallida, 
+                                                    datos_ingresados,
+                                                    datos_existen,
+                                                    campos_requeridos,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    selecionar_datos,
+                                                    id_no_esta
+                                                    )
 
 # from PIL import Image, ImageTk
 
@@ -186,7 +195,7 @@ class IngresoAlergias():
         alergia = self.entry_alergia.get().strip()
         
         if not alergia:
-            print("Debe ingresar una alergia.")
+            campos_requeridos()
             return
         
         # 🔹 Consultar si la alergia ya existe en la base de datos
@@ -197,7 +206,7 @@ class IngresoAlergias():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            print(f"La alergia '{alergia}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
         # try:
@@ -206,21 +215,19 @@ class IngresoAlergias():
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
         datos_ingresados()
         self.alergia_var.set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_alergia(self):
         
         alergia= self.entry_alergia.get()
         
         if not alergia:
-            
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM alergias WHERE nombre_alergia = %s"
         self.db.cursor.execute(sql_delete, (alergia,))
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        eliminacion_realizada()
         self.alergia_var.set("")
     
     def buscar_alergia(self, *args):
@@ -260,26 +267,26 @@ class IngresoAlergias():
         
         # Verificar si el valor está vacío
         if not alergia_nueva:
-            # Si está vacío, muestra un mensaje o realiza alguna acción
+            selecionar_datos()
             return
         
         # Usar el ID de la alergia seleccionada previamente
         alergia_id = self.alergia_id_seleccionada if hasattr(self, 'alergia_id_seleccionada') else None
 
         if not alergia_id:
-            print("No se ha seleccionado una alergia para modificar.")
+            id_no_esta()
             return
         
         # Realizar la actualización en la base de datos
         sql_modificar_alergia = "UPDATE alergias SET nombre_alergia = %s WHERE id_alergia = %s"
         self.db.cursor.execute(sql_modificar_alergia, (alergia_nueva, alergia_id))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar el Textbox y actualizarlo con el nuevo valor
         self.textbox_resultados.configure(state="normal")
         self.textbox_resultados.delete("1.0", "end")
         self.alergia_var.set("")
-        # self.textbox_resultados.insert("end", f"Alergia modificada: {alergia_nueva}\n")
         self.textbox_resultados.configure(state="disabled")
 
 
@@ -398,7 +405,3 @@ class IngresoAlergias():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# a= IngresoAlergias()
-# g= a.obtener_ventana()
-# g.mainloop()

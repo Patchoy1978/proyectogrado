@@ -1,6 +1,5 @@
 ﻿import mysql.connector
 
-
 class ConexionDB():
     
     def __init__(self, host, user, password, port):
@@ -17,7 +16,7 @@ class ConexionDB():
         # ------------------------
         # Tablas auxiliares
         # ------------------------
-        sql_aux = [
+        self.sql_aux = [
             # Tabla de alergias
             """CREATE TABLE IF NOT EXISTS alergias (
                 id_alergia INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -93,9 +92,9 @@ class ConexionDB():
             "registrosPacientesModificados"
         ]
 
-        sql_principal = {}
+        self.sql_principal = {}
         for tabla in tablas_principales:
-            sql_principal[tabla] = f"""
+            self.sql_principal[tabla] = f"""
             CREATE TABLE IF NOT EXISTS {tabla} (
                 id_registro INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY UNIQUE,
                 nombre_paciente VARCHAR(60) NOT NULL,
@@ -145,14 +144,14 @@ class ConexionDB():
         # ------------------------
         # Crear tablas auxiliares
         # ------------------------
-        for sql in sql_aux:
+        for sql in self.sql_aux:
             self.cursor.execute(sql)
             self.conexion.commit()
 
         # ------------------------
         # Crear tablas principales y relaciones
         # ------------------------
-        for tabla, sql in sql_principal.items():
+        for tabla, sql in self.sql_principal.items():
             # Crear tabla principal
             self.cursor.execute(sql)
             self.conexion.commit()

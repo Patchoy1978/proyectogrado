@@ -7,7 +7,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    datos_existen,
+                                                    campos_requeridos,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    selecionar_datos,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta
+                                                    )
 
 class IngresoModalidades():
     
@@ -62,9 +71,15 @@ class IngresoModalidades():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar() 
+            abrir_ventana_conn_exito()
         
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Diccionarios para guardar variables y widgets entry
         self.vars = {}
@@ -190,7 +205,7 @@ class IngresoModalidades():
         abreviacion = self.entries['abreviacion'].get().strip()
         
         if not modalidad or not abreviacion:
-            print("Debe ingresar tanto la Modalidad como la Abreviación.")
+            campos_requeridos()
             return
         
         # Consultar si el modalidad ya existe en la base de datos (ajusta la consulta según corresponda)
@@ -199,7 +214,7 @@ class IngresoModalidades():
         resultado = self.db.cursor.fetchone()  # Usamos fetchone para un solo resultado
 
         if resultado[0] > 0:
-            print(f"El Estudio '{modalidad}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
         # try:
@@ -210,9 +225,6 @@ class IngresoModalidades():
         # Limpiar los entries luego de la inserción
         self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_modalidad(self):
         
@@ -220,12 +232,13 @@ class IngresoModalidades():
         abreviacion = self.entries['abreviacion'].get().strip()
         
         if not modalidad or not abreviacion:
-            print("Debe seleccionar una Modalidad y su abreviación para eliminar.")
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM modalidades WHERE nombre_modalidad = %s AND abreviacion = %s"
         self.db.cursor.execute(sql_delete, (modalidad, abreviacion))
         self.db.conexion.commit()
+        eliminacion_realizada()
         self.vars['modalidad'].set("")
         self.vars['abreviacion'].set("")
     
@@ -261,17 +274,18 @@ class IngresoModalidades():
         abreviacion_nueva = self.entries['abreviacion'].get().strip()
 
         if not modalidad_nueva or not abreviacion_nueva:
-            print("Debe ingresar los datos para modificar.")
+            selecionar_datos()
             return
 
         # Verificar si se ha seleccionado una modalidad
         if not self.modalidad_id_seleccionada:
-            print("No se ha seleccionado una modalidad para modificar.")
+            id_no_esta()
             return
 
         sql_modificar_modalidad = "UPDATE modalidades SET nombre_modalidad = %s, abreviacion = %s WHERE id_modalidad = %s"
         self.db.cursor.execute(sql_modificar_modalidad, (modalidad_nueva, abreviacion_nueva, self.modalidad_id_seleccionada))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar los campos
         self.textbox_resultados.configure(state="normal")
@@ -402,7 +416,3 @@ class IngresoModalidades():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# a= IngresoModalidades()
-# g= a.obtener_ventana()
-# g.mainloop()

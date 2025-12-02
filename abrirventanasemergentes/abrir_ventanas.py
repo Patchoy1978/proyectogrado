@@ -97,7 +97,7 @@ def cerrar_conexion():
 
 def confirmacion_codigo():
 
-    messagebox.showinfo("Código Enviado", "Con el Codigo\nYa Estas Autorizado para ingresar tu nueva contraseña")
+    messagebox.showinfo("Código Enviado", "Con el Codigo Generado\nEstas Autorizado para ingresar tu nueva contraseña")
     
 def validacion_cuenta():
 
@@ -111,18 +111,41 @@ def codigo_no_esta():
 
     messagebox.showwarning("Código No Esta ", "El email Ingresado\nNo Tiene codigo de Autorización")
 
-def ingresar_aislamiento():
+def identificacion_no_esta():
+
+    messagebox.showwarning("No Esta ", "La Identificación Ingresada\nNo Existe En La Base De Datos")
+
+def id_no_esta():
+
+    messagebox.showwarning("No Esta ", "El Id No Existe\nEn La Base De Datos")
+
+def id_no_esta_2():
+
+    messagebox.showwarning("No Esta ", "El Id o La Modalidad No Existen\nEn La Base De Datos")
+
+def selecionar_datos():
     
-    messagebox.showwarning("Ingreso Aislamiento","Debe ingresar un aislamiento.")
+    messagebox.showwarning("Selección Datos ","Debe seleccionar datos\nPara Interactuar Con Ellos.")
     
-def aislamiento_existe():
+def datos_existen():
     
-    messagebox.showinfo("Aislamiento Existente","El aislamiento ya existe en la base de datos.")
+    messagebox.showinfo("datos Existentes","Los Datos ya existen en la base de datos.")
     
 def debes_hacer_primero():
     
     messagebox.showinfo("Primer Paso","Si no hay pacientes para visualizar\n\nDebes Ingresar Pacientes y Despues\n\nDebes seleccionar una sede\n\npara visualizar los pacientes,\n\nSi quieres observar por un día en especifico\n\ntambién selecciona una fecha.")
+ 
+def debes_hacer_primero_radiologo():
     
+    messagebox.showinfo('Primer Paso',
+        """Debes seleccionar una sede para visualizar los pacientes,
+        \n\nSi quieres observar por un día en especifico
+        \n\ntambién selecciona una fecha
+        \n\nEstando en una sede seleccionada puedes buscar
+        \n\ndigitando el número de identificación."""
+        )
+
+
 def admon_debes_hacer_primero():
     
     messagebox.showinfo("Primer Paso","Debes Ingresar Una Modalidad\n\nDebes Ingresar Un Cargo,\n\nDebes Salir De Esta Ventana\n\nDebes Registrarte Para Poder Ingresar\n\nComo el Administrador.")
@@ -130,6 +153,10 @@ def admon_debes_hacer_primero():
 def modificacion_realizada():
     
     messagebox.showinfo("Confirmación Modificación","Los Datos Se Han Actualizado Correctamente")
+
+def eliminacion_realizada():
+    
+    messagebox.showinfo("Confirmación Eliminación","Los Datos Se Han eliminado Correctamente")
 
 def si_la_db_esta_vacia():
     

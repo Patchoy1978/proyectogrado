@@ -13,6 +13,11 @@ from tkinter import messagebox
 
 from PIL import Image
 
+from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    identificacion_no_esta
+                                                    )
+
 class IngresoPacientesAdmon():
     
     def __init__(self, parent_window=None):
@@ -50,8 +55,6 @@ class IngresoPacientesAdmon():
         
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
-        #self.root.grid_rowconfigure(1, weight=1)
-        #self.root.grid_rowconfigure(2, weight=1)
         
         self.frame = ctk.CTkScrollableFrame(self.root, fg_color='transparent')
         self.frame.grid(row= 0, column= 0, columnspan = 2, sticky='nsew')
@@ -75,13 +78,17 @@ class IngresoPacientesAdmon():
         self.frame1.grid_columnconfigure(0, weight=1)
         self.frame_titulo.grid_columnconfigure(0, weight=1)
         self.frame2.grid_columnconfigure(0, weight=1)
-        self.frame3.grid_columnconfigure(0, weight=1)
-        #self.frame3.grid_rowconfigure(0, weight=1)
+        self.frame3.grid_columnconfigure(0, weight=1)        
         
-        
-        
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar()
+            abrir_ventana_conn_exito()
+            
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         self.atras = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, 'atras.png')).resize((35,35)), size= (35,35))
         self.adelante = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, 'adelante.png')).resize((35,35)), size= (35,35))
@@ -98,8 +105,7 @@ class IngresoPacientesAdmon():
         self.usuario_id_seleccionado = None
         
         self.buscando = False
-        #self.root.bind_all("<Return>",)
-        
+
         self.ingreso_datos()
         
     def obtener_ventana(self):
@@ -358,7 +364,7 @@ class IngresoPacientesAdmon():
     
         user_identification = self.entries['identificacion_paciente'].get().strip()
         if not user_identification:
-            
+            identificacion_no_esta()
             return
 
         sql_buscar_usuario = "SELECT * FROM registrospacientes WHERE identificacion_paciente LIKE %s"
@@ -644,6 +650,9 @@ class IngresoPacientesAdmon():
         self.textbox['comentarios_tecnologo'].delete("0.0", "end")
         self.vars['comentar_radiologo'].set("")
         self.textbox['comentarios_radiologo'].delete("0.0", "end")
+        
+        if 'identificacion_paciente' in self.entries:
+            self.entries['identificacion_paciente'].focus()
     
     def salir(self):
             """Método personalizado para el botón Salir.
@@ -659,6 +668,3 @@ class IngresoPacientesAdmon():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-# a= IngresoUsuariosAdmon()
-# g= a.obtener_ventana()
-# g.mainloop()

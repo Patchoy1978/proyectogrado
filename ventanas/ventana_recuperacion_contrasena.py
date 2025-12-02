@@ -15,6 +15,8 @@ ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img')
 from conexion_DB.conexionDB import Conexion_DB
 from PIL import Image
 
+from abrirventanas.abrir import abrir_ventana_ingreso_credenciales
+
 # Importar funciones de ventanas emergentes
 from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     abrir_ventana_conn_fallida,
@@ -422,18 +424,19 @@ class RecuperacionContrasena():
     
     def salir(self):
         
-            """Método personalizado para el botón Salir.
-            """
-            # Verificar si la conexión a la base de datos está abierta y cerrarla
-            if self.db:
-                
-                self.db.cerrar_conexion()
+        """Método personalizado para el botón Salir.
+        """
+        # Verificar si la conexión a la base de datos está abierta y cerrarla
+        if self.db:
             
-            self.root.destroy() # Cerrar la ventana actual
+            self.db.cerrar_conexion()
+        
+        self.root.destroy() # Cerrar la ventana actual
+                    
+        # Si existe una ventana principal (parent_window), restaurarla y traerla al frente
+        if self.parent_window:
             
-            # Si existe una ventana principal (parent_window), restaurarla y traerla al frente
-            if self.parent_window:
-                
-                self.parent_window.deiconify() # Hacer visible la ventana principal
-                
-                self.parent_window.lift() # Llevar la ventana principal al frente
+            self.parent_window.deiconify() # Hacer visible la ventana principal
+            
+            self.parent_window.lift() # Llevar la ventana principal al frente
+            

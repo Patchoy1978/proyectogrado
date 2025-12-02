@@ -7,7 +7,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    datos_existen,
+                                                    campos_requeridos,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta,
+                                                    selecionar_datos
+                                                    )
 
 class IngresoRangoEdades():
     
@@ -62,15 +71,20 @@ class IngresoRangoEdades():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar()  
+            abrir_ventana_conn_exito()
         
-        self.db = Conexion_DB()
-        self.db.conectar()  
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Crear la variable de control para el Entry
         self.rango_edades_var = ctk.StringVar()
+        
         # Asociar el trace para que cada vez que cambie se actualice en formato title
-        # self.rango_edades_var.trace("w", self.actualizar_a_title)
-        # self.rango_edades_var.trace("w", self.buscar_rango_edad)
         self.rango_edades_var.trace_add("write", lambda *args: self.actualizar_a_title())
         self.rango_edades_var.trace_add("write", lambda *args: self.buscar_rango_edad())
         
@@ -162,7 +176,7 @@ class IngresoRangoEdades():
         texto_title = texto_actual.title()  # Convierte a title case
         
         if texto_actual != texto_title:
-           
+        
             # Actualizamos la variable, lo que actualizará el Entry
             self.rango_edades_var.set(texto_title)
     
@@ -172,7 +186,7 @@ class IngresoRangoEdades():
         rango_edad = self.entry_rangoedad.get().strip()
         
         if not rango_edad:
-            print("Debe ingresar un rango de edad.")
+            campos_requeridos()
             return
         
         # 🔹 Consultar si la alergia ya existe en la base de datos
@@ -183,30 +197,27 @@ class IngresoRangoEdades():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            print(f"El Rango '{rango_edad}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
-        # try:
         sql_insert = "INSERT INTO rangosedades (rango) VALUES (%s)"
         self.db.cursor.execute(sql_insert, (rango_edad,)) 
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
         datos_ingresados()
         self.rango_edades_var.set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_rango_edad(self):
         
         rango_edad= self.entry_rangoedad.get()
         
         if not rango_edad:
-            
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM rangosedades WHERE rango = %s"
         self.db.cursor.execute(sql_delete, (rango_edad,))
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        eliminacion_realizada()
         self.rango_edades_var.set("")
     
     def buscar_rango_edad(self, *args):
@@ -247,26 +258,26 @@ class IngresoRangoEdades():
         
         # Verificar si el valor está vacío
         if not rango_edad_nueva:
-            # Si está vacío, muestra un mensaje o realiza alguna acción
+            selecionar_datos()
             return
         
         # Usar el ID de la alergia seleccionada previamente
         rango_edad_id = self.rango_edad_id_seleccionado if hasattr(self, 'rango_edad_id_seleccionado') else None
 
         if not rango_edad_id:
-            print("No se ha seleccionado una alergia para modificar.")
+            id_no_esta()
             return
         
         # Realizar la actualización en la base de datos
         sql_modificar_rango_edad = "UPDATE rangosedades SET rango = %s WHERE id_rangoedad = %s"
         self.db.cursor.execute(sql_modificar_rango_edad, (rango_edad_nueva, rango_edad_id))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar el Textbox y actualizarlo con el nuevo valor
         self.textbox_resultados.configure(state="normal")
         self.textbox_resultados.delete("1.0", "end")
         self.rango_edades_var.set("")
-        # self.textbox_resultados.insert("end", f"Alergia modificada: {alergia_nueva}\n")
         self.textbox_resultados.configure(state="disabled")
 
 
@@ -386,6 +397,3 @@ class IngresoRangoEdades():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# v = IngresoRangoEdades()
-# a = v.obtener_ventana()

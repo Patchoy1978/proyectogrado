@@ -153,7 +153,7 @@ class VentanaRegistroUsuario():
         # Campos para el encabezado
         campos = [
             
-            {'label':'Bienvenido\nRegistro De Usuario'}
+            {'label':'Formulario de Registro'}
         ]
         
         # Campos para los datos del usuario: nombre, identificación, email

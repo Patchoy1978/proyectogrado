@@ -26,8 +26,8 @@ class Conexion_DB():
         self.user = config.get("user")
         self.password = config.get("password")
         self.port = config.get("port")
-        self.conexion = ''
-        self.cursor = ''
+        self.conexion = None
+        self.cursor = None
     
     def conectar(self):
                 

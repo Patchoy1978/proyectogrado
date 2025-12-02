@@ -8,7 +8,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conexion_DB.conexionDB import Conexion_DB
 
-from abrirventanasemergentes.abrir_ventanas import datos_ingresados
+from abrirventanasemergentes.abrir_ventanas import (datos_ingresados,
+                                                    campos_requeridos,
+                                                    datos_existen,
+                                                    eliminacion_realizada,
+                                                    modificacion_realizada,
+                                                    abrir_ventana_conn_exito,
+                                                    abrir_ventana_conn_fallida,
+                                                    id_no_esta,
+                                                    selecionar_datos
+                                                    )
 
 class IngresoEstados():
     
@@ -63,11 +72,15 @@ class IngresoEstados():
         self.frame2.grid_columnconfigure(1, weight=1)
         self.frame2.grid_columnconfigure(2, weight=1)
         
-        
-        self.db = Conexion_DB()
-        self.db.conectar() 
-        
-        
+        try:
+            
+            self.db = Conexion_DB()
+            self.db.conectar() 
+            abrir_ventana_conn_exito()
+            
+        except:
+            
+            abrir_ventana_conn_fallida()
         
         # Crear la variable de control para el Entry
         self.estado_var = ctk.StringVar()
@@ -176,7 +189,7 @@ class IngresoEstados():
         estado = self.entry_estado.get().strip()
         
         if not estado:
-            print("Debe ingresar un Estado.")
+            campos_requeridos()
             return
         
         # 🔹 Consultar si la alergia ya existe en la base de datos
@@ -187,7 +200,7 @@ class IngresoEstados():
         resultado = self.db.cursor.fetchone()
 
         if resultado[0] > 0:
-            print(f"La alergia '{estado}' ya existe en la base de datos.")
+            datos_existen()
             return  # No inserta si ya existe
 
         # try:
@@ -196,21 +209,19 @@ class IngresoEstados():
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
         datos_ingresados()
         self.estado_var.set("")
-        #     print(f"Alergia '{alergia}' insertada correctamente.")
-        # except Exception as e:
-        #     print("Error al insertar en la base de datos:", e)
         
     def eliminar_estado(self):
         
         estado= self.entry_estado.get()
         
         if not estado:
-            
+            selecionar_datos()
             return
         
         sql_delete = "DELETE FROM estados WHERE nombre_estado = %s"
         self.db.cursor.execute(sql_delete, (estado,))
         self.db.conexion.commit()  # Confirmar cambios en la base de datos
+        eliminacion_realizada()
         self.estado_var.set("")
     
     def buscar_estado(self, *args):
@@ -251,26 +262,26 @@ class IngresoEstados():
         
         # Verificar si el valor está vacío
         if not estado_nuevo:
-            # Si está vacío, muestra un mensaje o realiza alguna acción
+            selecionar_datos()
             return
         
         # Usar el ID de la alergia seleccionada previamente
         estado_id = self.estado_id_seleccionado if hasattr(self, 'estado_id_seleccionado') else None
 
         if not estado_id:
-            print("No se ha seleccionado un estado para modificar.")
+            id_no_esta()
             return
         
         # Realizar la actualización en la base de datos
         sql_modificar_estado = "UPDATE estados SET nombre_estado = %s WHERE id_estado = %s"
         self.db.cursor.execute(sql_modificar_estado, (estado_nuevo, estado_id))
         self.db.conexion.commit()
+        modificacion_realizada()
 
         # Limpiar el Textbox y actualizarlo con el nuevo valor
         self.textbox_resultados.configure(state="normal")
         self.textbox_resultados.delete("1.0", "end")
         self.estado_var.set("")
-        # self.textbox_resultados.insert("end", f"Alergia modificada: {alergia_nueva}\n")
         self.textbox_resultados.configure(state="disabled")
 
 
@@ -390,8 +401,3 @@ class IngresoEstados():
                 
                 self.parent_window.deiconify()
                 self.parent_window.lift()
-
-# a= IngresoEstados()
-# g= a.obtener_ventana()
-
-# g.mainloop()  # Ingrese el nombre de la ventana de la clase principal

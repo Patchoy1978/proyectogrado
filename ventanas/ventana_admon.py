@@ -1,12 +1,15 @@
 import sys # Importa el módulo sys, que proporciona acceso a funciones y variables del sistema.
 import os # Importa el módulo os, que permite interactuar con el sistema operativo, como manejar rutas de archivos.
 import mysql.connector
+import subprocess
+from tkinter import messagebox
 
 # Agrega el directorio padre al sys.path para poder importar módulos desde otros directorios del proyecto.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))) 
 
 # Obtener la ruta absoluta del directorio "img"
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+ruta_document = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
 
 from PIL import Image # Importa la clase Image de la biblioteca Pillow para manipulación de imágenes
 
@@ -42,7 +45,7 @@ class VentanaAdmon():
         
         # Define el ancho y alto de la nueva ventana.
         ancho_ventana_nueva = 600
-        alto_ventana_nueva = 500
+        alto_ventana_nueva = 600
         
         ctk.set_appearance_mode('light') # Establece el modo de apariencia de la interfaz en "light" (claro).
         ctk.set_default_color_theme('green') # Establece el tema de color por defecto en "green" (verde).
@@ -85,6 +88,7 @@ class VentanaAdmon():
         # Cargar imágenes para los iconos de visibilidad de contraseña, ajustando su tamaño
         self.ojo_abierto = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojoabierto.png")).resize((50, 50)), size=(50, 50))
         self.ojo_cerrado = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ojo-cerrado.png")).resize((50, 50)), size=(50, 50))
+        self.ayuda = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ayuda.png")).resize((50, 50)), size=(50, 50))
         
         # Configura la grilla de la ventana principal para distribuir los elementos de manera uniforme.
         self.root.grid_columnconfigure(0, weight=1)
@@ -95,13 +99,21 @@ class VentanaAdmon():
         self.frame = ctk.CTkFrame(self.root, fg_color='transparent')
         self.frame.grid(row= 0, column = 0, sticky = 'nsew')  # Lo posiciona en la fila 0 y lo expande.
         
-        # Crea el segundo frame con un color de fondo transparente.
-        self.frame1 = ctk.CTkFrame(self.root, fg_color='transparent')
-        self.frame1.grid(row= 1, column = 0, sticky = 'nsew') # Lo posiciona en la fila 1 y lo expande.
-        
         # Configura la grilla del primer frame para que los elementos se expandan uniformemente.
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_rowconfigure(0, weight=1) # Configura la grilla del frame para que se expanda en la fila 0.
+        
+        # Crea el segundo frame con un color de fondo transparente.
+        self.frame0 = ctk.CTkFrame(self.root, fg_color='transparent')
+        self.frame0.grid(row= 1, column = 0, sticky = 'nsew') # Lo posiciona en la fila 1 y lo expande.
+        
+        # Configura la grilla del segundo frame para permitir distribución equitativa de elementos.
+        self.frame0.grid_columnconfigure(0, weight=1) # Configura la grilla del frame1 para que se expanda en la columna 0.
+        self.frame0.grid_columnconfigure(1, weight=1) # Configura la grilla del frame1 para que se expanda en la columna 1.
+        
+        # Crea el segundo frame con un color de fondo transparente.
+        self.frame1 = ctk.CTkFrame(self.root, fg_color='transparent')
+        self.frame1.grid(row= 1, column = 0, sticky = 'nsew') # Lo posiciona en la fila 1 y lo expande.
         
         # Configura la grilla del segundo frame para permitir distribución equitativa de elementos.
         self.frame1.grid_columnconfigure(0, weight=1) # Configura la grilla del frame1 para que se expanda en la columna 0.
@@ -135,30 +147,54 @@ class VentanaAdmon():
 
         # Encabezado
         campos = [{'label': 'Administrar\nBases De Datos'}]
+        
+        
+        campo0 = [
+                {"label": "", "tipo": "boton", "ancho": 50, "alto":50, "command": self.abrir_manual_admon, "color": "transparent", 'state': 'normal', 'image' : self.ayuda}
+                ]
 
         # Botones primera columna
         campos1 = [
-            {'label': 'Eliminar\nPacientes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_pacientes_admon(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Usuarios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_usuarios_admon(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Alergias', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_rango_edad(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Lista De Estudios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estudio_ordenado(self.root), self.root.iconify()), 'state': 'disabled'},
+            {'label': 'Eliminar\nPacientes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_pacientes_admon(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Usuarios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_usuarios_admon(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Alergias', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_alergias(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Aislamientos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_aislamiento(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Rango Edades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_rango_edad(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Lista De Estudios', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estudio_ordenado(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
         ]
 
         # Botones segunda columna
         campos2 = [
-            {'label': 'Modalidades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_modalidad(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Estados', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Sedes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Retrasos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Cargos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_cargos(self.root), self.root.iconify()), 'state': 'disabled'},
-            {'label': 'Salir', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': self.cerrar, 'state': 'disabled'},
+            {'label': 'Modalidades', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_modalidad(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Estados', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_estados(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Sedes', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_sedes(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Retrasos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_ratrasos(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Cargos', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': lambda: (abrir_ventana_cargos(self.root), self.root.iconify()), "color": "#00155c", 'state': 'disabled', 'image' : None},
+            {'label': 'Salir', 'tipo': 'boton', 'ancho': 50, 'alto': 40, 'command': self.cerrar, "color": "#00155c", 'state': 'disabled'},
         ]
         
         # Crear label del encabezado
         for i, campo in enumerate(campos):
             self.crear_label(self.frame, campo['label'], self.fonts['title'], fila=0, columna=0)
+        
+        # Crear boton ayuda
+        for i, campo in enumerate(campo0):
+            boton = self.crear_boton(
+                self.frame,
+                text=campo['label'],
+                font=self.fonts['boton'],
+                fila=1,
+                columna=0,
+                command=campo['command'],
+                color_fondo= campo['color'], 
+                widget_alto=campo['alto'],
+                widget_ancho=campo['ancho'],
+                state=campo['state'],
+                image= campo['image']
+            )
+            
+            #boton.grid(sticky= 'nsew', pady = 5, padx = 5)
+            self.botones.append(boton)
 
         # Crear botones primera columna
         for i, campo in enumerate(campos1):
@@ -169,9 +205,11 @@ class VentanaAdmon():
                 fila=i,
                 columna=0,
                 command=campo['command'],
+                color_fondo= campo['color'],
                 widget_alto=campo['alto'],
                 widget_ancho=campo['ancho'],
-                state=campo['state']
+                state=campo['state'],
+                image= campo['image']
             )
             
             self.botones.append(boton)
@@ -185,9 +223,11 @@ class VentanaAdmon():
                 fila=i,
                 columna=1,
                 command=campo['command'],
+                color_fondo= campo['color'],
                 widget_alto=campo['alto'],
                 widget_ancho=campo['ancho'],
-                state=campo['state']
+                state=campo['state'],
+                image= campo.get('image', None)
             )
             
             self.botones.append(boton)
@@ -225,7 +265,7 @@ class VentanaAdmon():
         
         return label 
     
-    def crear_boton(self, parent, text, font, fila, columna, command, widget_ancho = 60, widget_alto = 30, state = 'normal'):
+    def crear_boton(self, parent, text, font, fila, columna, command, color_fondo, widget_ancho = 60, widget_alto = 30, state = 'normal', image = None):
         
         """
         Crea y posiciona un botón en la interfaz.
@@ -255,11 +295,12 @@ class VentanaAdmon():
                             height=widget_alto,         # Alto del botón
                             state= state,               # estado del boton
                             hover_color= "lightgreen",  # al pasar el mouse
-                            fg_color= "#00155C"
+                            fg_color= color_fondo,
+                            image=image,
                             )
         
         # Posiciona el botón dentro de la grilla del contenedor
-        boton.grid(row= fila, column = columna, sticky= 'ew', pady = 5, padx = 5)
+        boton.grid(row= fila, column = columna, sticky= 'nsew', pady = 5, padx = 5)
         
         return boton # Devuelve el objeto del botón para su posible reutilización
 
@@ -332,6 +373,35 @@ class VentanaAdmon():
         # Retornar el ID si lo encuentra, de lo contrario None
         return resultado[0] if resultado else None
 
+    def abrir_manual_admon(self):
+        """
+        Busca y abre el archivo 'Manual del admon.pdf' ubicado
+        en la ruta definida por 'ruta_document' usando el visor predeterminado del sistema.
+        """
+        nombre_archivo = "Manual del admon.pdf"
+        ruta_completa_pdf = os.path.join(ruta_document, nombre_archivo)
+        
+        # Verificar si el archivo existe
+        if os.path.exists(ruta_completa_pdf):
+            try:
+                # Usar el comando adecuado según el sistema operativo
+                if sys.platform.startswith('darwin'):  # macOS
+                    subprocess.call(('open', ruta_completa_pdf))
+                elif sys.platform.startswith('win32'):  # Windows
+                    # El comando 'os.startfile' es a menudo el más simple en Windows
+                    os.startfile(ruta_completa_pdf)
+                else:  # Linux (puede que necesite 'xdg-open' o un comando similar)
+                    subprocess.call(('xdg-open', ruta_completa_pdf))
+                    
+                print(f"Abriendo el archivo: {ruta_completa_pdf}")
+                
+            except Exception as e:
+                # Mostrar un error si no se pudo abrir el archivo
+                messagebox.showerror("Error al Abrir PDF", f"No se pudo abrir el archivo PDF.\nError: {e}")
+        else:
+            # Mostrar un error si el archivo no se encuentra
+            messagebox.showerror("Archivo No Encontrado", f"El archivo '{nombre_archivo}' no se encontró en la ruta:\n{ruta_document}")
+    
     def cerrar(self):
         
         """Método personalizado para el botón Salir.

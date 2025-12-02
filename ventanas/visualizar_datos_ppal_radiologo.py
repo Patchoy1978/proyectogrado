@@ -3,6 +3,7 @@ import os
 from datetime import datetime, date
 from tkinter import TclError, messagebox
 import pygame
+import subprocess
 
 """Añade al path del sistema la ruta del directorio padre del archivo actual.
 Esto permite importar módulos desde la carpeta superior."""
@@ -10,6 +11,7 @@ Esto permite importar módulos desde la carpeta superior."""
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 ruta_base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'img'))
+ruta_document = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documents'))
 ruta_base_sound = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sound'))
 
 # Importación de librerías necesarias para la interfaz
@@ -25,7 +27,7 @@ from usuarioactual.usuario_actual import UsuarioActual
 from abrirventanasemergentes.abrir_ventanas import (abrir_ventana_conn_exito,
                                                     abrir_ventana_conn_fallida,
                                                     cerrar_conexion,
-                                                    debes_hacer_primero,
+                                                    debes_hacer_primero_radiologo,
                                                     si_la_db_esta_vacia,
                                                     paciente_comentado,
                                                     datos_ingresados
@@ -79,6 +81,7 @@ class PanelPrincipalVisualizacionRadiologo():
         self.frame_ppal_visual_datos.grid_columnconfigure(list(range(16)), weight=1)
         
         self.refresh_db = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "refresh.png")).resize((30, 30)), size=(30, 30))
+        self.ayuda = ctk.CTkImage(light_image=Image.open(os.path.join(ruta_base, "ayuda.png")).resize((30, 30)), size=(30, 30))
 
         pygame.mixer.init()
         
@@ -166,6 +169,7 @@ class PanelPrincipalVisualizacionRadiologo():
             {"label": "Todos", "color": "#00155c", "tipo": "boton", "alto": 26, "ancho":10, "command": self.limpiar_fecha, 'image' : None},
             {"label": "Identificación\nPaciente", "columna": "identificacion paciente", "valor": "", "ancho": 130, "tipo": "entry"},
             {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.actualizar_pantalla, 'image' : self.refresh_db},
+            {"label": "", "color": "transparent", "tipo": "boton", "ancho": 30, "alto":30, "command": self.abrir_manual_radiologo, 'image' : self.ayuda}
             
         ]
         
@@ -549,7 +553,7 @@ class PanelPrincipalVisualizacionRadiologo():
 
         if not se_filtro:
             # No se ha filtrado nada
-            debes_hacer_primero()
+            debes_hacer_primero_radiologo()
             return
         elif not pacientes_filtrados:
             # Se filtró pero no hay pacientes
@@ -599,7 +603,7 @@ class PanelPrincipalVisualizacionRadiologo():
                 {"label": "Historia\nClinica", "columna": "hc", "valor": paciente.get("hc", ""), "ancho": 130, "tipo": "entry"},
                 {"label": "Edad", "columna": "edad", "valor": paciente.get("edad", ""), "ancho": 40, "tipo": "entry"},
                 {"label": "Rango\nEdad", "columna": "rango_edad", "valor": self.obtener_nombre_rango_edad(paciente.get("rango_edad", "")), "ancho": 60, "tipo": "entry"},
-                {"label": "Ubicación\nPaciente", "columna": "ubicacion", "valor": paciente.get("ubicacion", ""), "ancho": 90, "tipo": "entry"},
+                {"label": "Ubicación\nPaciente", "columna": "ubicacion", "valor": paciente.get("ubicacion", ""), "ancho": 115, "tipo": "entry"},
                 {"label": "Modalidad", "columna": "modalidad", "valor": self.obtener_nombre_modalidad(paciente.get("modalidad", "")), "ancho": 250, "tipo": "entry"},
                 {"label": "Ayuno", "columna": "ayuno", "valor": paciente.get("ayuno", ""), "ancho": 40, "tipo": "entry"},
                 {"label": "Diferido", "columna": "diferido", "valor": paciente.get("diferido", ""), "ancho": 40, "tipo": "entry"},
@@ -1042,8 +1046,38 @@ class PanelPrincipalVisualizacionRadiologo():
         
         # Volver a mostrar pacientes filtrados solo por sede
         self.visual_principal_datos()
+    
+    def abrir_manual_radiologo(self):
+        """
+        Busca y abre el archivo 'Manual del Radiologo.pdf' ubicado
+        en la ruta definida por 'ruta_document' usando el visor predeterminado del sistema.
+        """
+        nombre_archivo = "Manual del Radiologo.pdf"
+        ruta_completa_pdf = os.path.join(ruta_document, nombre_archivo)
+        
+        # Verificar si el archivo existe
+        if os.path.exists(ruta_completa_pdf):
+            try:
+                # Usar el comando adecuado según el sistema operativo
+                if sys.platform.startswith('darwin'):  # macOS
+                    subprocess.call(('open', ruta_completa_pdf))
+                elif sys.platform.startswith('win32'):  # Windows
+                    # El comando 'os.startfile' es a menudo el más simple en Windows
+                    os.startfile(ruta_completa_pdf)
+                else:  # Linux (puede que necesite 'xdg-open' o un comando similar)
+                    subprocess.call(('xdg-open', ruta_completa_pdf))
+                    
+                print(f"Abriendo el archivo: {ruta_completa_pdf}")
+                
+            except Exception as e:
+                # Mostrar un error si no se pudo abrir el archivo
+                messagebox.showerror("Error al Abrir PDF", f"No se pudo abrir el archivo PDF.\nError: {e}")
+        else:
+            # Mostrar un error si el archivo no se encuentra
+            messagebox.showerror("Archivo No Encontrado", f"El archivo '{nombre_archivo}' no se encontró en la ruta:\n{ruta_document}")
             
     def salir(self):
+        
         """Método personalizado para el botón Salir.
         """
         
