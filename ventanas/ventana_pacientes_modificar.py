@@ -701,7 +701,8 @@ class PacientesModificar():
         self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
         #self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
-        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self._on_cambio_sede_o_fecha(campo="fecha"))
+        #self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self._on_cambio_sede_o_fecha(campo="fecha"))
+        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.ejecutar_cambio_fecha())
         
         self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_title'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
@@ -943,7 +944,8 @@ class PacientesModificar():
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
                                                     values=self.horas,
-                                                    command=self._al_seleccionar_hora
+                                                    command=self.ejecutar_cambio_hora
+                                                    #command=self._al_seleccionar_hora
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
@@ -977,7 +979,8 @@ class PacientesModificar():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=['Seleccione Una Hora'] + self.horas
+                                                    values=['Seleccione Una Hora'] + self.horas,
+                                                    command=self.ejecutar_cambio_hora
                                                     )
         self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
@@ -2638,71 +2641,7 @@ class PacientesModificar():
             print(e)
 
     def _validar_hora_al_abrir_dropdown(self, event):
-        
-        """if getattr(self, "_mensaje_mostrado", False):
-            return  # ya se mostró, no repetir
 
-        widget = event.widget
-        raw = widget.get().strip()
-        hora_normalizada = self._normalizar_hora(raw)
-        if not hora_normalizada:
-            return
-
-        try:
-            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        except Exception:
-            return
-
-        try:
-            nombre_sede = self.entry_sede_paciente.get().strip()
-            id_sede = self.obtener_id_sede(nombre_sede)
-        except Exception:
-            id_sede = None
-
-        detalles = self.horas_tomadas.get("detalles", {})
-        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
-
-        for clave, horas_lista in detalles.items():
-            if not clave.startswith(prefijo):
-                continue
-            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
-                continue
-
-            # 🔹 Normalizar todas las horas a strings HH:MM
-            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
-            if not horas_lista:
-                continue
-
-            hora_busq = hora_normalizada.split(":")[0]
-            if any(h.split(":")[0] == hora_busq for h in horas_lista):
-                inicio = min(horas_lista)
-                fin = max(horas_lista)
-                duracion_min = (len(horas_lista) - 1) * 5
-                self._mensaje_mostrado = True
-                return
-
-        if id_sede is not None:
-            horas_tomadas_dia = self.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
-            if hora_normalizada in horas_tomadas_dia:
-                clave_busq = f"{id_sede}_{fecha}_{hora_normalizada}"
-                horas_lista = detalles.get(clave_busq)
-                if isinstance(horas_lista, list) and horas_lista:
-                    horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
-                    inicio = min(horas_lista)
-                    fin = max(horas_lista)
-                    duracion_min = (len(horas_lista) - 1) * 5
-                else:
-                    duracion_min = self._calcular_duracion_estudio(fecha, hora_normalizada)
-                    fin = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion_min)).strftime("%H:%M")
-
-                self._mensaje_mostrado = True
-                messagebox.showwarning(
-                    "Hora no disponible",
-                    f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
-                    f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
-                    parent=self.ventana
-                )"""
-                
         # Resetear mensaje si el usuario borra la hora
         cb = self.entry_combobox_hora_citacion
         widget = event.widget
@@ -2770,7 +2709,6 @@ class PacientesModificar():
         # 🔹 Si no hay solapamiento, permitir la selección
         self._mensaje_mostrado = False
     
-    
     def cargar_horas(self):
         """Carga el diccionario de horas tomadas desde un archivo JSON."""
         """if os.path.exists("horas_tomadas.json"):
@@ -2794,7 +2732,6 @@ class PacientesModificar():
                 self.horas_tomadas = {"detalles": {}}
         else:
             self.horas_tomadas = {"detalles": {}}
-    
     
     def guardar_horas(self):
             
@@ -3206,12 +3143,52 @@ class PacientesModificar():
             import traceback
             traceback.print_exc()
         
+    def validar_fecha(self):
         
+        fecha_orden = self.entry_fecha_orden.get_date()
         
+        fecha_cita = self.entry_fecha_cita.get_date()
         
+        if fecha_cita < fecha_orden:
+            
+            messagebox.showinfo('Error en la fecha', """La fecha de la cita no puede ser inferior a la fecha de la orden""", parent=self.ventana)
+            
+            self.entry_fecha_cita.set_date(fecha_orden)
+            
+            return False
         
+        return True
+
+    def ejecutar_cambio_fecha(self):
         
+        if self.validar_fecha(): # Solo si la fecha es válida
+            self.actualizar_horas_disponibles()
     
+    def validar_hora_cita(self):
+        hora_cita = self.entry_combobox_hora_citacion.get()
+        hora_realizacion = self.entry_combobox_hora_realizacion.get()
+        
+        # Validamos solo si AMBOS tienen una hora real (no el placeholder)
+        if (hora_cita != self.placeholder_text and 
+            hora_realizacion != self.placeholder_text):
+            
+            if hora_realizacion < hora_cita:
+                messagebox.showwarning(
+                    'Error en la Hora', 
+                    'La hora de la realización no puede ser inferior a la hora de la cita', parent=self.ventana
+                )
+                # Limpiamos la hora de realización para que el usuario elija de nuevo
+                self.entry_combobox_hora_realizacion.set(hora_cita)
+                return False
+                
+        return True
+
+    def ejecutar_cambio_hora(self, *args):
+        # Este *args captura el valor si viene de 'command' o el evento si viene de 'bind'
+        if self.validar_hora_cita():
+            if hasattr(self, '_restore_placeholder'):
+                self._restore_placeholder()
+
     # ==========================================================
     # VENTANA EMERGENTE PERSONALIZADA
     # ==========================================================

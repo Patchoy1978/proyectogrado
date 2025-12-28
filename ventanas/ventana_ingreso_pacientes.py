@@ -514,8 +514,8 @@ class IngresarPacientes():
         self.entry_fecha_cita.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
         self.entry_fecha_cita.set_date(hoy)
-        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.actualizar_horas_disponibles())
-        
+        self.entry_fecha_cita.bind("<<DateEntrySelected>>", lambda e: self.ejecutar_cambio_fecha())
+
         self.lab_modalidad = ctk.CTkLabel(self.frame2, text='Modalidad', font= self.fonts['label_etiqueta'], fg_color='white', bg_color= 'white', text_color= "#484a4b")
         self.lab_modalidad.grid(row=4, column=0, pady = 4, sticky='nsew')
         
@@ -756,7 +756,8 @@ class IngresarPacientes():
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
                                                     values=self.horas,
-                                                    command=self._al_seleccionar_hora
+                                                    command=self.ejecutar_cambio_hora
+                                                    #command=self._al_seleccionar_hora
                                                     )
         self.entry_combobox_hora_citacion.grid(row=1, column=0, pady=4, padx=15, sticky='nsew')
         
@@ -764,7 +765,7 @@ class IngresarPacientes():
         self.entry_combobox_hora_citacion.set(self.placeholder_text)
         cb = self.entry_combobox_hora_citacion        
         cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
-        cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
+        cb.bind("<FocusOut>", lambda e, w=cb: self.ejecutar_cambio_hora(e, w))
         
         # Click: actualizar filtro
         cb.bind("<Button-1>", lambda e, w=cb: self.filtrar_horas(e, w))
@@ -790,7 +791,8 @@ class IngresarPacientes():
                                                     text_color='black',
                                                     button_color="lightgray",
                                                     button_hover_color='lightgreen',
-                                                    values=self.horas
+                                                    values=self.horas,
+                                                    command=self.ejecutar_cambio_hora
                                                     )
         self.entry_combobox_hora_realizacion.grid(row=3, column=0, pady=4, padx=15, sticky='nsew')
         
@@ -798,7 +800,7 @@ class IngresarPacientes():
             
         cb = self.entry_combobox_hora_realizacion
         cb.bind("<FocusIn>", lambda e, w=cb: self._clear_placeholder(e, w))
-        cb.bind("<FocusOut>", lambda e, w=cb: self._restore_placeholder(e, w))
+        cb.bind("<<ComboboxSelected>>", self.ejecutar_cambio_hora)
         cb.bind("<KeyRelease>", lambda e, w=cb: self.filtrar_horas(e, w))
         
         self.lab_causal_retraso = ctk.CTkLabel(self.frame3, font=self.fonts['label_etiqueta'], fg_color= 'white', text='Causal Del Retraso', bg_color= 'white', text_color= "#484a4b")
@@ -2121,70 +2123,6 @@ class IngresarPacientes():
 
     def _validar_hora_al_abrir_dropdown(self, event):
         
-        """if getattr(self, "_mensaje_mostrado", False):
-            return  # ya se mostró, no repetir
-
-        widget = event.widget
-        raw = widget.get().strip()
-        hora_normalizada = self._normalizar_hora(raw)
-        if not hora_normalizada:
-            return
-
-        try:
-            fecha = self.entry_fecha_cita.get_date().strftime("%d/%m/%Y")
-        except Exception:
-            return
-
-        try:
-            nombre_sede = self.entry_sede_paciente.get().strip()
-            id_sede = self.obtener_id_sede(nombre_sede)
-        except Exception:
-            id_sede = None
-
-        detalles = IngresarPacientes.horas_tomadas.get("detalles", {})
-        prefijo = f"{id_sede}_{fecha}_" if id_sede is not None else f"_{fecha}_"
-
-        for clave, horas_lista in detalles.items():
-            if not clave.startswith(prefijo):
-                continue
-            if not isinstance(horas_lista, list) or len(horas_lista) == 0:
-                continue
-
-            # 🔹 Normalizar todas las horas a strings HH:MM
-            horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
-            if not horas_lista:
-                continue
-
-            hora_busq = hora_normalizada.split(":")[0]
-            if any(h.split(":")[0] == hora_busq for h in horas_lista):
-                inicio = min(horas_lista)
-                fin = max(horas_lista)
-                duracion_min = (len(horas_lista) - 1) * 5
-                self._mensaje_mostrado = True
-                return
-
-        if id_sede is not None:
-            horas_tomadas_dia = IngresarPacientes.horas_tomadas.get(str(id_sede), {}).get(fecha, [])
-            if hora_normalizada in horas_tomadas_dia:
-                clave_busq = f"{id_sede}_{fecha}_{hora_normalizada}"
-                horas_lista = detalles.get(clave_busq)
-                if isinstance(horas_lista, list) and horas_lista:
-                    horas_lista = [self._normalizar_hora(h) for h in horas_lista if h is not None]
-                    inicio = min(horas_lista)
-                    fin = max(horas_lista)
-                    duracion_min = (len(horas_lista) - 1) * 5
-                else:
-                    duracion_min = self._calcular_duracion_estudio(fecha, hora_normalizada)
-                    fin = (datetime.strptime(hora_normalizada, "%H:%M") + timedelta(minutes=duracion_min)).strftime("%H:%M")
-
-                self._mensaje_mostrado = True
-                messagebox.showwarning(
-                    "Hora no disponible",
-                    f"La hora {hora_normalizada} ya está ocupada para la sede {nombre_sede}.\n"
-                    f"El estudio asignado dura {duracion_min} minutos (hasta {fin}).",
-                    parent=self.ventana
-                )"""
-                
         # Resetear mensaje si el usuario borra la hora
         cb = self.entry_combobox_hora_citacion
         widget = event.widget
@@ -2251,51 +2189,7 @@ class IngresarPacientes():
 
         # 🔹 Si no hay solapamiento, permitir la selección
         self._mensaje_mostrado = False
-    
-    """@classmethod
-    def cargar_horas(self):
-        Carga el diccionario de horas tomadas desde un archivo JSON.
-        if os.path.exists("horas_tomadas.json"):
-            try:
-                with open("horas_tomadas.json", "r") as f:
-                    IngresarPacientes.horas_tomadas = json.load(f)
-            except Exception as e:
-                print("Error al cargar horas tomadas:", e)
-                IngresarPacientes.horas_tomadas = {}
-        else:
-            IngresarPacientes.horas_tomadas = {}
-    
-    @classmethod
-    def guardar_horas(self):
-            
-        Guarda el diccionario de horas tomadas en un archivo JSON.
-        try:
-            horas = IngresarPacientes.horas_tomadas
-            print(type(horas))
 
-            if not isinstance(horas, dict):
-                print("[ERROR] horas_tomadas no es un diccionario:", horas)
-                return
-
-            # Revisión detallada del contenido
-            for k, v in horas.items():
-                #print(f"[DEBUG] Clave principal: {k} ({type(v)})")
-                if isinstance(v, dict):
-                    for subk, subv in v.items():
-                        print(f"   ├─ {subk}: {type(subv)} → {subv}")
-                else:
-                    print(f"   └─ Valor: {v}")
-
-            # Serialización segura
-            with open("horas_tomadas.json", "w", encoding="utf-8") as f:
-                json.dump(horas, f, indent=2, default=str)
-
-        except Exception as e:
-            print(e)
-            import traceback
-            traceback.print_exc()
-    """
-    
     @classmethod
     def cargar_horas(cls):
         """Carga el diccionario de horas tomadas desde un archivo JSON (solo 'detalles')."""
@@ -2310,7 +2204,6 @@ class IngresarPacientes():
                 cls.horas_tomadas = {"detalles": {}}
         else:
             cls.horas_tomadas = {"detalles": {}}
-
 
     @classmethod
     def guardar_horas(cls):
@@ -2469,7 +2362,54 @@ class IngresarPacientes():
             edad_fuera_rango()   
             self.entry_edad_paciente.delete(0, "end")
             self.entry_edad_paciente.focus_set()
+    
+    def validar_fecha(self):
         
+        fecha_orden = self.entry_fecha_orden.get_date()
+        
+        fecha_cita = self.entry_fecha_cita.get_date()
+        
+        if fecha_cita < fecha_orden:
+            
+            messagebox.showinfo('Error en la fecha', """La fecha de la cita no puede ser inferior a la fecha de la orden""")
+            
+            self.entry_fecha_cita.set_date(fecha_orden)
+            
+            return False
+        
+        return True
+
+    def ejecutar_cambio_fecha(self):
+        
+        if self.validar_fecha(): # Solo si la fecha es válida
+            self.actualizar_horas_disponibles()
+    
+    def validar_hora_cita(self):
+        hora_cita = self.entry_combobox_hora_citacion.get()
+        hora_realizacion = self.entry_combobox_hora_realizacion.get()
+        
+        # Validamos solo si AMBOS tienen una hora real (no el placeholder)
+        if (hora_cita != self.placeholder_text and 
+            hora_realizacion != self.placeholder_text):
+            
+            if hora_realizacion < hora_cita:
+                messagebox.showwarning(
+                    'Error en la Hora', 
+                    'La hora de la realización no puede ser inferior a la hora de la cita'
+                )
+                # Limpiamos la hora de realización para que el usuario elija de nuevo
+                self.entry_combobox_hora_realizacion.set(hora_cita)
+                return False
+                
+        return True
+
+    def ejecutar_cambio_hora(self, *args):
+        # Este *args captura el valor si viene de 'command' o el evento si viene de 'bind'
+        if self.validar_hora_cita():
+            if hasattr(self, '_restore_placeholder'):
+                self._restore_placeholder()
+    
+
     def salir(self):
             
         if getattr(self, 'db', None):
